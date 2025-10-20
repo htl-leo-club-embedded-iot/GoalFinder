@@ -39,6 +39,12 @@ public:
     void SetIsSoundEnabled(bool value);
     bool IsSoundEnabled();
 
+    int GetDetectedHits();
+	int GetDetectedMisses();
+
+	void ResetDetectedHits();
+	void ResetDetectedMisses();
+
     /** Destructor */
     virtual ~GoalfinderApp();
 
@@ -125,6 +131,7 @@ private:
     // === Statistik / Zähler ===
     int detectedHits = 0;
     int detectedMisses = 0;
+    
 
     // === FreeRTOS Handles ===
     static TaskHandle_t TaskAudio;

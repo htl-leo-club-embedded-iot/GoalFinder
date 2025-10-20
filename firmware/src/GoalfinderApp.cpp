@@ -94,13 +94,15 @@ void GoalfinderApp::Init() {
     xMutex = xSemaphoreCreateMutex();
 
     xTaskCreatePinnedToCore(TaskAudioCode, "TaskAudio", 8192, this, 1, &TaskAudio, 1);
-    xTaskCreatePinnedToCore(TaskDetectionCode, "TaskDetection", 8192, this, 2, &TaskDetection, 1);
+    xTaskCreatePinnedToCore(TaskDetectionCode, "TaskDetection", 8192, this, 2, &TaskDetection, 0);
     xTaskCreatePinnedToCore(TaskLedCode, "TaskLed", 8192, this, 1, &TaskLed, 0);
 
     Serial.println("All tasks started.");
 }
 
 void GoalfinderApp::UpdateSettings(bool force) {
+
+
     Settings* settings = Settings::GetInstance();
     if (force || settings->IsModified()) {
         audioPlayer.SetVolume(settings->GetVolume());
@@ -225,4 +227,24 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
 // === Dummy-Methode für Loop-kompatibilität ===
 void GoalfinderApp::Process() {
     // Hauptloop kann leer bleiben, wenn Tasks aktiv sind
+}
+
+int GoalfinderApp::GetDetectedHits()
+{
+    return detectedHits;
+}
+
+int GoalfinderApp::GetDetectedMisses()
+{
+    return detectedMisses;
+}
+
+void GoalfinderApp::ResetDetectedHits()
+{
+    detectedHits = 0;
+}
+
+void GoalfinderApp::ResetDetectedMisses()
+{
+    detectedMisses = 0;
 }
