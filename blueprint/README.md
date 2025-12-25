@@ -1,4 +1,6 @@
-# Structure
+# Blueprint Directory
+
+## Structure
     .
     ├── 3d-print            Latest 3D printing files
     |   ├── obg                 .obj 3D files

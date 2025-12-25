@@ -1,4 +1,6 @@
-# Structure
+# Assets Directory
+
+## Structure
     .
     ├── audio               Audio files
     |   ├── beep                Beep Sounds
