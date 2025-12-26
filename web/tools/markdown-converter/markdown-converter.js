@@ -21,7 +21,7 @@
  */
 class MarkdownConverter {
 	/** @type {path} - The path where the image assets are found */
-	imagePath = `../tools/markdown-converter/assets/img/`;
+	imagePath = `../../assets/img/`;
 
 	/** @type {number} - Counter for unique heading IDs */
 	headingCount;
@@ -628,7 +628,7 @@ class MarkdownConverter {
 				const previousPath = this.flatStructure[this.currentPageIndex - 1];
 				const previousName = this.getPageName(previousPath);
 				item += `<div class="markdown-end-next" data-path="${previousPath}">
-                            <img class="markdown-end-icon-previous" src="../assets/img/arrow.svg" alt="next-icon"></img>
+                            <img class="markdown-end-icon-previous" src="${imagePath}arrow.svg" alt="next-icon"></img>
                             <div class="markdown-end-content-p">
                                 <p class="markdown-end-label">Previous</p>
                                 <p class="markdown-end-title">${previousName}</p>
@@ -645,7 +645,7 @@ class MarkdownConverter {
                                 <p class="markdown-end-label">Next</p>
                                 <p class="markdown-end-title">${nextName}</p>
                             </div>
-                            <img class="markdown-end-icon" src="../assets/img/arrow.svg" alt="next-icon"></img>
+                            <img class="markdown-end-icon" src="${this.imagePath}arrow.svg" alt="next-icon"></img>
                          </div>`;
 			}
 

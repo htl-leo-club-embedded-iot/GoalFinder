@@ -184,7 +184,7 @@ async function searchbarSearch() {
 				if (item.type === "page" || (item.type === "category" && item.path)) {
 					// This item has a markdown file to search
 					try {
-						const markdown = await converter.loadMarkdown("../assets/" + item.path);
+						const markdown = await converter.loadMarkdown( item.path);
 						const lowerMarkdown = markdown.toLowerCase();
 
 						if (lowerMarkdown.includes(searchTerm)) {
@@ -399,13 +399,13 @@ async function navigateToSearchResult(path, searchTerm) {
 	}
 
 	// Load and display the content
-	const md = await converter.loadMarkdown("../assets/" + path);
+	const md = await converter.loadMarkdown( path);
 	currentMarkdownContent = md;
 	const html = converter.convert(md, path);
 	preview.innerHTML = html;
 
 	const rightPanelHeader = document.getElementById("right-panel-header");
-	const headings = await getMarkdownHeaders("../assets/" + path);
+	const headings = await getMarkdownHeaders( path);
 	rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 	setupRightPanelListeners(rightPanelHeader);
 	setupEndButtonListeners();
@@ -479,11 +479,11 @@ function lightDarkModeToggle() {
 
 	// Toggle mode switch button content (only update src and text, preserve DOM for smooth transition)
 	if (html.classList.contains("dark-mode")) {
-		toggleIcon.src = "../assets/img/light.svg";
+		toggleIcon.src = "../../assets/img/light.svg";
 		toggleText.textContent = "Light Mode";
 		localStorage.setItem("theme", "dark");
 	} else {
-		toggleIcon.src = "../assets/img/dark.svg";
+		toggleIcon.src = "../../assets/img/dark.svg";
 		toggleText.textContent = "Dark Mode";
 		localStorage.setItem("theme", "light");
 	}
@@ -670,13 +670,13 @@ async function restoreSelectedPage(savedPagePath, savedCategoryName) {
 			currentlySelectedTopic = pageButton;
 
 			// Load the content
-			const md = await converter.loadMarkdown("../assets/" + savedPagePath);
+			const md = await converter.loadMarkdown( savedPagePath);
 			currentMarkdownContent = md;
 			const html = converter.convert(md, savedPagePath);
 			preview.innerHTML = html;
 
 			const rightPanelHeader = document.getElementById("right-panel-header");
-			const headings = await getMarkdownHeaders("../assets/" + savedPagePath);
+			const headings = await getMarkdownHeaders( savedPagePath);
 			rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 			setupRightPanelListeners(rightPanelHeader);
 			setupEndButtonListeners();
@@ -691,13 +691,13 @@ async function restoreSelectedPage(savedPagePath, savedCategoryName) {
 			// Load the category content if it has a path
 			const categoryItem = findCategoryByName(browser.contentStructure, savedCategoryName);
 			if (categoryItem && categoryItem.path) {
-				const md = await converter.loadMarkdown("../assets/" + categoryItem.path);
+				const md = await converter.loadMarkdown( categoryItem.path);
 				currentMarkdownContent = md;
 				const html = converter.convert(md, categoryItem.path);
 				preview.innerHTML = html;
 
 				const rightPanelHeader = document.getElementById("right-panel-header");
-				const headings = await getMarkdownHeaders("../assets/" + categoryItem.path);
+				const headings = await getMarkdownHeaders( categoryItem.path);
 				rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 				setupRightPanelListeners(rightPanelHeader);
 				setupEndButtonListeners();
@@ -801,7 +801,7 @@ function setupEventListenersForNewElements() {
 		if (!button.querySelector(".category-arrow")) {
 			const arrow = document.createElement("span");
 			arrow.classList.add("category-arrow");
-			arrow.innerHTML = '<img src="../assets/img/arrow.svg" class="category-arrow" alt="arrow" width="15" height="15">';
+			arrow.innerHTML = '<img src="../../assets/img/arrow.svg" class="category-arrow" alt="arrow" width="15" height="15">';
 			button.appendChild(arrow);
 		}
 
@@ -865,13 +865,13 @@ function setupEventListenersForNewElements() {
 			button.classList.add("topic-selected");
 			currentlySelectedTopic = button;
 
-			const md = await converter.loadMarkdown("../assets/" + button.dataset.path);
+			const md = await converter.loadMarkdown( button.dataset.path);
 			currentMarkdownContent = md; // for copy button
 			const html = converter.convert(md, button.dataset.path);
 			preview.innerHTML = html;
 
 			const rightPanelHeader = document.getElementById("right-panel-header");
-			const headings = await getMarkdownHeaders("../assets/" + button.dataset.path);
+			const headings = await getMarkdownHeaders( button.dataset.path);
 			rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 			setupRightPanelListeners(rightPanelHeader);
 			setupEndButtonListeners();
@@ -911,13 +911,13 @@ function setupEndButtonListeners() {
 					currentlySelectedTopic = targetButton;
 
 					// Load and display the content
-					const md = await converter.loadMarkdown("../assets/" + path);
+					const md = await converter.loadMarkdown( path);
 					currentMarkdownContent = md;
 					const html = converter.convert(md, path);
 					preview.innerHTML = html;
 
 					const rightPanelHeader = document.getElementById("right-panel-header");
-					const headings = await getMarkdownHeaders("../assets/" + path);
+					const headings = await getMarkdownHeaders( path);
 					rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 					setupRightPanelListeners(rightPanelHeader);
 
@@ -959,13 +959,13 @@ function setupEndButtonListeners() {
 					currentlySelectedTopic = targetButton;
 
 					// Load and display the content
-					const md = await converter.loadMarkdown("../assets/" + path);
+					const md = await converter.loadMarkdown( path);
 					currentMarkdownContent = md;
 					const html = converter.convert(md, path);
 					preview.innerHTML = html;
 
 					const rightPanelHeader = document.getElementById("right-panel-header");
-					const headings = await getMarkdownHeaders("../assets/" + path);
+					const headings = await getMarkdownHeaders( path);
 					rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 					setupRightPanelListeners(rightPanelHeader);
 
@@ -1005,7 +1005,7 @@ async function setupEventListeners() {
 		if (!button.querySelector(".category-arrow")) {
 			const arrow = document.createElement("span");
 			arrow.classList.add("category-arrow");
-			arrow.innerHTML = '<img src="../assets/img/arrow.svg" class="category-arrow" alt="arrow" width="15" height="15">';
+			arrow.innerHTML = '<img src="../../assets/img/arrow.svg" class="category-arrow" alt="arrow" width="15" height="15">';
 			button.appendChild(arrow);
 		}
 
@@ -1119,13 +1119,13 @@ async function setupEventListeners() {
 			button.classList.add("topic-selected");
 			currentlySelectedTopic = button;
 
-			const md = await converter.loadMarkdown("../assets/" + button.dataset.path);
+			const md = await converter.loadMarkdown(button.dataset.path);
 			currentMarkdownContent = md; // for copy button
 			const html = converter.convert(md, button.dataset.path);
 			preview.innerHTML = html;
 
 			const rightPanelHeader = document.getElementById("right-panel-header");
-			const headings = await getMarkdownHeaders("../assets/" + button.dataset.path);
+			const headings = await getMarkdownHeaders( button.dataset.path);
 			rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 			setupRightPanelListeners(rightPanelHeader);
 			setupEndButtonListeners();
@@ -1141,13 +1141,13 @@ async function setupEventListeners() {
 		topicButtons[0].classList.add("topic-selected");
 		currentlySelectedTopic = topicButtons[0];
 
-		const md = await converter.loadMarkdown("../assets/" + topicButtons[0].dataset.path);
+		const md = await converter.loadMarkdown(topicButtons[0].dataset.path);
 		currentMarkdownContent = md; // for copy button
 		const html = converter.convert(md, topicButtons[0].dataset.path);
 		preview.innerHTML = html;
 
 		const rightPanelHeader = document.getElementById("right-panel-header");
-		const headings = await getMarkdownHeaders("../assets/" + topicButtons[0].dataset.path);
+		const headings = await getMarkdownHeaders(topicButtons[0].dataset.path);
 		rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 		setupRightPanelListeners(rightPanelHeader);
 		setupEndButtonListeners();
@@ -1184,13 +1184,13 @@ async function onToggle(button) {
 			button.classList.add("topic-category-button-selected");
 			currentlySelectedCategory = button;
 
-			const md = await converter.loadMarkdown("../assets/" + categoryItem.path);
+			const md = await converter.loadMarkdown(categoryItem.path);
 			currentMarkdownContent = md; // for copy button
 			const html = converter.convert(md, categoryItem.path);
 			preview.innerHTML = html;
 
 			const rightPanelHeader = document.getElementById("right-panel-header");
-			const headings = await getMarkdownHeaders("../assets/" + categoryItem.path);
+			const headings = await getMarkdownHeaders( categoryItem.path);
 			rightPanelHeader.innerHTML = await generateHtmlRightHeader(headings);
 			setupRightPanelListeners(rightPanelHeader);
 			setupEndButtonListeners();
@@ -1298,7 +1298,7 @@ async function refresh() {
 function selectInitialLoadedTopic(path) {
 	converter.loadMarkdown(path).then((md) => {
 		currentMarkdownContent = md; // for copy button
-		const html = converter.convert(md, path.replace("../assets/", ""));
+		const html = converter.convert(md, 	);
 		preview.innerHTML = html;
 	});
 
@@ -1309,7 +1309,7 @@ function selectInitialLoadedTopic(path) {
 		setupRightPanelListeners(rightPanelHeader);
 	});
 
-	const dataPath = path.replace("../assets/", "");
+	const dataPath = path.replace("../../assets/", "");
 	const targetButton = document.querySelector(`[data-path="${dataPath}"]`);
 	targetButton.classList.remove("topic-unselected");
 	targetButton.classList.add("topic-selected");
@@ -1321,7 +1321,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 	browserContainer = document.querySelector(".topic-selector");
 
 	// Fetch and load topic structure
-	await browser.fetchStructure("../assets/content-structure.json"); // DEBUG_DATA
+	await browser.fetchStructure("../content-structure.json");
 
 	// Load saved content structure state from localStorage
 	const savedState = loadContentStructureState();
@@ -1345,7 +1345,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 	if (savedPagePath || savedCategoryName) {
 		await restoreSelectedPage(savedPagePath, savedCategoryName);
 	} else {
-		selectInitialLoadedTopic("../assets/content/introduction.md");
+		selectInitialLoadedTopic("../content/introduction.md");
 	}
 
 	const savedTheme = localStorage.getItem("theme");
@@ -1353,8 +1353,8 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 		const toggleButton = document.getElementById("lightDarkToggle");
 		const copyButton = document.getElementById("copyButton");
 		if (toggleButton) {
-			toggleButton.innerHTML = '<img class="icon" src="../assets/img/light.svg"><span class="icon-text">Light Mode</span>';
-			copyButton.innerHTML = '<img class="icon" src="../assets/img/copy.svg"></img><span class="icon-text">Copy</span>';
+			toggleButton.innerHTML = '<img class="icon" src="../../assets/img/light.svg"><span class="icon-text">Light Mode</span>';
+			copyButton.innerHTML = '<img class="icon" src="../../assets/img/copy.svg"></img><span class="icon-text">Copy</span>';
 		}
 	}
 
