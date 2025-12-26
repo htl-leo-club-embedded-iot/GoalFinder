@@ -14,8 +14,3 @@
     ├── LICENSE             Licensing information for the project
     ├── package-lock.json   Locked npm dependencies for consistent builds
     └── README.md           Description of the repository
-    
-
-## Credits
-
-This project was conceived and envisioned by the [previous team](https://github.com/htl-leo-club-embedded-iot/GoalFinder)

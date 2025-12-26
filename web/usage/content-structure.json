@@ -1,0 +1,20 @@
+[
+  {
+    "type": "page",
+    "name": "MarkDown Converter Showcase",
+    "path": "content/introduction.md"
+  },
+  {
+    "type": "category",
+    "name": "Category",
+    "children": [
+      {
+        "type": "category",
+        "name": "Topic Category",
+        "path": "content/topic-category.md",
+        "collapsed": true,
+        "children": [ ]
+      }
+    ]
+  }
+]
