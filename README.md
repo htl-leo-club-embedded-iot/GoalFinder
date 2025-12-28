@@ -18,4 +18,4 @@ Fork the repository and submit a pull request with a concise summary of your cha
 
 ### Already a project member?
 
-See the [contribution guide](./doc/contribute/README.md) for detailed instructions. 
+See the [contribution guide](./doc/contribute.mdmd) for detailed instructions. 

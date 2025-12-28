@@ -18,4 +18,4 @@ This directory contains the GoalFinder project's technical documentation and con
 
 ## Contribute
 
-See the [contribution guide](./contribute/README.md) for detailed instructions on how to use the provided development tools. 
+See the [contribution guide](./contribute.md) for detailed instructions on how to use the provided development tools. 
