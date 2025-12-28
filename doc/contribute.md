@@ -50,3 +50,49 @@ Procedure for new issues:
 7. When work starts, move it to `In Progress`.
 8. After implementation, move it to `Review` for verification.
 9. A reviewer verifies the fix; if accepted, move the issue to `Done`.
+
+### Labels
+
+Following custom labels can be applied to issues. A description of each label and when to use it is provided below:
+
+#### Bugs
+
+ - `bug` — Identified bug
+ - `bug-fix` — Bug fixing task
+ - `severe` — Severe bug
+ - `major` — Major bug
+ - `minor` — Minor bug
+
+Apply a severity label to each bug issue.
+
+#### Categories
+
+ - `cad` — Relates to the CAD design (housing, mounting, ...)
+ - `doc` — Relates to the internal / technical documentation
+ - `hardware` — Relates to the hardware
+ - `firmware` — Relates to the firmware
+ - `web-app` — Relates to the web access point of the GoalFinder device
+ - `pages` — Relates to the web page
+ - `pcb` — Relates to the PCB design
+ - `infrastructure` — Relates to the infrastructure
+
+Apply a category label to features and parent tasks
+
+#### Priority
+
+ - `p0` - `p4` — Priority from highest to lowest
+  
+Apply a priority label to every non User Story / Feature (Request) issue
+
+#### Iterative Development
+
+ - `user-story` — User Story
+ - `feature-request` — Feature Request
+ - `feature` — Feature
+
+#### Other
+
+ - `enhancement` — Task not worthy of any other label
+ - `notice` — Notice - Not to be worked on
+ - `review` — Simple review task
+ - `task` — Task not categorized with any other label
