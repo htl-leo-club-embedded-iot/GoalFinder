@@ -24,10 +24,32 @@ jobs:
 
     defaults:
       run:
-        working-directory: firmware
+        working-directory: client/embedded
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for version tagging
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+          
+      - name: Get git commit hash
+        id: git_hash
+        run: |
+          HASH=$(git rev-parse --short HEAD)
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          echo "Git hash: $HASH"
+      
+      - name: Update version files
+        run: |
+          cd ../..
+          python update-version.py ${{ steps.version.outputs.version }} ${{ steps.git_hash.outputs.hash }}
+          
       - uses: actions/cache@v4
         with:
           path: |
@@ -50,9 +72,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            firmware/.pio/build/wemos_d1_mini32/firmware.bin
-            firmware/.pio/build/wemos_d1_mini32/littlefs.bin
-            firmware/.pio/build/wemos_d1_mini32/system.bin
+            client/embedded/.pio/build/wemos_d1_mini32/firmware.bin
+            client/embedded/.pio/build/wemos_d1_mini32/littlefs.bin
+            client/embedded/.pio/build/wemos_d1_mini32/system.bin
 
       #- name: Upload Firmware
        # uses: actions/upload-artifact@v4

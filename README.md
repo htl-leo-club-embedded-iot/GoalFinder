@@ -45,3 +45,14 @@ Fork the repository and submit a pull request with a concise summary of your cha
 ### Already a project member?
 
 See the [contribution guide](./doc/contribute.mdmd) for detailed instructions. 
+
+## Version Management
+
+**Dev builds:** `python update-version.py X.Y.Z-dev`
+
+**Release:** Tag and push to trigger automatic build
+```bash
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+Version appears on device Settings page.

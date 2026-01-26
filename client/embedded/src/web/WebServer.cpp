@@ -4,6 +4,7 @@
 #include <GoalfinderApp.h>
 
 #include "Settings.h"
+#include "version.h"
 
 #define WEBAPP_DIR "/web"
 #define INDEX_PATH "/index.html"
@@ -116,6 +117,7 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
     root["ledMode"] = (int)settings->GetLedMode();
     root["macAddress"] = settings->GetMacAddress();
     root["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
+    root["version"] = FIRMWARE_VERSION;
 
     response->setLength();
     request->send(response);
