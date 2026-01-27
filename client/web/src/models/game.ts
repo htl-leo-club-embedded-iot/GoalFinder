@@ -3,7 +3,7 @@ import type {Player} from "@/models/player";
 const API_URL = "/api"
 
 abstract class Game {
-    protected readonly _players: Player[];
+    private readonly _players: Player[];
     private _isRunning: boolean = false;
 
     constructor() {
@@ -59,16 +59,16 @@ abstract class Game {
 export class ShotChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 60;
 
-    public _timer: number = 0;
+    private _timer: number = 0;
     private timerIntervalId: number = -1;
-    public selectedPlayerIndex: number = 0;
+    private selectedPlayerIndex: number = 0;
 
     public get timer(): number {
         return this._timer;
     }
 
     public getSelectedPlayer(): Player {
-        return this._players[this.selectedPlayerIndex];
+        return this.players[this.selectedPlayerIndex];
     }
 
     public constructor() {
@@ -123,7 +123,7 @@ export class ShotChallengeGame extends Game {
     private selectNewPlayer(): void {
         this.selectedPlayerIndex++;
 
-        if(this.selectedPlayerIndex >= this._players.length) {
+        if(this.selectedPlayerIndex >= this.players.length) {
             this.selectedPlayerIndex = 0;
         }
     }
@@ -136,16 +136,16 @@ export class ShotChallengeGame extends Game {
 export class TimedShotsChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 120;
 
-    public _timer: number = 0;
+    private _timer: number = 0;
     private timerIntervalId: number = -1;
-    public selectedPlayerIndex: number = 0;
+    private selectedPlayerIndex: number = 0;
 
     public get timer(): number {
         return this._timer;
     }
 
     public getSelectedPlayer(): Player {
-        return this._players[this.selectedPlayerIndex];
+        return this.players[this.selectedPlayerIndex];
     }
 
     public constructor() {
@@ -198,7 +198,7 @@ export class TimedShotsChallengeGame extends Game {
     private selectNewPlayer(): void {
         this.selectedPlayerIndex++;
 
-        if(this.selectedPlayerIndex >= this._players.length) {
+        if(this.selectedPlayerIndex >= this.players.length) {
             this.selectedPlayerIndex = 0;
         }
     }
