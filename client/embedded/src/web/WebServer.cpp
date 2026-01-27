@@ -62,14 +62,24 @@ static void HandleRequest(AsyncWebServerRequest* request)
     if(!fileExists)
     {
         filePath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
+        fileExists = internalFS->FileExists(filePath);
+    }
+
+    if(!fileExists)
+    {
+        Serial.printf("Web Server: file not found: %s\n", filePath.c_str());
+        request->send(404, "text/plain", "File not found");
+        return;
     }
 
     AsyncWebServerResponse* response = request->beginResponse(LittleFS, filePath, contentType);
 
-    /*if(fileExists) 
+    if(response == nullptr)
     {
-
-    }*/
+        Serial.println("Web Server: failed to create response");
+        request->send(500, "text/plain", "Internal server error");
+        return;
+    }
    
     response->addHeader("Content-Encoding", "gzip");
     response->addHeader("Cache-Control", "max-age=604800"); // 1 week
