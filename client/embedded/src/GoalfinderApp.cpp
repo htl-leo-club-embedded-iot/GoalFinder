@@ -116,9 +116,13 @@ void GoalfinderApp::TaskAudioCode(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
         if (app->IsSoundEnabled()) {
-            app->audioPlayer.Loop();
-            if (!app->audioPlayer.IsPlaying()) {
-                app->TickMetronome();
+            if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+                app->audioPlayer.Loop();
+                bool isPlaying = app->audioPlayer.IsPlaying();
+                xSemaphoreGive(xMutex);
+                if (!isPlaying) {
+                    app->TickMetronome();
+                }
             }
         }
         vTaskDelay(1 / portTICK_PERIOD_MS);
@@ -220,7 +224,10 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
         Serial.printf("%4.3f: starting playback of: '%s'\n", millis() / 1000.0, soundFileName);
-        audioPlayer.PlayMP3(soundFileName);
+        if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+            audioPlayer.PlayMP3(soundFileName);
+            xSemaphoreGive(xMutex);
+        }
     }
 }
 
