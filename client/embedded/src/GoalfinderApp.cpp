@@ -83,6 +83,10 @@ void GoalfinderApp::Init() {
     WiFi.setSleep(false);
     Serial.println(WiFi.softAPIP());
 
+    // Start DNS server for captive portal (redirect all domains to AP IP)
+    dnsServer.start(53, "*", WiFi.softAPIP());
+    Serial.println("[INFO] DNS server started for captive portal");
+
     webServer.Begin();
     sntp.Init();
     vibrationSensor.Init();
@@ -226,7 +230,8 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
 
 // === Dummy-Methode für Loop-kompatibilität ===
 void GoalfinderApp::Process() {
-    // Hauptloop kann leer bleiben, wenn Tasks aktiv sind
+    // Process DNS requests for captive portal
+    dnsServer.processNextRequest();
 }
 
 int GoalfinderApp::GetDetectedHits()

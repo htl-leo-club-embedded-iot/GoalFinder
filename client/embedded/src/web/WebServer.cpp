@@ -1,6 +1,7 @@
 #include "WebServer.h"
 #include <AsyncJson.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 #include <GoalfinderApp.h>
 
 #include "Settings.h"
@@ -45,6 +46,12 @@ static String GetContentType(const String* fileName)
 
 static void HandleNotFound(AsyncWebServerRequest* request) 
 {
+    // Captive portal: redirect any unknown host to the AP
+    if (request->host() != WiFi.softAPIP().toString()) 
+    {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+        return;
+    }
     Serial.println("Failed Request: " + request->url());
     request->send(404, "text/plain", "Not found");
 }
@@ -211,6 +218,34 @@ void WebServer::Begin()
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 
     updater.Begin(API_URL"/update");
+
+    // === Captive portal detection endpoints ===
+    // Android
+    server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
+    server.on("/gen_204", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
+    // iOS / macOS
+    server.on("/hotspot-detect.html", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
+    // Windows
+    server.on("/ncsi.txt", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
+    server.on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
+    // Firefox
+    server.on("/canonical.html", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
+    // Generic fallback
+    server.on("/redirect", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+    });
 
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);
