@@ -54,7 +54,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
     Serial.printf("Web Server: received request %s\n", request->url().c_str());
 
     String filePath = WEBAPP_DIR + request->url();  
-    const String contentType = GetContentType(&filePath);
+    String contentType = GetContentType(&filePath);
     filePath += COMPRESSED_FILE_EXTENSION;
 
     bool fileExists = internalFS->FileExists(filePath);
@@ -63,6 +63,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
     {
         filePath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
         fileExists = internalFS->FileExists(filePath);
+        contentType = "text/html";
     }
 
     if(!fileExists)
