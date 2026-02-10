@@ -54,7 +54,7 @@ function isSSIDValid(value: string) {
     </div>
     <div>
       <div class="property-title">{{ $t("word.curr_version") }}</div>
-      <div>1.0.0</div>
+      <div>{{ settings.version }}</div>
     </div>
     <div>
       <div class="property-title">{{ $t("word.mac_address") }}</div>

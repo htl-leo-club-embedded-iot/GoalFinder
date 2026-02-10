@@ -45,15 +45,13 @@ def update_package_json(version: str):
     with open(package_json_path, 'r') as f:
         package_data = json.load(f)
     
-    # Remove -dev suffix for package.json
-    clean_version = version.replace('-dev', '')
-    package_data['version'] = clean_version
+    package_data['version'] = version
     
     with open(package_json_path, 'w') as f:
         json.dump(package_data, f, indent=2)
         f.write('\n')  # Add trailing newline
     
-    print(f"Updated {package_json_path} to version {clean_version}")
+    print(f"Updated {package_json_path} to version {version}")
 
 def main():
     if len(sys.argv) < 2:
