@@ -21,7 +21,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../firmware/data/web',
+    outDir: '../embedded/data/web',
     emptyOutDir: true,
     rollupOptions: {
       output: {

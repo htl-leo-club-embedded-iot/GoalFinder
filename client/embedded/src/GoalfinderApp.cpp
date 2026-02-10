@@ -83,6 +83,10 @@ void GoalfinderApp::Init() {
     WiFi.setSleep(false);
     Serial.println(WiFi.softAPIP());
 
+    // Start DNS server for captive portal (redirect all domains to AP IP)
+    dnsServer.start(53, "*", WiFi.softAPIP());
+    Serial.println("[INFO] DNS server started for captive portal");
+
     webServer.Begin();
     sntp.Init();
     vibrationSensor.Init();
@@ -116,9 +120,13 @@ void GoalfinderApp::TaskAudioCode(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
         if (app->IsSoundEnabled()) {
-            app->audioPlayer.Loop();
-            if (!app->audioPlayer.IsPlaying()) {
-                app->TickMetronome();
+            if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+                app->audioPlayer.Loop();
+                bool isPlaying = app->audioPlayer.IsPlaying();
+                xSemaphoreGive(xMutex);
+                if (!isPlaying) {
+                    app->TickMetronome();
+                }
             }
         }
         vTaskDelay(1 / portTICK_PERIOD_MS);
@@ -220,13 +228,17 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
         Serial.printf("%4.3f: starting playback of: '%s'\n", millis() / 1000.0, soundFileName);
-        audioPlayer.PlayMP3(soundFileName);
+        if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+            audioPlayer.PlayMP3(soundFileName);
+            xSemaphoreGive(xMutex);
+        }
     }
 }
 
 // === Dummy-Methode für Loop-kompatibilität ===
 void GoalfinderApp::Process() {
-    // Hauptloop kann leer bleiben, wenn Tasks aktiv sind
+    // Process DNS requests for captive portal
+    dnsServer.processNextRequest();
 }
 
 int GoalfinderApp::GetDetectedHits()

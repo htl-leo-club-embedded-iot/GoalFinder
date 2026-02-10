@@ -12,6 +12,7 @@ void SoftwareUpdater::Begin(const char* uri) {
         AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
         response->addHeader("Connection", "close");
         request->send(response);
+        delay(500); // Allow response to be sent before restarting
         ESP.restart();
     }, HandleUpdate);
 }
@@ -19,11 +20,10 @@ void SoftwareUpdater::Begin(const char* uri) {
 void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
     if (!index)
     {
-        //update_status = "Update started!";
         Serial.println("Update started");
         int update_content_len = request->contentLength();
 
-        if (!Update.begin(update_content_len, U_FLASH)) //, U_FLASH
+        if (!Update.begin(update_content_len, U_FLASH))
         {
             Update.printError(Serial);
         }
@@ -33,29 +33,16 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request, String filena
     {
         Update.printError(Serial);
     }
-    else
-    {
-        //update_status = "Progress: " + String((Update.progress() * 100) / Update.size()) + "%";
-        //Serial.println(update_status);
-    }
 
     if (final)
     {
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "Please wait while the device reboots...");
-        response->addHeader("Refresh", "5");
-        response->addHeader("Location", "/");
-        request->send(response);
-        
         if (!Update.end(true))
         {
             Update.printError(Serial);
         }
         else
         {
-            //update_status = "Done!";
-            //Serial.println("Update complete");
-            //Serial.flush();
-            //eDM_Config.Flags.RebootESP = 1;
+            Serial.println("Update complete");
         }
     }
 }

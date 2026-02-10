@@ -18,6 +18,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <DNSServer.h>
 #include <Singleton.h>
 #include <ToFSensor.h>
 #include <VibrationSensor.h>
@@ -107,6 +108,7 @@ private:
     FileSystem fileSystem;
     WebServer webServer;
     SNTP sntp;
+    DNSServer dnsServer;
     ToFSensor tofSensor;
     VibrationSensor vibrationSensor;
 
