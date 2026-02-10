@@ -1,0 +1,16 @@
+{
+    "name": "bluetoothmanager",
+    "version": "1.0.0",
+    "description": "Eine Bibliothek zur Verwaltung von Bluetooth-Verbindungen und -Geräten.",
+    "license": "MIT",
+    "keywords": [
+      "bluetooth",
+      "manager",
+      "connection",
+      "device"
+    ],
+    "dependencies": {
+      
+    }
+  }
+  

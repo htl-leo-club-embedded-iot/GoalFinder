@@ -1,0 +1,15 @@
+{
+    "name": "vibrationsensor",
+    "version": "0.1.0",
+    "description": "Eine Bibliothek zur Erfassung von Vibrationen mit einem Sensor.",
+    "license": "MIT",
+    "keywords": [
+      "vibration",
+      "sensor",
+      "accelerometer"
+    ],
+    "dependencies": {
+      
+    }
+  }
+  

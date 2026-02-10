@@ -1,0 +1,44 @@
+
+:root {
+    color-scheme: light;
+    --background-color: #FFFFFF;
+    --card-background-color: rgb(250, 250, 250);
+    --header-line-color: #E0E0E0;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --text-color: rgb(55, 55, 55);
+    --text-color-secondary: rgb(85, 85, 85);
+    --corner-radius: 10px;
+    --corner-radius-secondary: 6px;
+    background-color: var(--background-color);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --background-color: #141414;
+        --card-background-color: rgb(23, 23, 23);
+        --header-line-color: #21262d;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --text-color: rgb(200, 200, 200);
+        --text-color-secondary: rgb(170, 170, 170);
+        --corner-radius: 10px;
+        --corner-radius-secondary: 6px;
+        background-color: var(--background-color);
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+    /* background: radial-gradient(ellipse 80% 50% at 50% -10%,rgba(120,119,198,0.3), transparent) fixed; */
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text-color);
+}
+
+a {
+    text-decoration: none;
+    color: var(--text-color);
+}

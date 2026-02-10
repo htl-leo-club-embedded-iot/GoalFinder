@@ -1,0 +1,16 @@
+{
+    "name": "audioplayer",
+    "version": "0.1.0",
+    "description": "Eine Bibliothek zur Wiedergabe von Audioinhalten in verschiedenen Formaten.",
+    "license": "MIT",
+    "keywords": [
+      "audio",
+      "player",
+      "media",
+      "sound"
+    ],
+    "dependencies": {
+      
+    }
+  }
+  

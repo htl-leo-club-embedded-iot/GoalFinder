@@ -1,65 +1,58 @@
-# Goal Finder
+# Goalfinder
 
-IoT project in scope of POSE-PRPR and WLC, HTL Leonding, 2BHIF, JG 2324 in cooperation with Universität Wien.
+## About
 
-[Erste Schritte](docs/gettting_started_de.md)
+The GoalFinder device aims to help blind or visually impaired people play basketball by playing a sound to help locate the basket and provides acoustic and visual feedback on hits and misses.
+For more information, visit the [GoalFinder Website](https://goalfinder.github.io)
 
-## Introduction
+## Branches
 
-When visually impaired people play basket ball, they need acoustic assistance for locating the basket and as feedback if the basket is hit.
+### Main Branches
 
-For locating the basket, a constant beeping is sufficient. For a hit, a triumph fanfare may be played. Miss detection may result in an according tune.
++ `main` The main branch is used for releases only
++ `development` Is the branch that sees all development work
 
-![Basketball](./docs/images/basket_ball_players.jpg)
+### Backup Branches
 
-Such assistance device may be directly mounted on the basket rack. They shall be easily mountable, e.g. by sliding them on the board or basket.
+There are still two discontinued branches from before the takeover
 
-For hit detection, a short range laser distance sensor (ToF - time of flight sensor) is used. It is looking through the mesh of the basket and is therefore capable detecting a ball falling through the basket.
++ `pages-alt` Old GitHub Pages branch
++ `multithreading-alt` Old branch focused on adding multithreading to the GoalFinder device
 
-![Sensor Sketch](./docs/images/sensor_measurements_sketch.png)
+## Website
 
-Optionally, hitting the basket-board may be detected using an acceleration sensor. When a ball hits the board or the ring, heavy motion can be expected and detected. If the ball does not pass the basket in time, a miss is detected.
+The GoalFinder website is accessible at [goalfinder.github.io](https://goalfinder.github.io) and is split of into [it's own repository](https://github.com/goalfinder/goalfinder.github.io)
 
-The sensor device shall be controlled via a web application designed for mobile devices, to operate the system on the (basketball) field. The application may also assist in the game, for instance by automatically counting hits for multiple players.
+## Contributing
 
-## Project Goals
+> [!WARNING]  
+> The contribution parts will be moved to the GoalFinder websites technical documentation soon
 
-A basketball assistance device as described about shall be developed and deployed in the field.
+Contributions are welcome — including bug reports, feature requests, documentation improvements, and code changes.
 
-## Hardware Platform
+### Have an idea?
 
-+ SoC: ESP32, see [Random Nerd Tutorials: ESP32- Pinout](https://randomnerdtutorials.com/esp32-pinout-reference-gpios/)
-+ Distance Sensor: ToF sensor connected via I²C, such as VL53L0X. see [YouTube: ToF used with ESP32](https://www.youtube.com/watch?v=HeMlcCDYCEk).
-+ Option: Acceleration sensor (TBD).
-+ Audio: ESP32 DAC with external pre-amplifier, see [YouTube: ESP32 Audio: I2S & Built-In DACs Explained](https://www.youtube.com/watch?v=lgDu88Y411o)
-+ Power supply: Grid via power adapter or power bank.
+If you have an idea to improve GoalFinder, open an issue with the `feature-request` or `user-story` label and include a short summary and the motivation. Please do not add any other labels — the project team will assign labels as needed.
 
-## Use Cases and User Stories
+### Found an issue?
+     
+If you find a bug or incorrect behavior, open an issue with the `bug` label and include steps to reproduce, expected vs actual behavior, environment details, and any logs or screenshots. Please do not add any other labels — the project team will assign labels as needed.
 
-1. As a user, I want to control the device via web application on a smart phone as well as on a desktop PC.
-1. As a player, I want the device to provide acoustic hints of the basket location.
-1. As a player, I want the device to sound a triumph tune when the ball hits the basket.
-1. As a player, it would be great to hear a sound when the ball hits the basket rack but not the basket.
-1. As a user, I want to connect to the device via WiFi network that is spread by the device.
-1. As a user, I want to integrate the device into my WiFi network easily.
-1. As a user, I want that the device time is synchronized with the real time of my timezone.
-1. As a user, I want to update the device software over the air.
+### Want to contribute code?
 
-## Tasks
+Fork the repository and submit a pull request with a concise summary of your changes, related issues, and any tests or screenshots that demonstrate the update.
 
-This section describes the first task to be tackled on a high-level base.
+### Already a project member?
 
-1. Specify a roadmap / time table for the given tasks and user story implementation.
-1. Develop a software design showing the major software components and their relations as well as required communication protocols.
-1. Integrate a WiFi setup and configuration on the device.
-1. Integrate a web server on the device.
-1. Integrate an SNTP client on the device, including SNTP configuration via integrated web server.
-1. Implement the SW-component to measure distances via distance senor.
-1. Option: Implement SW-component to measure motion via motion sensor.
-1. Implement hit / miss detection based on the measured values.
-1. Implement audio output
-1. Integrate suitable audio tracks for signalling events.
-1. Option: Implement audio feedback via Bluetooth.
-1. Implement a web front-end suitable for configuring the sensor device
-1. Implement a web front-end for game play.
-1. Integrate and enable SWUOTA (software update over the air).
+See the [contribution guide](./doc/contribute.mdmd) for detailed instructions. 
+
+## Version Management
+
+**Dev builds:** `python update-version.py X.Y.Z-dev`
+
+**Release:** Tag and push to trigger automatic build
+```bash
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+Version appears on device Settings page.
