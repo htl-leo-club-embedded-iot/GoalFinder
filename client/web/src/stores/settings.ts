@@ -99,13 +99,20 @@ export const useSettingsStore = defineStore("settings", () => {
         }
     }
 
-    async function updateFirmware(firmwareFile: File): Promise<boolean> {
+    function updateFirmware(firmwareFile: File, onProgress?: (percent: number) => void): void {
         const data = new FormData();
         data.append('file', firmwareFile);
 
-        const response = await fetch(`${API_URL}/update`, { method: 'POST', body: data });
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API_URL}/update`);
 
-        return response.ok;
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable && onProgress) {
+                onProgress(Math.round((e.loaded / e.total) * 100));
+            }
+        });
+
+        xhr.send(data);
     }
 
     return {

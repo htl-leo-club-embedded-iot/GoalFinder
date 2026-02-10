@@ -10,6 +10,8 @@ const modal = useTemplateRef<typeof Modal>("modal");
 
 const show = () => {
     modal.value?.openDialog();
+    uploadProgress.value = 0;
+    isUploading.value = false;
 };
 
 defineExpose({show});
@@ -18,20 +20,24 @@ const settings = useSettingsStore();
 
 const fileInput = ref<HTMLInputElement | null>(null)
 let firmwareFile: File | undefined = undefined;
+const uploadProgress = ref(0);
+const isUploading = ref(false);
 
 function onFileChanged() {
     firmwareFile = fileInput.value!.files![0];
-    console.log(firmwareFile);
+    uploadProgress.value = 0;
+    isUploading.value = false;
 }
 
-async function uploadFirmwareFile() {
-    if(firmwareFile) {
-        const wasSuccessful = await settings.updateFirmware(firmwareFile);
+function uploadFirmwareFile() {
+    if(!firmwareFile) return;
 
-        if(wasSuccessful) {
-          console.log("Successfully uploaded");
-        }
-    }
+    isUploading.value = true;
+    uploadProgress.value = 0;
+
+    settings.updateFirmware(firmwareFile, (percent) => {
+        uploadProgress.value = percent;
+    });
 }
 
 </script>
@@ -40,9 +46,18 @@ async function uploadFirmwareFile() {
   <Modal title="Software Update" id="update-modal" ref="modal">
     <div id="update-content">
       <UpdateIcon id="update-icon"/>
-      <div>
+      <div id="upload-form">
         <input type="file" ref="fileInput" @change="onFileChanged" accept=".bin">
-        <Button @click="uploadFirmwareFile">Upload Firmware</Button>
+        <Button @click="uploadFirmwareFile" :disabled="isUploading" primary>
+          {{ isUploading ? 'Uploading...' : 'Upload Firmware' }}
+        </Button>
+      </div>
+
+      <div v-if="isUploading" id="progress-section">
+        <div id="progress-bar-container">
+          <div id="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
+        </div>
+        <span id="progress-text">{{ uploadProgress }}%</span>
       </div>
     </div>
   </Modal>
@@ -54,14 +69,50 @@ async function uploadFirmwareFile() {
   }
 
   #update-content {
-    padding: 10rem;
+    padding: 2rem 3rem;
     display: flex;
     align-items: center;
     flex-direction: column;
+    gap: 1.5rem;
   }
 
   #update-icon {
     color: cornflowerblue;
-    width: 10rem;
+    width: 6rem;
+  }
+
+  #upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  #progress-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  #progress-bar-container {
+    width: 100%;
+    height: 1.2rem;
+    background: var(--border-color, #e0e0e0);
+    border-radius: 0.6rem;
+    overflow: hidden;
+  }
+
+  #progress-bar {
+    height: 100%;
+    background: cornflowerblue;
+    border-radius: 0.6rem;
+    transition: width 0.2s ease;
+  }
+
+  #progress-text {
+    font-size: 0.9rem;
+    font-weight: bold;
   }
 </style>
