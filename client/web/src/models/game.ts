@@ -89,20 +89,24 @@ export class ShotChallengeGame extends Game {
 
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
-                console.log("hits:", newHits);
 
                 const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
                 const newMisses = parseInt(await newMissesData.text());
-                console.log("misses:", newMisses);
 
                 if(newHits > 0) {
-                    this.getSelectedPlayer().addHit();
-                    this.resetTimer();
-                    this.selectNewPlayer();
+                    console.log("[ShotChallenge] hits detected:", newHits);
+                    for(let i = 0; i < newHits; i++) {
+                        this.getSelectedPlayer().addHit();
+                        this.resetTimer();
+                        this.selectNewPlayer();
+                    }
                 } else if(newMisses > 0) {
-                    this.getSelectedPlayer().addMiss();
-                    this.resetTimer();
-                    this.selectNewPlayer();
+                    console.log("[ShotChallenge] misses detected:", newMisses);
+                    for(let i = 0; i < newMisses; i++) {
+                        this.getSelectedPlayer().addMiss();
+                        this.resetTimer();
+                        this.selectNewPlayer();
+                    }
                 }
 
                 if(this._timer <= 0) {
@@ -174,18 +178,22 @@ export class TimedShotsChallengeGame extends Game {
 
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
-                console.log("hits:", newHits);
 
                 const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
                 const newMisses = parseInt(await newMissesData.text());
-                console.log("misses:", newMisses);
 
                 if(newHits > 0) {
-                    this.getSelectedPlayer().addHit();
+                    console.log("[TimedShots] hits detected:", newHits);
+                    for(let i = 0; i < newHits; i++) {
+                        this.getSelectedPlayer().addHit();
+                    }
                 }
 
                 if(newMisses > 0) {
-                    this.getSelectedPlayer().addMiss();
+                    console.log("[TimedShots] misses detected:", newMisses);
+                    for(let i = 0; i < newMisses; i++) {
+                        this.getSelectedPlayer().addMiss();
+                    }
                 }
 
                 if(this._timer <= 0) {

@@ -90,7 +90,13 @@ static void HandleRequest(AsyncWebServerRequest* request)
     }
    
     response->addHeader("Content-Encoding", "gzip");
-    response->addHeader("Cache-Control", "max-age=604800"); // 1 week
+
+    // Don't cache index.html so the browser always fetches fresh asset references
+    if(filePath.endsWith("index.html" COMPRESSED_FILE_EXTENSION)) {
+        response->addHeader("Cache-Control", "no-cache");
+    } else {
+        response->addHeader("Cache-Control", "max-age=604800"); // 1 week
+    }
 
 
 
