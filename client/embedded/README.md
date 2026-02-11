@@ -55,22 +55,22 @@
     │       │   └── VibrationSensor.h
     │       └── src/
     │           └── VibrationSensor.cpp
-    ├── src/    Main application source code
-    │   ├── GoalfinderApp.cpp
-    │   ├── GoalfinderApp.h
-    │   ├── LedController.cpp
-    │   ├── LedController.h
-    │   ├── LedMode.h
-    │   ├── main.cpp    Entry point of the firmware
-    │   ├── Settings.cpp
-    │   ├── Settings.h
-    │   ├── Singleton.h
-    │   └── web/             # Web-related source code
-    │       ├── SNTP.cpp
-    │       ├── SNTP.h
-    │       ├── SoftwareUpdater.cpp
-    │       ├── SoftwareUpdater.h
-    │       ├── WebServer.cpp
-    │       ├── WebServer.h
-    │       ├── WifiManager.cpp
-    │       └── WifiManager.h
+    └── src/    Main application source code
+        ├── GoalfinderApp.cpp
+        ├── GoalfinderApp.h
+        ├── LedController.cpp
+        ├── LedController.h
+        ├── LedMode.h
+        ├── main.cpp    Entry point of the firmware
+        ├── Settings.cpp
+        ├── Settings.h
+        ├── Singleton.h
+        └── web/             # Web-related source code
+            ├── SNTP.cpp
+            ├── SNTP.h
+            ├── SoftwareUpdater.cpp
+            ├── SoftwareUpdater.h
+            ├── WebServer.cpp
+            ├── WebServer.h
+            ├── WifiManager.cpp
+            └── WifiManager.h
