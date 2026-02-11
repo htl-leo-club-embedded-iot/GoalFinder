@@ -24,9 +24,6 @@ const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
 function recordShot(index: number, isHit: boolean) {
   if (isHit) {
     game.addHitToPlayer(index);
-
-    //efgdrgerwger
-
   } else {
     game.addMissToPlayer(index);
   }
@@ -205,7 +202,7 @@ a
   width: 1.4rem;
 }
 
-/* --- Responsive Tabelle --- */
+/* --- Responsive Table --- */
 #player-list {
   width: 100%;
   border-collapse: collapse;
@@ -230,15 +227,12 @@ a
   flex-wrap: nowrap;
 }
 
-/* Auf kleinen Screens sollen sie nebeneinander bleiben */
+/* On small screens buttons should not wrap */
 @media (max-width: 768px) {
   .icon-buttons-container {
     flex-wrap: nowrap;
     justify-content: space-around;
   }
 }
-
-
-
 
 </style>

@@ -10,13 +10,15 @@ import Page from "@/components/Page.vue";
       <img src="@/assets/logos/uni_wien_logo.png" alt="uni wien logo">
       <img src="@/assets/logos/htllogo_white.png" alt="htl leonding logo">
     </div>
-    <p>Dieses Gerät wurde im Zuge des "Smart Sport Assistance" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding, Klasse 2BHIF, Jahrgang 23/24 entwickelt.</p>
+    <p>Dieses Gerät wurde im Zuge des "Smart Sport Assistance" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.</p>
     <p>Entwickelt von:</p>
     <ul>
       <li>Omar Al-Desoky</li>
       <li>Rabbi Baysoy</li>
       <li>Alexander Coroi</li>
       <li>Edin Kurtic</li>
+      <li>Florian Hetzmann</li>
+      <li>Markus Harnusek</li>
     </ul>
   </Page>
 </template>

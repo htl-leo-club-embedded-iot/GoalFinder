@@ -10,7 +10,7 @@ import WifiOffIcon from "@/components/icons/WifiOffIcon.vue";
   <div id="card">
     <WifiOffIcon id="no-internet-icon"/>
     <h2>404 Not Found</h2>
-    <p>The Page you are looking for doesn't exist or an other error occured.</p>
+    <p>The Page you are looking for doesn't exist or an other error occurred.</p>
     <RouterLink to="/"><Button>Go Home</Button></RouterLink>
   </div>
 </template>
