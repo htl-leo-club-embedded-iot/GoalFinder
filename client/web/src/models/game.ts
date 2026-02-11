@@ -89,10 +89,11 @@ export class ShotChallengeGame extends Game {
 
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
-                console.log(newHits);
+                console.log("hits:", newHits);
 
                 const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
                 const newMisses = parseInt(await newMissesData.text());
+                console.log("misses:", newMisses);
 
                 if(newHits > 0) {
                     this.getSelectedPlayer().addHit();
@@ -173,10 +174,11 @@ export class TimedShotsChallengeGame extends Game {
 
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
-                console.log(newHits);
+                console.log("hits:", newHits);
 
                 const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
                 const newMisses = parseInt(await newMissesData.text());
+                console.log("misses:", newMisses);
 
                 if(newHits > 0) {
                     this.getSelectedPlayer().addHit();
@@ -187,7 +189,6 @@ export class TimedShotsChallengeGame extends Game {
                 }
 
                 if(this._timer <= 0) {
-                    this.getSelectedPlayer().addMiss();
                     this.resetTimer();
                     this.selectNewPlayer();
                 }
