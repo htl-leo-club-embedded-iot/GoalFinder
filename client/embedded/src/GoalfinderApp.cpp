@@ -63,7 +63,7 @@ bool GoalfinderApp::IsSoundEnabled() {
     return isSoundEnabled;
 }
 
-// === Initialisierung ===
+// Initializing
 void GoalfinderApp::Init() {
     delay(100);
     Serial.begin(115200);
@@ -115,7 +115,7 @@ void GoalfinderApp::UpdateSettings(bool force) {
     }
 }
 
-// === Tasks ===
+// Tasks
 void GoalfinderApp::TaskAudioCode(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
@@ -151,7 +151,7 @@ void GoalfinderApp::TaskLedCode(void *pvParameters) {
     }
 }
 
-// === Hauptlogik ===
+// Play metronome sound
 void GoalfinderApp::TickMetronome() {
     unsigned long currentTime = millis();
     if ((currentTime - lastMetronomeTickTime) > metronomeIntervalMs) {
@@ -204,7 +204,7 @@ void GoalfinderApp::ProcessAnnouncement() {
     announcement = Announcement::None;
 }
 
-// === Neue fehlende Implementierungen ===
+// Old comment mentioned some missing logic here but works fine
 void GoalfinderApp::AnnounceHit() {
     detectedHits++;
     announcement = Announcement::Hit;
@@ -235,7 +235,6 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
     }
 }
 
-// === Dummy-Methode für Loop-kompatibilität ===
 void GoalfinderApp::Process() {
     // Process DNS requests for captive portal
     dnsServer.processNextRequest();
