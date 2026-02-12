@@ -218,7 +218,7 @@ export class TimedShotsChallengeGame extends Game {
         this.resetTimer();
     }
 
-    private selectNewPlayer(): void {
+    public selectNewPlayer(): void {
         this.selectedPlayerIndex++;
 
         if(this.selectedPlayerIndex >= this._players.length) {
@@ -226,7 +226,7 @@ export class TimedShotsChallengeGame extends Game {
         }
     }
 
-    private resetTimer(): void {
+    public resetTimer(): void {
         this._timer = TimedShotsChallengeGame.PLAY_DURATION;
     }
 }
