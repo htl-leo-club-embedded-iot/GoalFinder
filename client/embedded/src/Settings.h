@@ -54,6 +54,12 @@ class Settings : public Singleton<Settings>
 
         void SetLedMode(LedMode ledMode);
 
+        /** Returns whether this is the first startup of the device. */
+        bool IsFirstRun();
+
+        /** Marks the device as having completed first run setup. */
+        void SetFirstRun(bool firstRun);
+
 
     private:
 		friend class Singleton<Settings>;
@@ -87,6 +93,9 @@ class Settings : public Singleton<Settings>
         
         static const char* keyLedMode;
         static const LedMode defaultLedMode;
+
+        static const char* keyFirstRun;
+        static const bool defaultFirstRun;
 
         System::Settings store;
         bool modified;

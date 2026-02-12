@@ -44,6 +44,9 @@ const int Settings::defaultBallHitDetectionDistance = 180;
 
 const char* Settings::keyLedMode = "ledMode";
 const LedMode Settings::defaultLedMode = LedMode::Flash;
+
+const char* Settings::keyFirstRun = "firstRun";
+const bool Settings::defaultFirstRun = true;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -180,3 +183,14 @@ void Settings::SetLedMode(LedMode ledMode)
 	store.PutInt(keyLedMode, (int)ledMode);
 	SetModified();
 };
+
+bool Settings::IsFirstRun()
+{
+	return (bool)store.GetInt(keyFirstRun, (int)defaultFirstRun);
+}
+
+void Settings::SetFirstRun(bool firstRun)
+{
+	store.PutInt(keyFirstRun, (int)firstRun);
+	SetModified();
+}
