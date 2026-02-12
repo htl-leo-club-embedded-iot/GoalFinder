@@ -2,7 +2,7 @@
 #include <HardwareSerial.h>
 #include <Settings.h>
 
-// === Hardware-Pins und Konstanten ===
+// Hardware pins and constants
 const int GoalfinderApp::pinTofSda = 22;
 const int GoalfinderApp::pinTofScl = 21;
 const int GoalfinderApp::pinI2sBclk = 23;
@@ -28,13 +28,13 @@ const int   GoalfinderApp::tickClipsCnt = sizeof(GoalfinderApp::tickClips) / siz
 const char* GoalfinderApp::missClips[] = { "/miss-1.mp3" };
 const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / sizeof(GoalfinderApp::missClips[0]);
 
-// === FreeRTOS Handles ===
+// FreeRTOS Handles
 TaskHandle_t GoalfinderApp::TaskAudio = nullptr;
 TaskHandle_t GoalfinderApp::TaskDetection = nullptr;
 TaskHandle_t GoalfinderApp::TaskLed = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
-// === Konstruktor / Destruktor ===
+// Constructor
 GoalfinderApp::GoalfinderApp() :
     Singleton<GoalfinderApp>(),
     fileSystem(true),
@@ -54,7 +54,6 @@ GoalfinderApp::GoalfinderApp() :
 
 GoalfinderApp::~GoalfinderApp() {}
 
-// === Getter / Setter ===
 void GoalfinderApp::SetIsSoundEnabled(bool value) {
     isSoundEnabled = value;
 }
@@ -74,14 +73,8 @@ void GoalfinderApp::Init() {
         return;
     }
 
-    Settings* settings = Settings::GetInstance();
-    String ssid = settings->GetDeviceName();
-    String wifiPw = settings->GetDevicePassword();
-
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(ssid, wifiPw);
-    WiFi.setSleep(false);
-    Serial.println(WiFi.softAPIP());
+    // Start WiFi
+    WiFiSetup();
 
     // Start DNS server for captive portal (redirect all domains to AP IP)
     dnsServer.start(53, "*", WiFi.softAPIP());
@@ -102,6 +95,17 @@ void GoalfinderApp::Init() {
     xTaskCreatePinnedToCore(TaskLedCode, "TaskLed", 8192, this, 1, &TaskLed, 0);
 
     Serial.println("All tasks started.");
+}
+
+void GoalfinderApp:WiFiSetup() {
+    Settings* settings = Settings::GetInstance();
+    String ssid = settings->GetDeviceName();
+    String wifiPw = settings->GetDevicePassword();
+
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(ssid, wifiPw);
+    WiFi.setSleep(false);
+    Serial.println(WiFi.softAPIP());
 }
 
 void GoalfinderApp::UpdateSettings(bool force) {
