@@ -33,6 +33,8 @@ function recordShot(index: number, isHit: boolean) {
 
 function finish() {
   showLeaderboard.value = true;
+  game.hasEnded = true;
+  game.pause();
 }
 
 function restart() {
@@ -203,4 +205,21 @@ function onGameStartBtnClick() {
 #play-icon {
   width: 1.4rem;
 }
+  
+.icon-buttons-container {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* On small screens buttons should not wrap */
+@media (max-width: 768px) {
+  .icon-buttons-container {
+    flex-wrap: nowrap;
+    justify-content: space-around;
+  }
+}
+
 </style>

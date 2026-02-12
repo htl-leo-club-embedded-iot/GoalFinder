@@ -60,6 +60,7 @@ export class ShotChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 60;
 
     public _timer: number = 0;
+    public hasEnded: boolean = false;
     private timerIntervalId: number = -1;
     public selectedPlayerIndex: number = 0;
 
@@ -85,14 +86,18 @@ export class ShotChallengeGame extends Game {
     public async start(): Promise<void> {
         if(!this.isRunning) {
             this.timerIntervalId = setInterval(async () => {
+                if (this.hasEnded) return;
                 this._timer--;
 
+                if (this.hasEnded) return;
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
 
+                if (this.hasEnded) return;
                 const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
                 const newMisses = parseInt(await newMissesData.text());
 
+                if(this.hasEnded) return;
                 if(newHits > 0) {
                     console.log("[ShotChallenge] hits detected:", newHits);
                     for(let i = 0; i < newHits; i++) {
@@ -130,6 +135,7 @@ export class ShotChallengeGame extends Game {
         this.selectedPlayerIndex = 0;
         this.pause();
         this.resetTimer();
+        this.hasEnded = false;
     }
 
     public selectNewPlayer(): void {
@@ -149,6 +155,7 @@ export class TimedShotsChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 120;
 
     public _timer: number = 0;
+    public hasEnded: boolean = false;
     private timerIntervalId: number = -1;
     public selectedPlayerIndex: number = 0;
 
@@ -174,14 +181,18 @@ export class TimedShotsChallengeGame extends Game {
     public async start(): Promise<void> {
         if(!this.isRunning) {
             this.timerIntervalId = setInterval(async () => {
+                if (this.hasEnded) return;
                 this._timer--;
 
+                if (this.hasEnded) return;
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
 
+                if (this.hasEnded) return;
                 const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
                 const newMisses = parseInt(await newMissesData.text());
 
+                if(this.hasEnded) return;
                 if(newHits > 0) {
                     console.log("[TimedShots] hits detected:", newHits);
                     for(let i = 0; i < newHits; i++) {
@@ -216,6 +227,7 @@ export class TimedShotsChallengeGame extends Game {
         this.selectedPlayerIndex = 0;
         this.pause();
         this.resetTimer();
+        this.hasEnded = false;
     }
 
     public selectNewPlayer(): void {

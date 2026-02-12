@@ -35,6 +35,8 @@ function recordShot(index: number, isHit: boolean) {
 
 function finish() {
   showLeaderboard.value = true;
+  game.hasEnded = true;
+  game.pause();
 }
 
 function restart() {
@@ -205,23 +207,6 @@ a
 #play-icon {
   width: 1.4rem;
 }
-
-/* --- Responsive Table --- */
-#player-list {
-  width: 100%;
-  border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
-  border-spacing: 0;
-}
-
-#player-list th,
-#player-list td {
-  padding: 0.5rem;
-  text-align: left;
-}
-
 
 .icon-buttons-container {
   display: flex;
