@@ -182,3 +182,9 @@ void Settings::SetLedMode(LedMode ledMode)
 	store.PutInt(keyLedMode, (int)ledMode);
 	SetModified();
 };
+
+void Settings::ResetToDefaults()
+{
+	store.Clear();
+	ESP.restart();
+}

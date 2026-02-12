@@ -54,6 +54,8 @@ class Settings : public Singleton<Settings>
 
         void SetLedMode(LedMode ledMode);
 
+        /** Resets all settings to factory defaults and restarts the device. */
+        void ResetToDefaults();
 
     private:
 		friend class Singleton<Settings>;

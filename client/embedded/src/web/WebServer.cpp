@@ -218,6 +218,12 @@ static void HandleRestart(AsyncWebServerRequest* request)
     request->send(204);
 }
 
+static void HandleFactoryReset(AsyncWebServerRequest* request) 
+{
+    request->send(204);
+    Settings::GetInstance()->ResetToDefaults();
+}
+
 static void HandleStart(AsyncWebServerRequest* request) {
     GoalfinderApp::GetInstance()->SetIsSoundEnabled(true);
     request->send(204);
@@ -283,6 +289,7 @@ void WebServer::Begin()
     server.on(API_URL"/settings", HTTP_GET, HandleLoadSettings);
     server.on(API_URL"/settings", HTTP_POST, [](AsyncWebServerRequest* request) {}, 0, HandleSaveSettings);
     server.on(API_URL"/restart", HTTP_POST, HandleRestart);    
+    server.on(API_URL"/factory-reset", HTTP_POST, HandleFactoryReset);
     server.on(API_URL"/hits", HTTP_GET, HandleHits);
     server.on(API_URL"/misses", HTTP_GET, HandleMisses);
     server.on("/*", HTTP_GET, HandleRequest);

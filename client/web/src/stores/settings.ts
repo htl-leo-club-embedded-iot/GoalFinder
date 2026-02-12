@@ -112,6 +112,14 @@ export const useSettingsStore = defineStore("settings", () => {
         }
     }
 
+    async function factoryResetDevice() : Promise<void> {
+        try {
+            await fetch(`${API_URL}/factory-reset`, {method: "POST"});
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     function updateFirmware(firmwareFile: File, onProgress?: (percent: number) => void): void {
         const data = new FormData();
         data.append('file', firmwareFile);
@@ -150,6 +158,7 @@ export const useSettingsStore = defineStore("settings", () => {
         getSettings,
         saveSettings,
         restartDevice,
+        factoryResetDevice,
         ledMode,
         ledModeStr,
         isValid,
