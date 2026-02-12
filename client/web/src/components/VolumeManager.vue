@@ -27,7 +27,7 @@ const setMissSound = (value: number) => {
 <template>
   <div class="volume-slider-control">
     <label>{{ $t("word.volume") }}</label>
-    <div class="button-container">
+    <div class="button-container1">
       <Button class="button" @click="setVolume(0)">0%</Button>
       <Button class="button" @click="setVolume(25)">25%</Button>
       <Button class="button" @click="setVolume(50)">50%</Button>
@@ -69,30 +69,39 @@ const setMissSound = (value: number) => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  margin-bottom: 1rem; /* Add spacing below the volume slider */
 }
 
 .button-container {
   margin-left: auto;
   display: flex;
+  gap: 0.5rem; /* Add consistent spacing between buttons */
+}
+
+.button-container1 {
+  margin-top: 0.5rem;
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem; /* Add consistent spacing between buttons */
 }
 
 .button {
-  margin-left: 10px;
-}
-
-.button:first-child {
-  margin-left: 0;
+  margin-left: 0; /* Remove redundant margin */
 }
 
 .current-value {
   text-align: center;
-  margin-top: 0.1rem;
+  margin-top: 0.5rem; /* Increase spacing for better readability */
   font-weight: bold;
 }
 
 .sound-select {
   display: flex;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem; /* Increase spacing between sound sections */
+}
+
+.sound-select label {
+  margin-right: 1rem; /* Add spacing between label and buttons */
 }
 </style>
