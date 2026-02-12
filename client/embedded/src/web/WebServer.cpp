@@ -37,6 +37,18 @@ static String GetContentType(const String* fileName)
     {
         return "image/x-icon";
     }
+    else if(fileName->endsWith("png")) 
+    {
+        return "image/png";
+    }
+    else if(fileName->endsWith("svg")) 
+    {
+        return "image/svg+xml";
+    }
+    else if(fileName->endsWith("jpg") || fileName->endsWith("jpeg")) 
+    {
+        return "image/jpeg";
+    }
     else 
     {
         //Serial.println("[ERROR] Unknown file type to get content type."); // Debugging: Handle unknown file types
@@ -62,14 +74,24 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     String filePath = WEBAPP_DIR + request->url();  
     String contentType = GetContentType(&filePath);
-    filePath += COMPRESSED_FILE_EXTENSION;
 
-    bool fileExists = internalFS->FileExists(filePath);
+    // Try the gzip-compressed version first
+    String compressedPath = filePath + COMPRESSED_FILE_EXTENSION;
+    bool isCompressed = internalFS->FileExists(compressedPath);
+    bool fileExists = isCompressed;
 
+    // If no compressed version, try the uncompressed file directly
     if(!fileExists)
     {
-        filePath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
         fileExists = internalFS->FileExists(filePath);
+    }
+
+    // If neither exists, fall back to index.html (SPA routing)
+    if(!fileExists)
+    {
+        compressedPath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
+        isCompressed = internalFS->FileExists(compressedPath);
+        fileExists = isCompressed;
         contentType = "text/html";
     }
 
@@ -80,7 +102,8 @@ static void HandleRequest(AsyncWebServerRequest* request)
         return;
     }
 
-    AsyncWebServerResponse* response = request->beginResponse(LittleFS, filePath, contentType);
+    String servePath = isCompressed ? compressedPath : filePath;
+    AsyncWebServerResponse* response = request->beginResponse(LittleFS, servePath, contentType);
 
     if(response == nullptr)
     {
@@ -89,7 +112,9 @@ static void HandleRequest(AsyncWebServerRequest* request)
         return;
     }
    
-    response->addHeader("Content-Encoding", "gzip");
+    if(isCompressed) {
+        response->addHeader("Content-Encoding", "gzip");
+    }
 
     // Don't cache index.html so the browser always fetches fresh asset references
     if(filePath.endsWith("index.html" COMPRESSED_FILE_EXTENSION)) {
