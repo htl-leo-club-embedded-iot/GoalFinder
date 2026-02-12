@@ -22,11 +22,15 @@ const settings = useSettingsStore();
 const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
 
 function recordShot(index: number, isHit: boolean) {
+  if (index !== game.selectedPlayerIndex) return;
+
   if (isHit) {
     game.addHitToPlayer(index);
   } else {
     game.addMissToPlayer(index);
   }
+  game.resetTimer();
+  game.selectNewPlayer();
 }
 
 function finish() {

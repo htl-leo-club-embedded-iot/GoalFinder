@@ -132,7 +132,7 @@ export class ShotChallengeGame extends Game {
         this.resetTimer();
     }
 
-    private selectNewPlayer(): void {
+    public selectNewPlayer(): void {
         this.selectedPlayerIndex++;
 
         if(this.selectedPlayerIndex >= this._players.length) {
@@ -140,7 +140,7 @@ export class ShotChallengeGame extends Game {
         }
     }
 
-    private resetTimer(): void {
+    public resetTimer(): void {
         this._timer = ShotChallengeGame.PLAY_DURATION;
     }
 }
