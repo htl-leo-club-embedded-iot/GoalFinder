@@ -97,8 +97,50 @@ void GoalfinderApp::Init() {
     Serial.println("All tasks started.");
 }
 
-void GoalfinderApp:WiFiSetup() {
+void GoalfinderApp::WiFiSetup() {
     Settings* settings = Settings::GetInstance();
+
+    if (settings->IsFirstRun()) {
+        // Scan for other GoalFinder APs to assign a unique number
+        WiFi.mode(WIFI_STA);
+        WiFi.disconnect();
+        delay(100);
+
+        int n = WiFi.scanNetworks();
+        Serial.printf("[INFO] First run: found %d networks\n", n);
+
+        bool usedNumbers[100] = { false };
+
+        for (int i = 0; i < n; i++) {
+            String ssid = WiFi.SSID(i);
+            if (ssid.startsWith("GoalFinder")) {
+                String numStr = ssid.substring(11);
+                int num = numStr.toInt();
+                if (num > 0 && num < 100) {
+                    usedNumbers[num] = true;
+                    Serial.printf("[INFO]   Found existing device: %s (number %d)\n", ssid.c_str(), num);
+                }
+            }
+        }
+        WiFi.scanDelete();
+
+        int nextNumber = 1;
+        for (int i = 1; i < 100; i++) {
+            if (!usedNumbers[i]) {
+                nextNumber = i;
+                break;
+            }
+        }
+
+        char numberStr[3];
+        snprintf(numberStr, sizeof(numberStr), "%02d", nextNumber);
+        String deviceName = "GoalFinder " + String(numberStr);
+
+        settings->SetDeviceName(deviceName);
+        settings->SetFirstRun(false);
+        Serial.printf("[INFO] First run: assigned device name '%s'\n", deviceName.c_str());
+    }
+
     String ssid = settings->GetDeviceName();
     String wifiPw = settings->GetDevicePassword();
 
@@ -109,8 +151,6 @@ void GoalfinderApp:WiFiSetup() {
 }
 
 void GoalfinderApp::UpdateSettings(bool force) {
-
-
     Settings* settings = Settings::GetInstance();
     if (force || settings->IsModified()) {
         audioPlayer.SetVolume(settings->GetVolume());
@@ -138,6 +178,7 @@ void GoalfinderApp::TaskAudioCode(void *pvParameters) {
 }
 
 void GoalfinderApp::TaskDetectionCode(void *pvParameters) {
+    // Try and remove endless loop by adding a exit option
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
         app->UpdateSettings();
@@ -149,6 +190,7 @@ void GoalfinderApp::TaskDetectionCode(void *pvParameters) {
 
 void GoalfinderApp::TaskLedCode(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+    // Try and remove endless loop by adding a exit option
     for (;;) {
         app->ledController.Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
