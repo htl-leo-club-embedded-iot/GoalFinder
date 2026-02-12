@@ -31,7 +31,7 @@ const char* Settings::keyMissSound = "missSound";
 const int Settings::defaultMissSound = 0;
 
 const char* Settings::keyDeviceName = "deviceName";
-const String Settings::defaultDeviceName = "Goalfinder";
+const String Settings::defaultDeviceName = "GoalFinder 01";
 
 const char* Settings::keyDevicePassword = "devicePassword";
 const String Settings::defaultDevicePassword = emptyString;
