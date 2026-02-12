@@ -61,7 +61,20 @@ export const useSettingsStore = defineStore("settings", () => {
                 macAddress.value = json["macAddress"];
                 isSoundEnabled.value = json["isSoundEnabled"];
                 version.value = json["version"];
+                vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"];
                 ballHitDetectionDistance.value = json["ballHitDetectionDistance"];
+
+                // Map ledMode to its corresponding string representation
+                const ledModeMapping: { [key: number]: string } = {
+                    1: "Ein",
+                    2: "Fade",
+                    3: "Blitzartig",
+                    4: "Turbo",
+                    5: "Aus"
+                };
+                ledModeStr.value = ledModeMapping[json["ledMode"] as number] || "Unknown";
+
+
             }
 
         } catch (error) {

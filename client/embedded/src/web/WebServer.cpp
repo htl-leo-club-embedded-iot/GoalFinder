@@ -185,7 +185,7 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
     Settings* settings = Settings::GetInstance();
     settings->SetDeviceName(doc["deviceName"]);
     settings->SetDevicePassword(doc["devicePassword"]);
-    settings->SetVibrationSensorSensitivity(doc["shotSensitivity"]);
+    settings->SetVibrationSensorSensitivity(doc["vibrationSensorSensitivity"]);
     settings->SetBallHitDetectionDistance(doc["ballHitDetectionDistance"]);
     settings->SetVolume(doc["volume"]);
     settings->SetMetronomeSound(doc["metronomeSound"]);
