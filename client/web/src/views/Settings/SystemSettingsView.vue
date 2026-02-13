@@ -44,7 +44,7 @@ function isSSIDValid(value: string) {
   <h4>{{ $t("settings.system") }}</h4>
   <div id="system-buttons">
     <Button @click="settings.restartDevice()" primary>{{ $t("word.restart") }}</Button>
-    <Button @click="settings.restartDevice()">{{ $t("word.factory_settings_reset") }}</Button>
+    <Button @click="settings.factoryResetDevice()">{{ $t("word.factory_settings_reset") }}</Button>
   </div>
   <h4>Info</h4>
   <div id="device-info">

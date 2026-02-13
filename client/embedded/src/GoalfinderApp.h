@@ -28,15 +28,13 @@
 #include <FileSystem.h>
 #include <AudioPlayer.h>
 #include <LedController.h>
-
-// Für FreeRTOS
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 
 class GoalfinderApp : public Singleton<GoalfinderApp> {
 public:
-    // === Öffentliche Methoden ===
+    // Public functions
     void SetIsSoundEnabled(bool value);
     bool IsSoundEnabled();
 
@@ -59,11 +57,11 @@ public:
     void DetectShot();
     void ProcessAnnouncement();
 
-    // === Öffentliche Komponenten (für direkten Zugriff in Tasks) ===
+    // Public members
     AudioPlayer audioPlayer;
     LedController ledController;
 
-    // === Statische Pin-Konstanten ===
+    // Pins and constants
     static const int pinTofSda;
     static const int pinTofScl;
     static const int pinI2sBclk;
@@ -86,7 +84,7 @@ public:
     static const char* missClips[];
     static const int   missClipsCnt;
 
-    // === FreeRTOS Tasks ===
+    // FreeRTOS Tasks
     static void TaskAudioCode(void *pvParameters);
     static void TaskDetectionCode(void *pvParameters);
     static void TaskLedCode(void *pvParameters);
@@ -96,15 +94,16 @@ private:
     /** Singleton constructor */
     GoalfinderApp();
 
-    // === Private Methoden ===
+    // Private methods 
     void OnShotDetected();
     void AnnounceHit();
     void AnnounceMiss();
     void AnnounceEvent(const char* traceMsg, const char* sound);
     void PlaySound(const char* soundFileName);
     void UpdateSettings(bool force = false);
+    void WiFiSetup();
 
-    // === Interne Objekte ===
+    // Internal objects
     FileSystem fileSystem;
     WebServer webServer;
     SNTP sntp;
@@ -112,31 +111,31 @@ private:
     ToFSensor tofSensor;
     VibrationSensor vibrationSensor;
 
-    // === Interne Zustände ===
+    // Internal Values
     bool isSoundEnabled;
     bool announcing;
     unsigned long lastMetronomeTickTime;
     unsigned long metronomeIntervalMs;
     unsigned long lastShockTime;
 
-    // === Ankündigungen (Events) ===
+    // Events
     struct Announcement {
         typedef enum {
-            None,   // keine Ankündigung
-            Shot,   // Schuss erkannt
-            Hit,    // Treffer
-            Miss    // daneben
+            None,   // No Event
+            Shot,   
+            Hit,    
+            Miss    
         } Enum;
     };
     Announcement::Enum announcement;
 
-    // === Statistik / Zähler ===
+    // Statistics
     int detectedHits = 0;
     int detectedMisses = 0;
     
 
-    // === FreeRTOS Handles ===
-git     static TaskHandle_t TaskAudio;
+    // FreeRTOS Handles
+    static TaskHandle_t TaskAudio;
     static TaskHandle_t TaskDetection;
     static TaskHandle_t TaskLed;
     static SemaphoreHandle_t xMutex;
