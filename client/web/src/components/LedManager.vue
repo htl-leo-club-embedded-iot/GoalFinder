@@ -1,3 +1,19 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 <script setup lang="ts">
 import {useSettingsStore} from "@/stores/settings";
 import Button from "@/components/Button.vue";
@@ -33,15 +49,15 @@ function setLedMode(value: string, mode: number) {
 <style scoped>
 .label-container {
   display: flex;
-  flex-direction: column; /* Stack label and buttons vertically */
-  align-items: flex-start; /* Align items to the start */
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 1rem;
   margin-top: 0.5rem;
 }
 
 .button-container {
   display: flex;
-  margin-top: 0.5rem; /* Add spacing between label and buttons */
+  margin-top: 0.5rem;
 }
 
 .button {

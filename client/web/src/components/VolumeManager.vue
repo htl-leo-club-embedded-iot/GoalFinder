@@ -1,11 +1,26 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
+
 <script setup lang="ts">
-import {ref} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import Button from "@/components/Button.vue";
 
 const settings = useSettingsStore();
 
-// Lautstärke setzen
 const setVolume = (value: number) => {
   settings.volume = value;
 };
@@ -69,39 +84,39 @@ const setMissSound = (value: number) => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 1rem; /* Add spacing below the volume slider */
+  margin-bottom: 1rem; 
 }
 
 .button-container {
   margin-left: auto;
   display: flex;
-  gap: 0.5rem; /* Add consistent spacing between buttons */
+  gap: 0.5rem;
 }
 
 .button-container1 {
   margin-top: 0.5rem;
   margin-left: auto;
   display: flex;
-  gap: 0.5rem; /* Add consistent spacing between buttons */
+  gap: 0.5rem;
 }
 
 .button {
-  margin-left: 0; /* Remove redundant margin */
+  margin-left: 0;
 }
 
 .current-value {
   text-align: center;
-  margin-top: 0.5rem; /* Increase spacing for better readability */
+  margin-top: 0.5rem;
   font-weight: bold;
 }
 
 .sound-select {
   display: flex;
   align-items: center;
-  margin-top: 1.5rem; /* Increase spacing between sound sections */
+  margin-top: 1.5rem;
 }
 
 .sound-select label {
-  margin-right: 1rem; /* Add spacing between label and buttons */
+  margin-right: 1rem;
 }
 </style>

@@ -1,13 +1,14 @@
 /*
  * ===============================================================================
- * (c) HTL Leonding
- * ALL RIGHTS RESERVED.
+ * (c) HTBLA Leonding 2024 - 2026
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * This document contains information belonging to HTL Leonding
- * No part of this document or information contained herein may be copied,
- * provided, used, or communicated about its content to any third party
- * in any form or by any means without explicit written permission by
- * HTL Leonding
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * All trademarks used in this document are property of their respective owners.
  * ===============================================================================

@@ -1,9 +1,24 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 <script setup lang="ts">
 import Button from "@/components/Button.vue";
 import PowerIcon from "@/components/icons/PowerIcon.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import {useSettingsStore} from "@/stores/settings";
-import {ref, watch} from "vue";
 
 const settings = useSettingsStore();
 
@@ -46,9 +61,6 @@ const settings = useSettingsStore();
   }
 
   @media (min-width: 768px) {
-    #nav-bar {
-    }
-
     h1 {
       display: block;
     }
