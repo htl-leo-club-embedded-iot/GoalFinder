@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import {build, defineConfig} from 'vite'
+import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import compression from "vite-plugin-compression2";
 
