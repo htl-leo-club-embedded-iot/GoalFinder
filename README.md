@@ -5,6 +5,13 @@
 The GoalFinder device aims to help blind or visually impaired people play basketball by playing a sound to help locate the basket and provides acoustic and visual feedback on hits and misses.
 For more information, visit the [GoalFinder Website](https://goalfinder.github.io)
 
+## Latest Verion
+
+13.02.2026 `v0.1.0`:
+ - Major Bug Fixes
+ - Player Skipping now works
+ - Captive Portal
+
 ## Branches
 
 ### Main Branches
@@ -19,40 +26,23 @@ There are still two discontinued branches from before the takeover
 + `pages-alt` Old GitHub Pages branch
 + `multithreading-alt` Old branch focused on adding multithreading to the GoalFinder device
 
+## Upload tool (ULT)
+
+**Always run the upload tool from the root directory**
+
+The upload tool is built to improve workflow when flashing firmware. Default workflow will be run by default:
+
+1. `npm run build`: build and compress the latest web app
+2. `pio run -t upload`: upload the firmware
+3. `pio run -t uploadfs`: upload the filesystem containing the Web App
+
+### Parameters
+
+- `-f`: Erases flash and cleans `pio`
+- `-m`: Monitor after upload
+
+All parameters can be combined
+
 ## Website
 
 The GoalFinder website is accessible at [goalfinder.github.io](https://goalfinder.github.io) and is split of into [it's own repository](https://github.com/goalfinder/goalfinder.github.io)
-
-## Contributing
-
-> [!WARNING]  
-> The contribution parts will be moved to the GoalFinder websites technical documentation soon
-
-Contributions are welcome — including bug reports, feature requests, documentation improvements, and code changes.
-
-### Have an idea?
-
-If you have an idea to improve GoalFinder, open an issue with the `feature-request` or `user-story` label and include a short summary and the motivation. Please do not add any other labels — the project team will assign labels as needed.
-
-### Found an issue?
-     
-If you find a bug or incorrect behavior, open an issue with the `bug` label and include steps to reproduce, expected vs actual behavior, environment details, and any logs or screenshots. Please do not add any other labels — the project team will assign labels as needed.
-
-### Want to contribute code?
-
-Fork the repository and submit a pull request with a concise summary of your changes, related issues, and any tests or screenshots that demonstrate the update.
-
-### Already a project member?
-
-See the [contribution guide](./doc/contribute.mdmd) for detailed instructions. 
-
-## Version Management
-
-**Dev builds:** `python update-version.py X.Y.Z-dev`
-
-**Release:** Tag and push to trigger automatic build
-```bash
-git tag vX.Y.Z
-git push origin vX.Y.Z
-```
-Version appears on device Settings page.
