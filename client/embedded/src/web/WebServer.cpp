@@ -51,7 +51,7 @@ static String GetContentType(const String* fileName)
     }
     else 
     {
-        //Serial.println("[ERROR] Unknown file type to get content type."); // Debugging: Handle unknown file types
+        Serial.println("[ERROR] Unknown file type to get content type."); // Debugging: Handle unknown file types
         return "";
     }
 }

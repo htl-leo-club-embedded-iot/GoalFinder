@@ -2,7 +2,7 @@
 #include <HardwareSerial.h>
 #include <Settings.h>
 
-// === Hardware-Pins und Konstanten ===
+// Hardware pins and constants
 const int GoalfinderApp::pinTofSda = 22;
 const int GoalfinderApp::pinTofScl = 21;
 const int GoalfinderApp::pinI2sBclk = 23;
@@ -28,13 +28,13 @@ const int   GoalfinderApp::tickClipsCnt = sizeof(GoalfinderApp::tickClips) / siz
 const char* GoalfinderApp::missClips[] = { "/miss-1.mp3" };
 const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / sizeof(GoalfinderApp::missClips[0]);
 
-// === FreeRTOS Handles ===
+// FreeRTOS Handles
 TaskHandle_t GoalfinderApp::TaskAudio = nullptr;
 TaskHandle_t GoalfinderApp::TaskDetection = nullptr;
 TaskHandle_t GoalfinderApp::TaskLed = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
-// === Konstruktor / Destruktor ===
+// Constructor
 GoalfinderApp::GoalfinderApp() :
     Singleton<GoalfinderApp>(),
     fileSystem(true),
@@ -54,7 +54,6 @@ GoalfinderApp::GoalfinderApp() :
 
 GoalfinderApp::~GoalfinderApp() {}
 
-// === Getter / Setter ===
 void GoalfinderApp::SetIsSoundEnabled(bool value) {
     isSoundEnabled = value;
 }
@@ -63,7 +62,7 @@ bool GoalfinderApp::IsSoundEnabled() {
     return isSoundEnabled;
 }
 
-// === Initialisierung ===
+// Initializing
 void GoalfinderApp::Init() {
     delay(100);
     Serial.begin(115200);
@@ -74,14 +73,8 @@ void GoalfinderApp::Init() {
         return;
     }
 
-    Settings* settings = Settings::GetInstance();
-    String ssid = settings->GetDeviceName();
-    String wifiPw = settings->GetDevicePassword();
-
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(ssid, wifiPw);
-    WiFi.setSleep(false);
-    Serial.println(WiFi.softAPIP());
+    // Start WiFi
+    WiFiSetup();
 
     // Start DNS server for captive portal (redirect all domains to AP IP)
     dnsServer.start(53, "*", WiFi.softAPIP());
@@ -104,9 +97,60 @@ void GoalfinderApp::Init() {
     Serial.println("All tasks started.");
 }
 
+void GoalfinderApp::WiFiSetup() {
+    Settings* settings = Settings::GetInstance();
+
+    if (settings->IsFirstRun()) {
+        // Scan for other GoalFinder APs to assign a unique number
+        WiFi.mode(WIFI_STA);
+        WiFi.disconnect();
+        delay(100);
+
+        int n = WiFi.scanNetworks();
+        Serial.printf("[INFO] First run: found %d networks\n", n);
+
+        bool usedNumbers[100] = { false };
+
+        for (int i = 0; i < n; i++) {
+            String ssid = WiFi.SSID(i);
+            if (ssid.startsWith("GoalFinder")) {
+                String numStr = ssid.substring(11);
+                int num = numStr.toInt();
+                if (num > 0 && num < 100) {
+                    usedNumbers[num] = true;
+                    Serial.printf("[INFO]   Found existing device: %s (number %d)\n", ssid.c_str(), num);
+                }
+            }
+        }
+        WiFi.scanDelete();
+
+        int nextNumber = 1;
+        for (int i = 1; i < 100; i++) {
+            if (!usedNumbers[i]) {
+                nextNumber = i;
+                break;
+            }
+        }
+
+        char numberStr[3];
+        snprintf(numberStr, sizeof(numberStr), "%02d", nextNumber);
+        String deviceName = "GoalFinder " + String(numberStr);
+
+        settings->SetDeviceName(deviceName);
+        settings->SetFirstRun(false);
+        Serial.printf("[INFO] First run: assigned device name '%s'\n", deviceName.c_str());
+    }
+
+    String ssid = settings->GetDeviceName();
+    String wifiPw = settings->GetDevicePassword();
+
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(ssid, wifiPw);
+    WiFi.setSleep(false);
+    Serial.println(WiFi.softAPIP());
+}
+
 void GoalfinderApp::UpdateSettings(bool force) {
-
-
     Settings* settings = Settings::GetInstance();
     if (force || settings->IsModified()) {
         audioPlayer.SetVolume(settings->GetVolume());
@@ -115,7 +159,7 @@ void GoalfinderApp::UpdateSettings(bool force) {
     }
 }
 
-// === Tasks ===
+// Tasks
 void GoalfinderApp::TaskAudioCode(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
@@ -134,6 +178,7 @@ void GoalfinderApp::TaskAudioCode(void *pvParameters) {
 }
 
 void GoalfinderApp::TaskDetectionCode(void *pvParameters) {
+    // Try and remove endless loop by adding a exit option
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
         app->UpdateSettings();
@@ -145,13 +190,14 @@ void GoalfinderApp::TaskDetectionCode(void *pvParameters) {
 
 void GoalfinderApp::TaskLedCode(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+    // Try and remove endless loop by adding a exit option
     for (;;) {
         app->ledController.Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
 
-// === Hauptlogik ===
+// Play metronome sound
 void GoalfinderApp::TickMetronome() {
     unsigned long currentTime = millis();
     if ((currentTime - lastMetronomeTickTime) > metronomeIntervalMs) {
@@ -204,7 +250,7 @@ void GoalfinderApp::ProcessAnnouncement() {
     announcement = Announcement::None;
 }
 
-// === Neue fehlende Implementierungen ===
+// Old comment mentioned some missing logic here but works fine
 void GoalfinderApp::AnnounceHit() {
     detectedHits++;
     announcement = Announcement::Hit;
@@ -235,7 +281,6 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
     }
 }
 
-// === Dummy-Methode für Loop-kompatibilität ===
 void GoalfinderApp::Process() {
     // Process DNS requests for captive portal
     dnsServer.processNextRequest();

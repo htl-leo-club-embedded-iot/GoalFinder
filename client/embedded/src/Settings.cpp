@@ -31,7 +31,7 @@ const char* Settings::keyMissSound = "missSound";
 const int Settings::defaultMissSound = 0;
 
 const char* Settings::keyDeviceName = "deviceName";
-const String Settings::defaultDeviceName = "Goalfinder";
+const String Settings::defaultDeviceName = "GoalFinder 01";
 
 const char* Settings::keyDevicePassword = "devicePassword";
 const String Settings::defaultDevicePassword = emptyString;
@@ -44,6 +44,9 @@ const int Settings::defaultBallHitDetectionDistance = 180;
 
 const char* Settings::keyLedMode = "ledMode";
 const LedMode Settings::defaultLedMode = LedMode::Flash;
+
+const char* Settings::keyFirstRun = "firstRun";
+const bool Settings::defaultFirstRun = true;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -183,6 +186,17 @@ void Settings::SetLedMode(LedMode ledMode)
 	SetModified();
 };
 
+bool Settings::IsFirstRun()
+{
+	return (bool)store.GetInt(keyFirstRun, (int)defaultFirstRun);
+}
+
+void Settings::SetFirstRun(bool firstRun)
+{
+	store.PutInt(keyFirstRun, (int)firstRun);
+	SetModified();
+}
+  
 void Settings::ResetToDefaults()
 {
 	store.Clear();
