@@ -136,7 +136,7 @@ private:
     
 
     // === FreeRTOS Handles ===
-    static TaskHandle_t TaskAudio;
+git     static TaskHandle_t TaskAudio;
     static TaskHandle_t TaskDetection;
     static TaskHandle_t TaskLed;
     static SemaphoreHandle_t xMutex;
