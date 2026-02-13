@@ -257,32 +257,33 @@ void WebServer::Begin()
     updater.Begin(API_URL"/update");
 
     // === Captive portal detection endpoints ===
+    // Return 200 + HTML (not 204, not 302) so all platforms reliably detect the portal.
+    // Android probes /generate_204 and /gen_204 — anything other than 204 triggers the sign-in sheet.
+    // iOS looks for specific body content in /hotspot-detect.html.
+    // Windows & Firefox each have their own probe URLs.
+    auto captiveHandler = [](AsyncWebServerRequest *request) {
+        String portalUrl = "http://" + WiFi.softAPIP().toString() + "/";
+        String html = "<!DOCTYPE html><html><head>"
+                      "<meta http-equiv='refresh' content='0; url=" + portalUrl + "'>"
+                      "</head><body>"
+                      "<p>Redirecting to <a href='" + portalUrl + "'>GoalFinder</a>...</p>"
+                      "</body></html>";
+        request->send(200, "text/html", html);
+    };
     // Android
-    server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
-    server.on("/gen_204", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/generate_204", HTTP_GET, captiveHandler);
+    server.on("/gen_204", HTTP_GET, captiveHandler);
     // iOS / macOS
-    server.on("/hotspot-detect.html", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/hotspot-detect.html", HTTP_GET, captiveHandler);
     // Windows
-    server.on("/ncsi.txt", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
-    server.on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/ncsi.txt", HTTP_GET, captiveHandler);
+    server.on("/connecttest.txt", HTTP_GET, captiveHandler);
+    server.on("/fwlink", HTTP_GET, captiveHandler);
     // Firefox
-    server.on("/canonical.html", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/canonical.html", HTTP_GET, captiveHandler);
+    server.on("/success.txt", HTTP_GET, captiveHandler);
     // Generic fallback
-    server.on("/redirect", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/redirect", HTTP_GET, captiveHandler);
 
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);
@@ -302,8 +303,11 @@ void WebServer::Begin()
             response->addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
             response->addHeader("Access-Control-Allow-Headers", "Content-Type");
             request->send(response);
+        } else if (request->host() != WiFi.softAPIP().toString()) {
+            // Captive portal: any request to a non-AP host gets redirected
+            request->redirect("http://" + WiFi.softAPIP().toString() + "/");
         } else {
-            request->send(404);
+            request->send(404, "text/plain", "Not found");
         }
     });
 
