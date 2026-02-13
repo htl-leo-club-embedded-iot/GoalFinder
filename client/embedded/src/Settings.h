@@ -60,6 +60,8 @@ class Settings : public Singleton<Settings>
         /** Marks the device as having completed first run setup. */
         void SetFirstRun(bool firstRun);
 
+        /** Resets all settings to factory defaults and restarts the device. */
+        void ResetToDefaults();
 
     private:
 		friend class Singleton<Settings>;

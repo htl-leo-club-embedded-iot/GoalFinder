@@ -39,7 +39,7 @@ const String Settings::defaultDevicePassword = emptyString;
 const char* Settings::keyVibrationSensorSensitivity = "shotSensitivity";
 const int Settings::defaultVibrationSensorSensitivity = 100;
 
-const char* Settings::keyBallHitDetectionDistance = "ballHitDetectionDistance";
+const char* Settings::keyBallHitDetectionDistance = "ballHitDetDist";
 const int Settings::defaultBallHitDetectionDistance = 180;
 
 const char* Settings::keyLedMode = "ledMode";
@@ -171,6 +171,8 @@ int Settings::GetBallHitDetectionDistance()
 void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
 {
 	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 200), 0);
+	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
+	SetModified();
 }
 
 LedMode Settings::GetLedMode()
@@ -193,4 +195,10 @@ void Settings::SetFirstRun(bool firstRun)
 {
 	store.PutInt(keyFirstRun, (int)firstRun);
 	SetModified();
+}
+  
+void Settings::ResetToDefaults()
+{
+	store.Clear();
+	ESP.restart();
 }

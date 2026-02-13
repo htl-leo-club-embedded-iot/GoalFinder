@@ -43,6 +43,10 @@ import Card from "@/components/Card.vue";
 </template>
 
 <style>
+#card-container {
+  margin-bottom: 1rem;
+}
+
 #timed-shots-challenge {
   margin-top: 1rem;
 }
