@@ -5,6 +5,13 @@
 The GoalFinder device aims to help blind or visually impaired people play basketball by playing a sound to help locate the basket and provides acoustic and visual feedback on hits and misses.
 For more information, visit the [GoalFinder Website](https://goalfinder.github.io)
 
+## Latest Verion
+
+13.02.2026 `v0.1.0`:
+ - Major Bug Fixes
+ - Player Skipping now works
+ - Captive Portal
+
 ## Branches
 
 ### Main Branches
