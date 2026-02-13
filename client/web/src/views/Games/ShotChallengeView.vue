@@ -22,18 +22,21 @@ const settings = useSettingsStore();
 const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
 
 function recordShot(index: number, isHit: boolean) {
+  if (index !== game.selectedPlayerIndex) return;
+
   if (isHit) {
     game.addHitToPlayer(index);
-
-    //efgdrgerwger
-
   } else {
     game.addMissToPlayer(index);
   }
+  game.resetTimer();
+  game.selectNewPlayer();
 }
 
 function finish() {
   showLeaderboard.value = true;
+  game.hasEnded = true;
+  game.pause();
 }
 
 function restart() {
@@ -205,23 +208,6 @@ a
   width: 1.4rem;
 }
 
-/* --- Responsive Tabelle --- */
-#player-list {
-  width: 100%;
-  border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
-  border-spacing: 0;
-}
-
-#player-list th,
-#player-list td {
-  padding: 0.5rem;
-  text-align: left;
-}
-
-
 .icon-buttons-container {
   display: flex;
   gap: 0.4rem;
@@ -230,15 +216,12 @@ a
   flex-wrap: nowrap;
 }
 
-/* Auf kleinen Screens sollen sie nebeneinander bleiben */
+/* On small screens buttons should not wrap */
 @media (max-width: 768px) {
   .icon-buttons-container {
     flex-wrap: nowrap;
     justify-content: space-around;
   }
 }
-
-
-
 
 </style>

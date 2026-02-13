@@ -8,6 +8,11 @@ import {Player} from "@/models/player";
 import ToggleButton from "@/components/ToggleButton.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
 import {useSettingsStore} from "@/stores/settings";
+import IconButton from "@/components/IconButton.vue";
+
+import AddIcon from "@/components/icons/AddIcon.vue";
+import MinusIcon from "@/components/icons/MinusIcon.vue";
+import TrashIcon from "@/components/icons/TrashIcon.vue";
 
 const game = reactive(new TimedShotsChallengeGame());
 const showLeaderboard = ref(false);
@@ -17,6 +22,8 @@ const settings = useSettingsStore();
 const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
 
 function recordShot(index: number, isHit: boolean) {
+  if (index !== game.selectedPlayerIndex) return;
+
   if (isHit) {
     game.addHitToPlayer(index);
   } else {
@@ -26,6 +33,8 @@ function recordShot(index: number, isHit: boolean) {
 
 function finish() {
   showLeaderboard.value = true;
+  game.hasEnded = true;
+  game.pause();
 }
 
 function restart() {
@@ -88,10 +97,18 @@ function onGameStartBtnClick() {
               <td>{{ person.hits }}</td>
               <td>{{ person.misses }}</td>
               <td>
-                <div class="buttons-container">
-                  <Button primary @click="recordShot(index, true)">{{ $t("word.hit") }}</Button>
-                  <Button @click="recordShot(index, false)" severity="warning">{{ $t("word.miss") }}</Button>
-                  <Button @click="game.removePlayer(index)" severity="danger">{{ $t("word.remove") }}</Button>
+                <div class="icon-buttons-container">
+                  <IconButton primary @click="recordShot(index, true)" title="Treffer">
+                    <AddIcon />
+                  </IconButton>
+
+                  <IconButton warning @click="recordShot(index, false)" title="Fehlschuss">
+                    <MinusIcon />
+                  </IconButton>
+
+                  <IconButton danger @click="game.removePlayer(index)" title="Entfernen">
+                    <TrashIcon />
+                  </IconButton>
                 </div>
               </td>
             </tr>
@@ -188,4 +205,21 @@ function onGameStartBtnClick() {
 #play-icon {
   width: 1.4rem;
 }
+  
+.icon-buttons-container {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* On small screens buttons should not wrap */
+@media (max-width: 768px) {
+  .icon-buttons-container {
+    flex-wrap: nowrap;
+    justify-content: space-around;
+  }
+}
+
 </style>

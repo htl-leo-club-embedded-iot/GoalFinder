@@ -59,6 +59,12 @@ const props = defineProps({
   border-color: cornflowerblue;
 }
 
+.icon-btn.primary:focus:not(:hover) {
+  background: cornflowerblue;
+  color: white;
+  border-color: transparent;
+}
+
 .icon-btn.danger:hover {
   color: #d9534f;
   border-color: #d9534f;
@@ -67,6 +73,15 @@ const props = defineProps({
 .icon-btn.warning:hover {
   color: #f0ad4e;
   border-color: #f0ad4e;
+}
+
+.icon-btn:focus:not(:hover) {
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.icon-btn:focus {
+  outline: none;
 }
 
 /* Mobile Touch-Ziel etwas größer */

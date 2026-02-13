@@ -37,9 +37,21 @@ static String GetContentType(const String* fileName)
     {
         return "image/x-icon";
     }
+    else if(fileName->endsWith("png")) 
+    {
+        return "image/png";
+    }
+    else if(fileName->endsWith("svg")) 
+    {
+        return "image/svg+xml";
+    }
+    else if(fileName->endsWith("jpg") || fileName->endsWith("jpeg")) 
+    {
+        return "image/jpeg";
+    }
     else 
     {
-        //Serial.println("[ERROR] Unknown file type to get content type."); // Debugging: Handle unknown file types
+        Serial.println("[ERROR] Unknown file type to get content type."); // Debugging: Handle unknown file types
         return "";
     }
 }
@@ -62,14 +74,24 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     String filePath = WEBAPP_DIR + request->url();  
     String contentType = GetContentType(&filePath);
-    filePath += COMPRESSED_FILE_EXTENSION;
 
-    bool fileExists = internalFS->FileExists(filePath);
+    // Try the gzip-compressed version first
+    String compressedPath = filePath + COMPRESSED_FILE_EXTENSION;
+    bool isCompressed = internalFS->FileExists(compressedPath);
+    bool fileExists = isCompressed;
 
+    // If no compressed version, try the uncompressed file directly
     if(!fileExists)
     {
-        filePath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
         fileExists = internalFS->FileExists(filePath);
+    }
+
+    // If neither exists, fall back to index.html (SPA routing)
+    if(!fileExists)
+    {
+        compressedPath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
+        isCompressed = internalFS->FileExists(compressedPath);
+        fileExists = isCompressed;
         contentType = "text/html";
     }
 
@@ -80,7 +102,8 @@ static void HandleRequest(AsyncWebServerRequest* request)
         return;
     }
 
-    AsyncWebServerResponse* response = request->beginResponse(LittleFS, filePath, contentType);
+    String servePath = isCompressed ? compressedPath : filePath;
+    AsyncWebServerResponse* response = request->beginResponse(LittleFS, servePath, contentType);
 
     if(response == nullptr)
     {
@@ -89,8 +112,16 @@ static void HandleRequest(AsyncWebServerRequest* request)
         return;
     }
    
-    response->addHeader("Content-Encoding", "gzip");
-    response->addHeader("Cache-Control", "max-age=604800"); // 1 week
+    if(isCompressed) {
+        response->addHeader("Content-Encoding", "gzip");
+    }
+
+    // Don't cache index.html so the browser always fetches fresh asset references
+    if(filePath.endsWith("index.html" COMPRESSED_FILE_EXTENSION)) {
+        response->addHeader("Cache-Control", "no-cache");
+    } else {
+        response->addHeader("Cache-Control", "max-age=604800"); // 1 week
+    }
 
 
 
@@ -154,7 +185,7 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
     Settings* settings = Settings::GetInstance();
     settings->SetDeviceName(doc["deviceName"]);
     settings->SetDevicePassword(doc["devicePassword"]);
-    settings->SetVibrationSensorSensitivity(doc["shotSensitivity"]);
+    settings->SetVibrationSensorSensitivity(doc["vibrationSensorSensitivity"]);
     settings->SetBallHitDetectionDistance(doc["ballHitDetectionDistance"]);
     settings->SetVolume(doc["volume"]);
     settings->SetMetronomeSound(doc["metronomeSound"]);
@@ -185,6 +216,12 @@ static void HandleRestart(AsyncWebServerRequest* request)
 {
     ESP.restart();
     request->send(204);
+}
+
+static void HandleFactoryReset(AsyncWebServerRequest* request) 
+{
+    request->send(204);
+    Settings::GetInstance()->ResetToDefaults();
 }
 
 static void HandleStart(AsyncWebServerRequest* request) {
@@ -220,38 +257,40 @@ void WebServer::Begin()
     updater.Begin(API_URL"/update");
 
     // === Captive portal detection endpoints ===
+    // Return 200 + HTML (not 204, not 302) so all platforms reliably detect the portal.
+    // Android probes /generate_204 and /gen_204 — anything other than 204 triggers the sign-in sheet.
+    // iOS looks for specific body content in /hotspot-detect.html.
+    // Windows & Firefox each have their own probe URLs.
+    auto captiveHandler = [](AsyncWebServerRequest *request) {
+        String portalUrl = "http://" + WiFi.softAPIP().toString() + "/";
+        String html = "<!DOCTYPE html><html><head>"
+                      "<meta http-equiv='refresh' content='0; url=" + portalUrl + "'>"
+                      "</head><body>"
+                      "<p>Redirecting to <a href='" + portalUrl + "'>GoalFinder</a>...</p>"
+                      "</body></html>";
+        request->send(200, "text/html", html);
+    };
     // Android
-    server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
-    server.on("/gen_204", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/generate_204", HTTP_GET, captiveHandler);
+    server.on("/gen_204", HTTP_GET, captiveHandler);
     // iOS / macOS
-    server.on("/hotspot-detect.html", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/hotspot-detect.html", HTTP_GET, captiveHandler);
     // Windows
-    server.on("/ncsi.txt", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
-    server.on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/ncsi.txt", HTTP_GET, captiveHandler);
+    server.on("/connecttest.txt", HTTP_GET, captiveHandler);
+    server.on("/fwlink", HTTP_GET, captiveHandler);
     // Firefox
-    server.on("/canonical.html", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/canonical.html", HTTP_GET, captiveHandler);
+    server.on("/success.txt", HTTP_GET, captiveHandler);
     // Generic fallback
-    server.on("/redirect", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
-    });
+    server.on("/redirect", HTTP_GET, captiveHandler);
 
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);
     server.on(API_URL"/settings", HTTP_GET, HandleLoadSettings);
     server.on(API_URL"/settings", HTTP_POST, [](AsyncWebServerRequest* request) {}, 0, HandleSaveSettings);
     server.on(API_URL"/restart", HTTP_POST, HandleRestart);    
+    server.on(API_URL"/factory-reset", HTTP_POST, HandleFactoryReset);
     server.on(API_URL"/hits", HTTP_GET, HandleHits);
     server.on(API_URL"/misses", HTTP_GET, HandleMisses);
     server.on("/*", HTTP_GET, HandleRequest);
@@ -264,8 +303,11 @@ void WebServer::Begin()
             response->addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
             response->addHeader("Access-Control-Allow-Headers", "Content-Type");
             request->send(response);
+        } else if (request->host() != WiFi.softAPIP().toString()) {
+            // Captive portal: any request to a non-AP host gets redirected
+            request->redirect("http://" + WiFi.softAPIP().toString() + "/");
         } else {
-            request->send(404);
+            request->send(404, "text/plain", "Not found");
         }
     });
 

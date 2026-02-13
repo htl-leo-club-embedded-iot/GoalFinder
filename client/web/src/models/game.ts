@@ -3,7 +3,7 @@ import type {Player} from "@/models/player";
 const API_URL = "/api"
 
 abstract class Game {
-    private readonly _players: Player[];
+    protected readonly _players: Player[];
     private _isRunning: boolean = false;
 
     constructor() {
@@ -59,16 +59,17 @@ abstract class Game {
 export class ShotChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 60;
 
-    private _timer: number = 0;
+    public _timer: number = 0;
+    public hasEnded: boolean = false;
     private timerIntervalId: number = -1;
-    private selectedPlayerIndex: number = 0;
+    public selectedPlayerIndex: number = 0;
 
     public get timer(): number {
         return this._timer;
     }
 
     public getSelectedPlayer(): Player {
-        return this.players[this.selectedPlayerIndex];
+        return this._players[this.selectedPlayerIndex];
     }
 
     public constructor() {
@@ -85,16 +86,32 @@ export class ShotChallengeGame extends Game {
     public async start(): Promise<void> {
         if(!this.isRunning) {
             this.timerIntervalId = setInterval(async () => {
+                if (this.hasEnded) return;
                 this._timer--;
 
+                if (this.hasEnded) return;
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
-                console.log(newHits);
 
+                if (this.hasEnded) return;
+                const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
+                const newMisses = parseInt(await newMissesData.text());
+
+                if(this.hasEnded) return;
                 if(newHits > 0) {
-                    this.getSelectedPlayer().addHit();
-                    this.resetTimer();
-                    this.selectNewPlayer();
+                    console.log("[ShotChallenge] hits detected:", newHits);
+                    for(let i = 0; i < newHits; i++) {
+                        this.getSelectedPlayer().addHit();
+                        this.resetTimer();
+                        this.selectNewPlayer();
+                    }
+                } else if(newMisses > 0) {
+                    console.log("[ShotChallenge] misses detected:", newMisses);
+                    for(let i = 0; i < newMisses; i++) {
+                        this.getSelectedPlayer().addMiss();
+                        this.resetTimer();
+                        this.selectNewPlayer();
+                    }
                 }
 
                 if(this._timer <= 0) {
@@ -118,17 +135,18 @@ export class ShotChallengeGame extends Game {
         this.selectedPlayerIndex = 0;
         this.pause();
         this.resetTimer();
+        this.hasEnded = false;
     }
 
-    private selectNewPlayer(): void {
+    public selectNewPlayer(): void {
         this.selectedPlayerIndex++;
 
-        if(this.selectedPlayerIndex >= this.players.length) {
+        if(this.selectedPlayerIndex >= this._players.length) {
             this.selectedPlayerIndex = 0;
         }
     }
 
-    private resetTimer(): void {
+    public resetTimer(): void {
         this._timer = ShotChallengeGame.PLAY_DURATION;
     }
 }
@@ -136,16 +154,17 @@ export class ShotChallengeGame extends Game {
 export class TimedShotsChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 120;
 
-    private _timer: number = 0;
+    public _timer: number = 0;
+    public hasEnded: boolean = false;
     private timerIntervalId: number = -1;
-    private selectedPlayerIndex: number = 0;
+    public selectedPlayerIndex: number = 0;
 
     public get timer(): number {
         return this._timer;
     }
 
     public getSelectedPlayer(): Player {
-        return this.players[this.selectedPlayerIndex];
+        return this._players[this.selectedPlayerIndex];
     }
 
     public constructor() {
@@ -162,18 +181,33 @@ export class TimedShotsChallengeGame extends Game {
     public async start(): Promise<void> {
         if(!this.isRunning) {
             this.timerIntervalId = setInterval(async () => {
+                if (this.hasEnded) return;
                 this._timer--;
 
+                if (this.hasEnded) return;
                 const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
                 const newHits = parseInt(await newHitsData.text());
-                console.log(newHits);
 
+                if (this.hasEnded) return;
+                const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
+                const newMisses = parseInt(await newMissesData.text());
+
+                if(this.hasEnded) return;
                 if(newHits > 0) {
-                    this.getSelectedPlayer().addHit();
+                    console.log("[TimedShots] hits detected:", newHits);
+                    for(let i = 0; i < newHits; i++) {
+                        this.getSelectedPlayer().addHit();
+                    }
+                }
+
+                if(newMisses > 0) {
+                    console.log("[TimedShots] misses detected:", newMisses);
+                    for(let i = 0; i < newMisses; i++) {
+                        this.getSelectedPlayer().addMiss();
+                    }
                 }
 
                 if(this._timer <= 0) {
-                    this.getSelectedPlayer().addMiss();
                     this.resetTimer();
                     this.selectNewPlayer();
                 }
@@ -193,17 +227,18 @@ export class TimedShotsChallengeGame extends Game {
         this.selectedPlayerIndex = 0;
         this.pause();
         this.resetTimer();
+        this.hasEnded = false;
     }
 
-    private selectNewPlayer(): void {
+    public selectNewPlayer(): void {
         this.selectedPlayerIndex++;
 
-        if(this.selectedPlayerIndex >= this.players.length) {
+        if(this.selectedPlayerIndex >= this._players.length) {
             this.selectedPlayerIndex = 0;
         }
     }
 
-    private resetTimer(): void {
+    public resetTimer(): void {
         this._timer = TimedShotsChallengeGame.PLAY_DURATION;
     }
 }

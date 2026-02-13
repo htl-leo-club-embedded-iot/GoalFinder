@@ -31,7 +31,7 @@ const char* Settings::keyMissSound = "missSound";
 const int Settings::defaultMissSound = 0;
 
 const char* Settings::keyDeviceName = "deviceName";
-const String Settings::defaultDeviceName = "Goalfinder";
+const String Settings::defaultDeviceName = "GoalFinder 01";
 
 const char* Settings::keyDevicePassword = "devicePassword";
 const String Settings::defaultDevicePassword = emptyString;
@@ -39,11 +39,14 @@ const String Settings::defaultDevicePassword = emptyString;
 const char* Settings::keyVibrationSensorSensitivity = "shotSensitivity";
 const int Settings::defaultVibrationSensorSensitivity = 100;
 
-const char* Settings::keyBallHitDetectionDistance = "ballHitDetectionDistance";
+const char* Settings::keyBallHitDetectionDistance = "ballHitDetDist";
 const int Settings::defaultBallHitDetectionDistance = 180;
 
 const char* Settings::keyLedMode = "ledMode";
 const LedMode Settings::defaultLedMode = LedMode::Flash;
+
+const char* Settings::keyFirstRun = "firstRun";
+const bool Settings::defaultFirstRun = true;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -168,6 +171,8 @@ int Settings::GetBallHitDetectionDistance()
 void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
 {
 	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 200), 0);
+	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
+	SetModified();
 }
 
 LedMode Settings::GetLedMode()
@@ -180,3 +185,20 @@ void Settings::SetLedMode(LedMode ledMode)
 	store.PutInt(keyLedMode, (int)ledMode);
 	SetModified();
 };
+
+bool Settings::IsFirstRun()
+{
+	return (bool)store.GetInt(keyFirstRun, (int)defaultFirstRun);
+}
+
+void Settings::SetFirstRun(bool firstRun)
+{
+	store.PutInt(keyFirstRun, (int)firstRun);
+	SetModified();
+}
+  
+void Settings::ResetToDefaults()
+{
+	store.Clear();
+	ESP.restart();
+}

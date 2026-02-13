@@ -61,7 +61,20 @@ export const useSettingsStore = defineStore("settings", () => {
                 macAddress.value = json["macAddress"];
                 isSoundEnabled.value = json["isSoundEnabled"];
                 version.value = json["version"];
+                vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"];
                 ballHitDetectionDistance.value = json["ballHitDetectionDistance"];
+
+                // Map ledMode to its corresponding string representation
+                const ledModeMapping: { [key: number]: string } = {
+                    1: "Ein",
+                    2: "Fade",
+                    3: "Blitzartig",
+                    4: "Turbo",
+                    5: "Aus"
+                };
+                ledModeStr.value = ledModeMapping[json["ledMode"] as number] || "Unknown";
+
+
             }
 
         } catch (error) {
@@ -94,6 +107,14 @@ export const useSettingsStore = defineStore("settings", () => {
     async function restartDevice() : Promise<void> {
         try {
             await fetch(`${API_URL}/restart`, {method: "POST"});
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function factoryResetDevice() : Promise<void> {
+        try {
+            await fetch(`${API_URL}/factory-reset`, {method: "POST"});
         } catch (error) {
             console.error(error);
         }
@@ -137,6 +158,7 @@ export const useSettingsStore = defineStore("settings", () => {
         getSettings,
         saveSettings,
         restartDevice,
+        factoryResetDevice,
         ledMode,
         ledModeStr,
         isValid,
