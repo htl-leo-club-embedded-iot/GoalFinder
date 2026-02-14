@@ -27,7 +27,7 @@ function setLedMode(value: string, mode: number) {
 </script>
 
 <template>
-  <div>
+  <div class="container">
     <div id="led">
       <div class="label-container">
         <label for="modus">{{ $t("word.led_mode") }}</label>
@@ -40,46 +40,66 @@ function setLedMode(value: string, mode: number) {
         </div>
       </div>
     </div>
-    <div class="current-modus">
+    <div class="current-mode">
       <span>{{ $t("word.curr_mode") }}: {{ settings.ledModeStr }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+#led {
+  width: 100%;
+}
+
 .label-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 1rem;
   margin-top: 0.5rem;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.label-container label {
+  text-align: center;
+  font-weight: bold;
+  display: block;
 }
 
 .button-container {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
   margin-top: 0.5rem;
 }
 
 .button {
-  margin-left: 10px;
-}
-
-.button:first-child {
   margin-left: 0;
 }
 
-.current-modus {
+.current-mode {
   text-align: center;
-  margin-top: 0.2rem;
+  width: 100%;
 }
 
-.current-modus span {
-  margin-left: 0.1rem;
+.current-mode span {
+  font-weight: bold;
 }
 
 span {
   text-align: center;
-  margin-top: 0.1rem;
   font-weight: bold;
 }
 </style>

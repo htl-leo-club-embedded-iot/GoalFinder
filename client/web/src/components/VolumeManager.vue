@@ -40,64 +40,85 @@ const setMissSound = (value: number) => {
 </script>
 
 <template>
-  <div class="volume-slider-control">
-    <label>{{ $t("word.volume") }}</label>
-    <div class="button-container1">
-      <Button class="button" @click="setVolume(0)">0%</Button>
-      <Button class="button" @click="setVolume(25)">25%</Button>
-      <Button class="button" @click="setVolume(50)">50%</Button>
-      <Button class="button" @click="setVolume(75)">75%</Button>
-      <Button class="button" @click="setVolume(100)">100%</Button>
+  <div class="container">
+    <div class="volume-slider-control">
+      <label>{{ $t("word.volume") }}</label>
+      <div class="button-container1">
+        <Button class="button" @click="setVolume(0)">0%</Button>
+        <Button class="button" @click="setVolume(25)">25%</Button>
+        <Button class="button" @click="setVolume(50)">50%</Button>
+        <Button class="button" @click="setVolume(75)">75%</Button>
+        <Button class="button" @click="setVolume(100)">100%</Button>
+      </div>
     </div>
-  </div>
-  <div class="current-value">
-    {{ $t("word.curr_volume") }}: {{ settings.volume }}%
-  </div>
+    <div class="current-value">
+      {{ $t("word.curr_volume") }}: {{ settings.volume }}%
+    </div>
 
-  <div class="sound-select">
-    <label>Metronom Geräusch</label>
-    <div class="button-container">
-      <Button class="button" @click="setMetronomeSound(0)">Ton 1</Button>
-      <Button class="button" @click="setMetronomeSound(1)">Ton 2</Button>
-      <Button class="button" @click="setMetronomeSound(2)">Ton 3</Button>
+    <div class="sound-select">
+      <label>Metronom Geräusch</label>
+      <div class="button-container">
+        <Button class="button" @click="setMetronomeSound(0)">Ton 1</Button>
+        <Button class="button" @click="setMetronomeSound(1)">Ton 2</Button>
+        <Button class="button" @click="setMetronomeSound(2)">Ton 3</Button>
+      </div>
     </div>
-  </div>
-  <div class="current-value">
-    Derzeitiges Metronom Geräusch: {{ settings.metronomeSound + 1 }}
-  </div>
+    <div class="current-value">
+      Derzeitiges Metronom Geräusch: {{ settings.metronomeSound + 1 }}
+    </div>
 
-  <div class="sound-select">
-    <label>Fehlschuss Ton</label>
-    <div class="button-container">
-      <Button class="button" @click="setMissSound(0)">Ton 1</Button>
-      <Button class="button" @click="setMissSound(1)">Ton 2</Button>
-      <Button class="button" @click="setMissSound(2)">Ton 3</Button>
+    <div class="sound-select">
+      <label>Fehlschuss Ton</label>
+      <div class="button-container">
+        <Button class="button" @click="setMissSound(0)">Ton 1</Button>
+        <Button class="button" @click="setMissSound(1)">Ton 2</Button>
+        <Button class="button" @click="setMissSound(2)">Ton 3</Button>
+      </div>
     </div>
-  </div>
-  <div class="current-value">
-   Derzeitiger Fehlschuss Ton : {{ settings.missSound + 1 }}
+    <div class="current-value">
+     Derzeitiger Fehlschuss Ton : {{ settings.missSound + 1 }}
+    </div>
   </div>
 </template>
 
 <style scoped>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
 .volume-slider-control {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 1rem; 
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.volume-slider-control label {
+  text-align: center;
+  font-weight: bold;
+  display: block;
 }
 
 .button-container {
-  margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
 }
 
 .button-container1 {
-  margin-top: 0.5rem;
-  margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
 }
 
 .button {
@@ -108,15 +129,20 @@ const setMissSound = (value: number) => {
   text-align: center;
   margin-top: 0.5rem;
   font-weight: bold;
+  width: 100%;
 }
 
 .sound-select {
-  display: flex;
-  align-items: center;
   margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
 }
 
 .sound-select label {
-  margin-right: 1rem;
+  text-align: center;
+  font-weight: bold;
 }
 </style>

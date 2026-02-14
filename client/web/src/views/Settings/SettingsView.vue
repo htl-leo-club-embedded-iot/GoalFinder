@@ -43,6 +43,7 @@ onMounted(() => {
 <style scoped>
   #settings-nav {
     display: flex;
+    justify-content: center;
     overflow-x: auto;
     gap: 1.5rem;
     border-bottom: 2px solid var(--border-color);

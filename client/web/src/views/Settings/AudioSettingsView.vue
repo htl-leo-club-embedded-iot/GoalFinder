@@ -20,11 +20,25 @@ import VolumeManager from "@/components/VolumeManager.vue";
 </script>
 
 <template>
-  <h3>{{ $t("settings.audio") }}</h3>
-  <h4>{{ $t("word.volume") }}</h4>
-  <VolumeManager/>
+  <div class="container">
+    <VolumeManager/>
+  </div>
 </template>
 
 <style scoped>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
 
+h3 {
+  text-align: center;
+  display: block;
+  margin: 0;
+  margin-bottom: 1rem;
+}
 </style>
