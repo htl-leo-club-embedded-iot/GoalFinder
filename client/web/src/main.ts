@@ -18,6 +18,7 @@ const i18n = createI18n({
                 dashboard: "Goal Finder Dashboard",
                 home: "Home",
                 game: "Game",
+                games: "Games",
                 sessions: "Sessions",
                 settings: "Settings",
                 about: "About",
@@ -25,18 +26,26 @@ const i18n = createI18n({
                 settings_card: "Configure device",
                 sessions_card: "Create new session"
             },
+            games: {
+                shot_challenge: "Throw-Challenge",
+                shot_challenge_desc: "Test your accuracy! You have 60 seconds to score a goal. Stay in the rhythm, don't give in to the pressure and show who has the best throw!",
+                timed_shots_challenge: "Timed-Game-Challenge",
+                timed_shots_challenge_desc: "Every second counts. Score as many hits as possible in a fixed time limit. How many goals can score before the time runs out?",
+            },
             description: {
                 settings_description: "Configure the device settings like sounds and devices.",
                 sessions_description: "Add and remove persons into a basketball shot tracker",
                 device_name_description: "Enter a name for the device.",
                 device_password_description: "Enter a password for the device.",
-                dashboard_description: "Here you can create new games and configure the device settings."
+                dashboard_description: "Here you can create new games and configure the device settings.",
+                gameModes_description: "Here you can choose a game mode",
+                gameMode_description: "Select a game mode",
             },
             settings: {
                 connection: "WiFi connection",
                 settings: "Settings",
                 led: "LED",
-                sensoren: "Sensoren",
+                sensors: "Sensoren",
                 general: "General",
                 wifi: "WiFi",
                 devices: "Devices",
@@ -75,6 +84,7 @@ const i18n = createI18n({
                 person_list: "Person List",
                 results: "Results",
                 hits: "Hits",
+                player: "Player",
                 misses: "Misses",
                 led_mode: "LED Mode",
                 standard: "Standard",
@@ -98,8 +108,6 @@ const i18n = createI18n({
                 dashboard: "Goal Finder Dashboard",
                 home: "Startseite",
                 games: "Spiele",
-                game_shot_challenge: "Wurf-Challenge",
-                game_timed_shots_challenge: "Zeitspiel-Challenge",
                 team_game: "Mannschaftsspiel",
                 sessions: "Sitzungen",
                 settings: "Einstellungen",
@@ -107,6 +115,12 @@ const i18n = createI18n({
                 game_card: "Neues Spiel erstellen",
                 settings_card: "Einstellungen",
                 sessions_card: "Neue Sitzung erstellen"
+            },
+            games: {
+                shot_challenge: "Wurf-Challenge",
+                shot_challenge_desc: "Teste deine Treffsicherheit! Du hast 60 Sekunden, um zu treffen. Bleib im Rhythmus, halte den Druck aus und zeig, wer den besten Wurf hat!",
+                timed_shots_challenge: "Zeitspiel-Challenge",
+                timed_shots_challenge_desc: "Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es: So viele Treffer wie möglich landen. Wie viele Körbe schaffst du, bevor der Countdown endet?"
             },
             description: {
                 settings_description: "Einstellungen für das Gerät vornehmen",
@@ -154,8 +168,9 @@ const i18n = createI18n({
                 hit: "Treffer",
                 miss: "Fehlschuss",
                 remove: "Entfernen",
-                person_list: "Liste der Personen",
+                person_list: "Liste der Spieler",
                 results: "Ergebnisse",
+                player: "Spieler",
                 hits: "Treffer",
                 misses: "Fehlschüsse",
                 led_mode:"LED Modus",

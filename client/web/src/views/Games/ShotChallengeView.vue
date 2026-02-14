@@ -25,11 +25,13 @@ import ToggleButton from "@/components/ToggleButton.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
 import {useSettingsStore} from "@/stores/settings";
 import IconButton from "@/components/IconButton.vue";
+import {useI18n} from "vue-i18n";
 
 import AddIcon from "@/components/icons/AddIcon.vue";
 import MinusIcon from "@/components/icons/MinusIcon.vue";
 import TrashIcon from "@/components/icons/TrashIcon.vue";
 
+const { t } = useI18n();
 const game = reactive(new ShotChallengeGame());
 const showLeaderboard = ref(false);
 const playerName = ref("");
@@ -61,6 +63,9 @@ function restart() {
 }
 
 function onPlayerAddFormSubmit() {
+  if (playerName.value == "") {
+    playerName.value = t("word.player");
+  }
   game.addPlayer(new Player(playerName.value));
   addPlayerForm.value!.reset();
 }
@@ -78,7 +83,7 @@ function onGameStartBtnClick() {
 </script>
 
 <template>
-  <Page :title="$t('header.game_shot_challenge')">
+  <Page :title="$t('games.shot_challenge')">
     <div class="basketball-shot-tracker" v-if="!showLeaderboard">
       <form ref="add-player-form" @submit.prevent="onPlayerAddFormSubmit">
         <div>
@@ -103,9 +108,9 @@ function onGameStartBtnClick() {
         <table id="player-list">
           <thead>
             <tr>
-              <th>Spieler</th>
-              <th>Hits</th>
-              <th>Misses</th>
+              <th>{{ $t("word.player") }}</th>
+              <th>{{ $t("word.hits") }}</th>
+              <th>{{ $t("word.misses") }}</th>
               <th></th>
             </tr>
           </thead>
@@ -116,15 +121,15 @@ function onGameStartBtnClick() {
               <td>{{ person.misses }}</td>
               <td>
                 <div class="icon-buttons-container">
-                  <IconButton primary @click="recordShot(index, true)" title="Treffer">
+                  <IconButton primary @click="recordShot(index, true)" :title="$t('word.hit')">
                     <AddIcon />
                   </IconButton>
 
-                  <IconButton warning @click="recordShot(index, false)" title="Fehlschuss">
+                  <IconButton warning @click="recordShot(index, false)" :title="$t('word.miss')">
                     <MinusIcon />
                   </IconButton>
 
-                  <IconButton danger @click="game.removePlayer(index)" title="Entfernen">
+                  <IconButton danger @click="game.removePlayer(index)" :title="$t('word.remove')">
                     <TrashIcon />
                   </IconButton>
                 </div>
@@ -143,7 +148,7 @@ function onGameStartBtnClick() {
       <h2>{{ $t("word.leaderboard") }}</h2>
       <ul>
         <li v-for="(person, index) in game.sortedPlayers" :key="index">
-          <strong>{{ index + 1 }}. {{ person.name }}</strong> - {{ $t("word.hits") }}: {{ person.hits }}, {{ $t("word.misses") }}: {{ person.misses }}
+          <strong>{{ index + 1 }}. {{ person.name }}</strong> {{ $t("word.hits") }}: {{ person.hits }}, {{ $t("word.misses") }}: {{ person.misses }}
         </li>
       </ul>
       <Button primary @click="restart">{{ $t("word.restart") }}</Button>
@@ -249,6 +254,10 @@ function onGameStartBtnClick() {
 
 .leaderboard {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .leaderboard h2 {
@@ -256,8 +265,12 @@ function onGameStartBtnClick() {
 }
 
 .leaderboard ul {
-  display: inline-block;
-  text-align: left;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 @media (max-width: 768px) {

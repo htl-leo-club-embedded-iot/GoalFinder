@@ -27,12 +27,8 @@ import Card from "@/components/Card.vue";
     <div id="card-container">
       <Card class="quick-link">
         <div>
-          <h2>{{ $t("header.game_shot_challenge") }}</h2>
-          <p class="game-description">
-            Teste deine Treffsicherheit! Du hast <strong>60 Sekunden</strong>, um zu treffen.
-            Bleib im Rhythmus,
-            halte den Druck aus und zeig, wer den besten Wurf hat!
-          </p>
+          <h2>{{ $t("games.shot_challenge") }}</h2>
+          <p class="game-description">{{ $t("games.shot_challenge_desc") }}</p>
           <RouterLink to="/games/shot-challenge">
             <Button primary>{{ $t("word.open") }}</Button>
           </RouterLink>
@@ -43,12 +39,8 @@ import Card from "@/components/Card.vue";
     <div id="timed-shots-challenge">
       <Card class="quick-link">
         <div>
-          <h2>{{ $t("header.game_timed_shots_challenge") }}</h2>
-          <p class="game-description">
-            Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es:
-            <strong>So viele Treffer wie möglich</strong> landen.
-            Wie viele Körbe schaffst du, bevor der Countdown endet?
-          </p>
+          <h2>{{ $t("games.timed_shots_challenge") }}</h2>
+          <p class="game-description">{{ $t("games.timed_shots_challenge_desc") }}</p>
           <RouterLink to="/games/timed-shots-challenge">
             <Button primary>{{ $t("word.open") }}</Button>
           </RouterLink>
