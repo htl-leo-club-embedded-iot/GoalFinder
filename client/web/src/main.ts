@@ -45,7 +45,12 @@ const i18n = createI18n({
                 device_name: "Device name",
                 device_password: "Device password",
                 web_app: "Web App",
-                accent_color: "Accent Color"
+                accent_color: "Accent Color",
+                theme: "Theme",
+                theme_light: "Light",
+                theme_dark: "Dark",
+                theme_auto: "Auto",
+                language: "Language"
             },
             word : {
                 on: "Ein",
@@ -121,7 +126,12 @@ const i18n = createI18n({
                 audio: "Audio",
                 system: "System",
                 web_app: "Web App",
-                accent_color: "Akzent Farbe"
+                accent_color: "Akzent Farbe",
+                theme: "Erscheinungsbild",
+                theme_light: "Hell",
+                theme_dark: "Dunkel",
+                theme_auto: "Automatisch",
+                language: "Sprache"
             },
             word : {
                 welcome_back: "Willkommen zurück",
@@ -176,6 +186,20 @@ app.use(i18n);
 const savedAccentColor = localStorage.getItem('accent-color');
 if (savedAccentColor) {
     document.documentElement.style.setProperty('--accent-color', savedAccentColor);
+}
+
+// Restore saved theme (light / dark / auto)
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light' || savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+} else {
+    document.documentElement.removeAttribute('data-theme');
+}
+
+// Restore saved language
+const savedLang = localStorage.getItem('language');
+if (savedLang && (savedLang === 'en' || savedLang === 'de')) {
+    i18n.global.locale = savedLang;
 }
 
 app.mount('#app')
