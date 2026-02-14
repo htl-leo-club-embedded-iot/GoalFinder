@@ -27,39 +27,39 @@ const router = createRouter({
     {
       path: '/games',
       name: 'games',
-      component: () => import('../views/Games/GamesView.vue'),
+      component: () => import('../views/games/GamesView.vue'),
     },
     {
       path: "/games/shot-challenge",
       name: "shot-challenge",
-      component: () => import('../views/Games/ShotChallengeView.vue')
+      component: () => import('../views/games/ShotChallengeView.vue')
     },
     {
       path: "/games/timed-shots-challenge",
       name: "timed_shots-challenge",
-      component: () => import('../views/Games/TimedShotsChallengeView.vue')
+      component: () => import('../views/games/TimedShotsChallengeView.vue')
     },
     {
       path: '/settings',
       name: 'settings',
       redirect: '/settings/audio',
-      component: () => import('../views/Settings/SettingsView.vue'),
+      component: () => import('../views/settings/SettingsView.vue'),
       children: [
         {
           path: "audio",
           name: "audio",
-          component: () => import('../views/Settings/AudioSettingsView.vue')
+          component: () => import('../views/settings/AudioSettingsView.vue')
         },
         {
           path: "devices",
           name: "devices",
-          component: () => import('../views/Settings/DevicesSettingsView.vue')
+          component: () => import('../views/settings/DevicesSettingsView.vue')
         },
         
         {
           path: "system",
           name: "system",
-          component: () => import('../views/Settings/SystemSettingsView.vue')
+          component: () => import('../views/settings/SystemSettingsView.vue')
         },
       ]
     },

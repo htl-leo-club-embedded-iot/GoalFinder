@@ -133,6 +133,10 @@ const i18n = createI18n({
                 leaderboard: "Leaderboard",
                 sound: "Sound",
                 website: "website"
+            },
+            connection: {
+                warning_title: "Connection Error",
+                warning_message: "Could not connect to the GoalFinder. Please make sure you are connected to the device's WiFi GoalFinder."
             }
         },
         de : {
@@ -234,6 +238,10 @@ const i18n = createI18n({
                 bluetooth: "Bluetooth",
                 sound: "Ton",
                 website: "Webseite"
+            },
+            connection: {
+                warning_title: "Verbindungsfehler",
+                warning_message: "Es konnte keine Verbindung zum GoalFinder hergestellt werden. Bitte stellen Sie sicher, dass Sie mit dem WLAN des GoalFinders verbunden sind."
             }
         }
     }

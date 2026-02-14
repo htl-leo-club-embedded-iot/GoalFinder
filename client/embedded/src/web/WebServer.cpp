@@ -250,6 +250,18 @@ static void HandleStop(AsyncWebServerRequest* request) {
     request->send(204);
 }
 
+static void HandleConnection(AsyncWebServerRequest* request) {
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    response->addHeader("Server", "GoalFinder");
+    JsonVariant& root = response->getRoot();
+    
+    root["success"] = true;
+    root["message"] = "Connected to device";
+    
+    response->setLength();
+    request->send(response);
+}
+
 WebServer::WebServer(FileSystem* fileSystem) : server(80), updater(&server)
 {
     internalFS = fileSystem;
@@ -303,6 +315,7 @@ void WebServer::Begin()
 
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);
+    server.on(API_URL"/connection", HTTP_GET, HandleConnection);
     server.on(API_URL"/settings", HTTP_GET, HandleLoadSettings);
     server.on(API_URL"/settings", HTTP_POST, [](AsyncWebServerRequest* request) {}, 0, HandleSaveSettings);
     server.on(API_URL"/restart", HTTP_POST, HandleRestart);    
@@ -313,22 +326,6 @@ void WebServer::Begin()
 
     server.onNotFound([](AsyncWebServerRequest *request) {
         if (request->method() == HTTP_OPTIONS) {
-/*
- * ===============================================================================
- * (c) HTBLA Leonding 2024 - 2026
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * Licensed under MIT License.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the license.
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * All trademarks used in this document are property of their respective owners.
- * ===============================================================================
- */
-
             // Handle CORS preflight
             AsyncWebServerResponse* response = request->beginResponse(200);
             response->addHeader("Access-Control-Allow-Origin", "*");
