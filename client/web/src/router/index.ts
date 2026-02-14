@@ -16,9 +16,17 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 
+let devicePasswordRequired: boolean | null = null;
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/auth',
+      name: 'auth',
+      component: () => import('../views/AuthView.vue'),
+      meta: { skipAuth: true }
+    },
     {
       path: '/',
       name: 'home',
@@ -84,5 +92,43 @@ const router = createRouter({
     }*/
   ]
 })
+
+router.beforeEach(async (to, from, next) => {
+  // Skip auth check for the auth page itself
+  if (to.meta.skipAuth) {
+    return next();
+  }
+
+  // Already authenticated this session
+  if (sessionStorage.getItem('authenticated') === 'true') {
+    return next();
+  }
+
+  // Check if device requires authentication (cache the result)
+  if (devicePasswordRequired === null) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2000);
+      const response = await fetch('/api/isauth', { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (response.ok) {
+        const data = await response.json();
+        devicePasswordRequired = data.isPasswordProtected;
+      } else {
+        devicePasswordRequired = false;
+      }
+    } catch {
+      // If we can't reach the device, assume no password to let connection check handle it
+      devicePasswordRequired = false;
+    }
+  }
+
+  if (devicePasswordRequired) {
+    return next({ name: 'auth', replace: true });
+  }
+
+  return next();
+});
 
 export default router

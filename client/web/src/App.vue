@@ -19,12 +19,15 @@ import { RouterView } from 'vue-router'
 import NavigationBar from "@/components/NavigationBar.vue";
 import Modal from "@/components/Modal.vue";
 import {useSettingsStore} from "@/stores/settings";
-import {onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
+import {onMounted, ref, computed} from "vue";
+import {useRouter, useRoute} from "vue-router";
 
 const settingsStore = useSettingsStore();
 const connectionModal = ref<InstanceType<typeof Modal> | null>(null);
 const router = useRouter();
+const route = useRoute();
+
+const isAuthPage = computed(() => route.name === 'auth');
 
 settingsStore.$subscribe((state) => {
   settingsStore.saveSettings();
@@ -56,15 +59,17 @@ onMounted(() => {
   settingsStore.getSettings();
   checkDeviceConnection();
 
-  router.afterEach(() => {
-    checkDeviceConnection();
+  router.afterEach((to) => {
+    if (to.name !== 'auth') {
+      checkDeviceConnection();
+    }
   });
 });
 
 </script>
 
 <template>
-  <header>
+  <header v-if="!isAuthPage">
     <NavigationBar/>
   </header>
   <main>

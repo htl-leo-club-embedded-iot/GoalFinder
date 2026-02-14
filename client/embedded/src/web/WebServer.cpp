@@ -378,7 +378,7 @@ void WebServer::Begin()
 
     updater.Begin(API_URL"/update");
 
-    // === Captive portal detection endpoints ===
+    // Captive portal detection endpoints
     // Return 200 + HTML (not 204, not 302) so all platforms reliably detect the portal.
     // Android probes /generate_204 and /gen_204 — anything other than 204 triggers the sign-in sheet.
     // iOS looks for specific body content in /hotspot-detect.html.

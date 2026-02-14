@@ -137,6 +137,16 @@ const i18n = createI18n({
             connection: {
                 warning_title: "Connection Error",
                 warning_message: "Could not connect to the GoalFinder. Please make sure you are connected to the device's WiFi GoalFinder."
+            },
+            auth: {
+                title: "Authentication",
+                description: "This GoalFinder is password protected. Please enter the password to continue.",
+                login: "Login",
+                password_placeholder: "Enter password",
+                password_required: "Please enter a password.",
+                invalid_password: "Invalid password. Please try again.",
+                too_many_attempts: "Too many attempts. Please wait a minute and try again.",
+                error: "Authentication failed. Could not reach the device."
             }
         },
         de : {
@@ -242,6 +252,16 @@ const i18n = createI18n({
             connection: {
                 warning_title: "Verbindungsfehler",
                 warning_message: "Es konnte keine Verbindung zum GoalFinder hergestellt werden. Bitte stellen Sie sicher, dass Sie mit dem WLAN des GoalFinders verbunden sind."
+            },
+            auth: {
+                title: "Authentifizierung",
+                description: "Dieser GoalFinder ist passwortgeschützt. Bitte geben Sie das Passwort ein, um fortzufahren.",
+                login: "Anmelden",
+                password_placeholder: "Passwort eingeben",
+                password_required: "Bitte geben Sie ein Passwort ein.",
+                invalid_password: "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
+                too_many_attempts: "Zu viele Versuche. Bitte warten Sie eine Minute und versuchen Sie es erneut.",
+                error: "Authentifizierung fehlgeschlagen. Das Gerät konnte nicht erreicht werden."
             }
         }
     }
