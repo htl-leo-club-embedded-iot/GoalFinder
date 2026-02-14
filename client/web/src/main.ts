@@ -43,7 +43,9 @@ const i18n = createI18n({
                 audio: "Audio",
                 system: "System",
                 device_name: "Device name",
-                device_password: "Device password"
+                device_password: "Device password",
+                web_app: "Web App",
+                accent_color: "Accent Color"
             },
             word : {
                 on: "Ein",
@@ -117,7 +119,9 @@ const i18n = createI18n({
                 wifi: "WLAN",
                 devices: "Geräte",
                 audio: "Audio",
-                system: "System"
+                system: "System",
+                web_app: "Web App",
+                accent_color: "Akzent Farbe"
             },
             word : {
                 welcome_back: "Willkommen zurück",
@@ -167,5 +171,11 @@ const i18n = createI18n({
 app.use(createPinia());
 app.use(router);
 app.use(i18n);
+
+// Restore saved accent color
+const savedAccentColor = localStorage.getItem('accent-color');
+if (savedAccentColor) {
+    document.documentElement.style.setProperty('--accent-color', savedAccentColor);
+}
 
 app.mount('#app')

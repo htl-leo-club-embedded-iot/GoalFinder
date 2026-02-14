@@ -22,6 +22,7 @@ import {useSettingsStore} from "@/stores/settings";
 import InputForm from "@/components/InputForm.vue";
 import VibrationSensorManager from "@/components/settings/VibratiosensorManager.vue";
 import LaserSensorManager from "@/components/settings/LaserSensorManager.vue";
+import WebAppManager from "@/components/settings/WebAppManager.vue";
 
 const settings = useSettingsStore();
 
@@ -56,6 +57,9 @@ function isSSIDValid(value: string) {
     <VibrationSensorManager/>
     <LaserSensorManager/>
 
+    <h3>{{ $t("settings.web_app") }}</h3>
+    <WebAppManager/>
+    
     <h3>{{ $t("settings.system") }}</h3>
     <div id="system-buttons">
       <Button @click="settings.restartDevice()" primary>{{ $t("word.restart") }}</Button>
@@ -83,11 +87,8 @@ function isSSIDValid(value: string) {
 </template>
 
 <style>
-h3 {
-  margin: 0;
-  margin-bottom: 1rem;
-  color: var(--accent-color);
-  font-size: 1.2rem;
+h4 {
+  margin: 0.5rem 0;
 }
 
 #led {
