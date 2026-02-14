@@ -56,7 +56,7 @@ const settings = useSettingsStore();
 
   h1 {
     margin: 0.5rem;
-    color: cornflowerblue;
+    color: var(--accent-color);
     display: none;
   }
 
@@ -78,7 +78,7 @@ const settings = useSettingsStore();
   }
 
   .router-link-active > Button {
-    border-color: cornflowerblue;
+    border-color: var(--accent-color);
   }
 
   #power-state-button {

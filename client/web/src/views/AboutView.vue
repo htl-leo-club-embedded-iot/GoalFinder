@@ -29,13 +29,14 @@ import Page from "@/components/Page.vue";
     <p>Dieses Gerät wurde im Zuge des "Smart Sport Assistance" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.</p>
     <p>Entwickelt von:</p>
     <ul>
-      <li>Omar Al-Desoky</li>
-      <li>Rabbi Baysoy</li>
-      <li>Alexander Coroi</li>
-      <li>Edin Kurtic</li>
-      <li>Florian Hetzmann</li>
-      <li>Markus Harnusek</li>
+      <li><a href="https://github.com/OmarAL-Desoky">Omar Al-Desoky</a></li>
+      <li><a href="https://github.com/BaysoyRabbi">Rabbi Baysoy</a></li>
+      <li><a href="https://github.com/alexcoroi">Alexander Coroi</a></li>
+      <li><a href="https://github.com/Edinkurtic">Edin Kurtic</a></li>
+      <li><a href="https://github.com/7XDev">Florian Hetzmann</a></li>
+      <li><a href="https://github.com/MarkusHarnusek">Markus Harnusek</a></li>
     </ul>
+    <p>{{ $t("about.visit_page") }} <a href="https://goalfinder.github.io/">{{ $t("word.website") }}</a></p>
   </Page>
 </template>
 
@@ -52,5 +53,24 @@ import Page from "@/components/Page.vue";
   .logo-holder > img {
     max-width: 20rem;
     object-fit: contain;
+  }
+  
+  p {
+    text-align: center;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+  }
+
+  a {
+    color: var(--accent-color);
+    text-decoration: underline;
   }
 </style>

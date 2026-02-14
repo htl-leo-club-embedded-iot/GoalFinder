@@ -51,6 +51,7 @@ defineExpose({openDialog});
     outline: none;
     border: 2px solid var(--border-color);
     border-radius: var(--corner-radius);
+    margin: 2rem;
   }
 
   dialog::backdrop {
@@ -62,12 +63,15 @@ defineExpose({openDialog});
   }
 
   #close-button {
-    padding-right: 0.7rem;
-    padding-left: 0.7rem;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
     position: relative;
     margin-left: auto;
     margin-right: 0;
-    float: right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   #dialog-title {

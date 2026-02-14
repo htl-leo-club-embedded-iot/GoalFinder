@@ -53,8 +53,8 @@ const props = defineProps({
 
 .icon-btn:hover {
   cursor: pointer;
-  border-color: cornflowerblue;
-  color: cornflowerblue;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .icon-btn svg {
@@ -64,19 +64,19 @@ const props = defineProps({
 
 /* Color Variants */
 .icon-btn.primary {
-  background: cornflowerblue;
+  background: var(--accent-color);
   color: white;
   border-color: transparent;
 }
 
 .icon-btn.primary:hover {
   background: transparent;
-  color: cornflowerblue;
-  border-color: cornflowerblue;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 .icon-btn.primary:focus:not(:hover) {
-  background: cornflowerblue;
+  background: var(--accent-color);
   color: white;
   border-color: transparent;
 }

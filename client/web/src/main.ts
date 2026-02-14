@@ -1,3 +1,19 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 import './assets/main.css'
 
 import { createApp } from 'vue'
@@ -6,7 +22,6 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import {createI18n} from "vue-i18n";
-import Modal from "@/components/Modal.vue";
 
 const app = createApp(App)
 
@@ -19,6 +34,7 @@ const i18n = createI18n({
                 dashboard: "Goal Finder Dashboard",
                 home: "Home",
                 game: "Game",
+                games: "Games",
                 sessions: "Sessions",
                 settings: "Settings",
                 about: "About",
@@ -26,24 +42,52 @@ const i18n = createI18n({
                 settings_card: "Configure device",
                 sessions_card: "Create new session"
             },
+            games: {
+                shot_challenge: "Throw-Challenge",
+                shot_challenge_desc: "Test your accuracy! You have 60 seconds to score a goal. Stay in the rhythm, don't give in to the pressure and show who has the best throw!",
+                timed_shots_challenge: "Timed-Game-Challenge",
+                timed_shots_challenge_desc: "Every second counts. Score as many hits as possible in a fixed time limit. How many goals can score before the time runs out?",
+            },
             description: {
                 settings_description: "Configure the device settings like sounds and devices.",
                 sessions_description: "Add and remove persons into a basketball shot tracker",
-                device_name_description: "Enter a name for the device.",
-                device_password_description: "Enter a password for the device.",
-                dashboard_description: "Here you can create new games and configure the device settings."
+                device_name_description: "Enter a new name for the device",
+                device_password_description: "Enter a new password for the device",
+                dashboard_description: "Here you can create new games and configure the device settings.",
+                gameModes_description: "Here you can choose a game mode",
+                gameMode_description: "Select a game mode",
             },
             settings: {
+                connection: "WiFi Connection",
                 settings: "Settings",
                 led: "LED",
-                sensoren: "Sensoren",
+                sensors: "Sensors",
                 general: "General",
                 wifi: "WiFi",
                 devices: "Devices",
                 audio: "Audio",
                 system: "System",
                 device_name: "Device name",
-                device_password: "Device password"
+                device_password: "Device password",
+                web_app: "Web App",
+                accent_color: "Accent Color",
+                theme: "Theme",
+                theme_light: "Light",
+                theme_dark: "Dark",
+                theme_auto: "Auto",
+                language: "Language",
+                metronome_sound: "Metronome Sound",
+                current_metronome_sound: "Current Metronome Sound: ",
+                miss_sound: "Miss Sound",
+                current_miss_sound: "Current Miss Sound: ",
+                info: "Information",
+                more_info: "For more information visit the ",
+                doc: "GoalFinder User Documentation"
+            },
+            about: {
+                about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of vienna by students of the HTBLA Leonding",
+                developers: "Developed by:",
+                visit_page: "Also visit our"
             },
             word : {
                 on: "Ein",
@@ -68,6 +112,7 @@ const i18n = createI18n({
                 person_list: "Person List",
                 results: "Results",
                 hits: "Hits",
+                player: "Player",
                 misses: "Misses",
                 led_mode: "LED Mode",
                 standard: "Standard",
@@ -75,6 +120,8 @@ const i18n = createI18n({
                 flash: "Flash",
                 turbo: "Turbo",
                 off:"Off",
+                device_name: "Device Name",
+                device_password: "Password",
                 curr_mode: "Current Mode",
                 curr_volume: "Current Volume",
                 curr_sensitivity: "Current Sensitivity",
@@ -83,7 +130,23 @@ const i18n = createI18n({
                 software_update: "Software Update",
                 curr_version: "Current Version",
                 finish: "Finish",
-                leaderboard: "Leaderboard"
+                leaderboard: "Leaderboard",
+                sound: "Sound",
+                website: "website"
+            },
+            connection: {
+                warning_title: "Connection Error",
+                warning_message: "Could not connect to the GoalFinder. Please make sure you are connected to the device's WiFi GoalFinder."
+            },
+            auth: {
+                title: "Authentication",
+                description: "This GoalFinder is password protected. Please enter the password to continue.",
+                login: "Login",
+                password_placeholder: "Enter password",
+                password_required: "Please enter a password.",
+                invalid_password: "Invalid password. Please try again.",
+                too_many_attempts: "Too many attempts. Please wait a minute and try again.",
+                error: "Authentication failed. Could not reach the device."
             }
         },
         de : {
@@ -91,8 +154,6 @@ const i18n = createI18n({
                 dashboard: "Goal Finder Dashboard",
                 home: "Startseite",
                 games: "Spiele",
-                game_shot_challenge: "Wurf-Challenge",
-                game_timed_shots_challenge: "Zeitspiel-Challenge",
                 team_game: "Mannschaftsspiel",
                 sessions: "Sitzungen",
                 settings: "Einstellungen",
@@ -100,6 +161,12 @@ const i18n = createI18n({
                 game_card: "Neues Spiel erstellen",
                 settings_card: "Einstellungen",
                 sessions_card: "Neue Sitzung erstellen"
+            },
+            games: {
+                shot_challenge: "Wurf-Challenge",
+                shot_challenge_desc: "Teste deine Treffsicherheit! Du hast 60 Sekunden, um zu treffen. Bleib im Rhythmus, halte den Druck aus und zeig, wer den besten Wurf hat!",
+                timed_shots_challenge: "Zeitspiel-Challenge",
+                timed_shots_challenge_desc: "Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es: So viele Treffer wie möglich landen. Wie viele Körbe schaffst du, bevor der Countdown endet?"
             },
             description: {
                 settings_description: "Einstellungen für das Gerät vornehmen",
@@ -111,12 +178,32 @@ const i18n = createI18n({
                 gameModes_description: "Hier können Sie einen Spielmodus auswählen"
             },
             settings: {
+                connection: "WiFi Verbindung",
                 settings: "Einstellungen",
                 general: "Allgemein",
-                wifi: "WLAN",
+                wifi: "WiFi",
                 devices: "Geräte",
                 audio: "Audio",
-                system: "System"
+                system: "System",
+                web_app: "Web App",
+                accent_color: "Akzent Farbe",
+                theme: "Erscheinungsbild",
+                theme_light: "Hell",
+                theme_dark: "Dunkel",
+                theme_auto: "Automatisch",
+                language: "Sprache",
+                metronome_sound: "Metronome Ton",
+                current_metronome_sound: "Aktueller Metronome Ton: ",
+                miss_sound: "Fehlschuss Ton",
+                current_miss_sound: "Aktueller Fehlschuss Ton: ",
+                info: "Informationen",
+                more_info: "Besuchen Sie für mehr Informationen die ",
+                doc: "GoalFinder Benutzerdokumentation"
+            },
+            about: {
+                about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",
+                developers: "Entwickelt von:",
+                visit_page: "Besuchen Sie auch unsere "
             },
             word : {
                 welcome_back: "Willkommen zurück",
@@ -139,8 +226,9 @@ const i18n = createI18n({
                 hit: "Treffer",
                 miss: "Fehlschuss",
                 remove: "Entfernen",
-                person_list: "Liste der Personen",
+                person_list: "Liste der Spieler",
                 results: "Ergebnisse",
+                player: "Spieler",
                 hits: "Treffer",
                 misses: "Fehlschüsse",
                 led_mode:"LED Modus",
@@ -157,7 +245,23 @@ const i18n = createI18n({
                 curr_version: "Derzeitige Version",
                 finish: "Beenden",
                 leaderboard: "Rangliste",
-                bluetooth: "Bluetooth"
+                bluetooth: "Bluetooth",
+                sound: "Ton",
+                website: "Webseite"
+            },
+            connection: {
+                warning_title: "Verbindungsfehler",
+                warning_message: "Es konnte keine Verbindung zum GoalFinder hergestellt werden. Bitte stellen Sie sicher, dass Sie mit dem WLAN des GoalFinders verbunden sind."
+            },
+            auth: {
+                title: "Authentifizierung",
+                description: "Dieser GoalFinder ist passwortgeschützt. Bitte geben Sie das Passwort ein, um fortzufahren.",
+                login: "Anmelden",
+                password_placeholder: "Passwort eingeben",
+                password_required: "Bitte geben Sie ein Passwort ein.",
+                invalid_password: "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
+                too_many_attempts: "Zu viele Versuche. Bitte warten Sie eine Minute und versuchen Sie es erneut.",
+                error: "Authentifizierung fehlgeschlagen. Das Gerät konnte nicht erreicht werden."
             }
         }
     }
@@ -166,5 +270,25 @@ const i18n = createI18n({
 app.use(createPinia());
 app.use(router);
 app.use(i18n);
+
+// Restore saved accent color
+const savedAccentColor = localStorage.getItem('accent-color');
+if (savedAccentColor) {
+    document.documentElement.style.setProperty('--accent-color', savedAccentColor);
+}
+
+// Restore saved theme (light / dark / auto)
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light' || savedTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+} else {
+    document.documentElement.removeAttribute('data-theme');
+}
+
+// Restore saved language
+const savedLang = localStorage.getItem('language');
+if (savedLang && (savedLang === 'en' || savedLang === 'de')) {
+    i18n.global.locale = savedLang;
+}
 
 app.mount('#app')

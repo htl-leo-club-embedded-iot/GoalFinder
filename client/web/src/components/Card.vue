@@ -32,6 +32,6 @@
     padding: 1rem;
     border: 2px solid var(--border-color);
     border-radius: var(--corner-radius);
-    background: var(--card-background-color);
+    background: var(--card-background 0-color);
   }
 </style>

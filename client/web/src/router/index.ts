@@ -16,9 +16,17 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 
+let devicePasswordRequired: boolean | null = null;
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/auth',
+      name: 'auth',
+      component: () => import('../views/AuthView.vue'),
+      meta: { skipAuth: true }
+    },
     {
       path: '/',
       name: 'home',
@@ -27,39 +35,39 @@ const router = createRouter({
     {
       path: '/games',
       name: 'games',
-      component: () => import('../views/Games/GamesView.vue'),
+      component: () => import('../views/games/GamesView.vue'),
     },
     {
       path: "/games/shot-challenge",
       name: "shot-challenge",
-      component: () => import('../views/Games/ShotChallengeView.vue')
+      component: () => import('../views/games/ShotChallengeView.vue')
     },
     {
       path: "/games/timed-shots-challenge",
       name: "timed_shots-challenge",
-      component: () => import('../views/Games/TimedShotsChallengeView.vue')
+      component: () => import('../views/games/TimedShotsChallengeView.vue')
     },
     {
       path: '/settings',
       name: 'settings',
       redirect: '/settings/audio',
-      component: () => import('../views/Settings/SettingsView.vue'),
+      component: () => import('../views/settings/SettingsView.vue'),
       children: [
         {
           path: "audio",
           name: "audio",
-          component: () => import('../views/Settings/AudioSettingsView.vue')
+          component: () => import('../views/settings/AudioSettingsView.vue')
         },
         {
           path: "devices",
           name: "devices",
-          component: () => import('../views/Settings/DevicesSettingsView.vue')
+          component: () => import('../views/settings/DevicesSettingsView.vue')
         },
         
         {
           path: "system",
           name: "system",
-          component: () => import('../views/Settings/SystemSettingsView.vue')
+          component: () => import('../views/settings/SystemSettingsView.vue')
         },
       ]
     },
@@ -84,5 +92,43 @@ const router = createRouter({
     }*/
   ]
 })
+
+router.beforeEach(async (to, from, next) => {
+  // Skip auth check for the auth page itself
+  if (to.meta.skipAuth) {
+    return next();
+  }
+
+  // Already authenticated this session
+  if (sessionStorage.getItem('authenticated') === 'true') {
+    return next();
+  }
+
+  // Check if device requires authentication (cache the result)
+  if (devicePasswordRequired === null) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2000);
+      const response = await fetch('/api/isauth', { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (response.ok) {
+        const data = await response.json();
+        devicePasswordRequired = data.isPasswordProtected;
+      } else {
+        devicePasswordRequired = false;
+      }
+    } catch {
+      // If we can't reach the device, assume no password to let connection check handle it
+      devicePasswordRequired = false;
+    }
+  }
+
+  if (devicePasswordRequired) {
+    return next({ name: 'auth', replace: true });
+  }
+
+  return next();
+});
 
 export default router
