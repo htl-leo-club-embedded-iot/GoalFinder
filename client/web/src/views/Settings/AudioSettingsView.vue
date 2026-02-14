@@ -34,11 +34,4 @@ import VolumeManager from "@/components/VolumeManager.vue";
   padding: 1rem;
   box-sizing: border-box;
 }
-
-h3 {
-  text-align: center;
-  display: block;
-  margin: 0;
-  margin-bottom: 1rem;
-}
 </style>

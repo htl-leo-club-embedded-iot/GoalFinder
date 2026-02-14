@@ -22,7 +22,7 @@ const settings = useSettingsStore();
 </script>
 
 <template>
-  <div>
+  <div class="container">
     <div id="led">
       <div class="label-container">
         <label>{{ $t("word.measuring")}} {{ $t("word.distance") }}</label>
@@ -35,23 +35,43 @@ const settings = useSettingsStore();
 </template>
 
 <style scoped>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+  padding-bottom: 0.5rem !important;
+  box-sizing: border-box;
+}
+
+#led {
+  width: 100%;
+}
+
 .label-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
   margin-bottom: 1rem;
   margin-top: 0.5rem;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.label-container label {
+  text-align: center;
+  font-weight: bold;
+  display: block;
 }
 
 .button-container {
   display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .button {
-  margin-left: 10px;
-}
-
-.button:first-child {
   margin-left: 0;
 }
 

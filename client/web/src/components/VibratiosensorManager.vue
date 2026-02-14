@@ -49,8 +49,8 @@ const setSensitivity = (value: number) => {
 <style scoped>
 .label-container {
   display: flex;
-  flex-direction: column; /* Stack label and buttons vertically */
-  align-items: flex-start; /* Align items to the start */
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 1rem;
   margin-top: 0.5rem;
 }

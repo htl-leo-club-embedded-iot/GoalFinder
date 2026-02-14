@@ -34,13 +34,4 @@ import LedManager from "@/components/LedManager.vue";
   padding: 1rem;
   box-sizing: border-box;
 }
-
-h3 {
-  margin-bottom: 1rem !important;
-}
-
-h3, h4 {
-  text-align: center;
-  margin: 0;
-}
 </style>

@@ -45,7 +45,7 @@ const model = defineModel();
 }
 
 .input-container > label {
-  margin-left: 0.3rem;
+  text-align: center;
 }
 
 .input-container > input {
@@ -57,6 +57,7 @@ const model = defineModel();
   transition: 0.4s;
   color: var(--text-color);
   outline: none;
+  text-align: center;
 }
 
 .input-container > input:focus {
