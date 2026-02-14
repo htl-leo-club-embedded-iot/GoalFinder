@@ -29,9 +29,7 @@
         </div>
       </div>
     </div>
-    <div class="current-sensitivity">
-      <p>{{ $t("word.curr_sensitivity") }}: {{ settings.vibrationSensorSensitivity }}%</p>
-    </div>
+    <div class="current-value">{{ $t("word.curr_sensitivity") }}: {{ settings.vibrationSensorSensitivity }}%</div>
   </div>
 </template>
 
