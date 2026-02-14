@@ -17,13 +17,24 @@
 <script setup lang="ts">
 import {useSettingsStore} from "@/stores/settings";
 import Button from "@/components/Button.vue";
+import {computed} from "vue";
 
 const settings = useSettingsStore();
 
-function setLedMode(value: string, mode: number) {
-  settings.ledModeStr = value;
+function setLedMode(mode: number) {
   settings.ledMode = mode;
 }
+
+const ledModeKey = computed(() => {
+  switch (settings.ledMode) {
+    case 1: return 'word.on';
+    case 2: return 'word.fade';
+    case 3: return 'word.flash';
+    case 4: return 'word.turbo';
+    case 5: return 'word.off';
+    default: return 'word.off';
+  }
+});
 </script>
 
 <template>
@@ -32,16 +43,16 @@ function setLedMode(value: string, mode: number) {
       <div class="label-container">
         <h3 for="modus">{{ $t("word.led_mode") }}</h3>
         <div class="button-container">
-          <Button class="button" @click="setLedMode('Ein', 1)">{{ $t("word.on") }}</Button>
-          <Button class="button" @click="setLedMode('Fade', 2)">{{ $t("word.fade") }}</Button>
-          <Button class="button" @click="setLedMode('Blitzartig', 3)">{{ $t("word.flash") }}</Button>
-          <Button class="button" @click="setLedMode('Turbo', 4)">{{ $t("word.turbo") }}</Button>
-          <Button class="button" @click="setLedMode('Aus', 5)">{{ $t("word.off") }}</Button>
+          <Button class="button" @click="setLedMode(1)">{{ $t("word.on") }}</Button>
+          <Button class="button" @click="setLedMode(2)">{{ $t("word.fade") }}</Button>
+          <Button class="button" @click="setLedMode(3)">{{ $t("word.flash") }}</Button>
+          <Button class="button" @click="setLedMode(4)">{{ $t("word.turbo") }}</Button>
+          <Button class="button" @click="setLedMode(5)">{{ $t("word.off") }}</Button>
         </div>
       </div>
     </div>
     <div class="current-mode">
-      <p style="margin: 0;">{{ $t("word.curr_mode") }}: {{ settings.ledModeStr }}</p>
+      <p style="margin: 0;">{{ $t("word.curr_mode") }}: {{ $t(ledModeKey) }}</p>
     </div>
   </div>
 </template>

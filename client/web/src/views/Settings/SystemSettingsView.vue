@@ -53,7 +53,7 @@ function isSSIDValid(value: string) {
                  :placeholder="$t('description.device_password_description')" type="password"/>
     </form>
 
-    <h3 id="sensors">{{$t("settings.sensoren")}}</h3>
+    <h3 id="sensors">{{$t("settings.sensors")}}</h3>
     <VibrationSensorManager/>
     <LaserSensorManager/>
 
@@ -83,6 +83,9 @@ function isSSIDValid(value: string) {
     <h3>{{ $t("word.software_update") }}</h3>
     <Button primary @click="openUpdateDialog">{{ $t("word.search_for_update") }}</Button>
     <SoftwareUpdateModal ref="updateDialog"/>
+
+    <h3 id="visit">{{ $t("settings.info") }}</h3>
+    <p id="visit-text">{{ $t("settings.more_info") }}<a href="https://goalfinder.github.io/user">{{ $t("settings.doc") }}</a></p>
   </div>
 </template>
 
@@ -135,5 +138,18 @@ h4 {
   gap: 0.5rem;
   justify-content: center;
   text-align: center;
+}
+
+#visit {
+  margin-top: 2rem;
+}
+
+#visit-text {
+  margin-top: 0;
+}
+
+#visit-text a {
+  color: var(--accent-color);
+  text-decoration: underline;
 }
 </style>

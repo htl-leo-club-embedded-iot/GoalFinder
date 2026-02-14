@@ -1,3 +1,19 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 import './assets/main.css'
 
 import { createApp } from 'vue'
@@ -35,17 +51,17 @@ const i18n = createI18n({
             description: {
                 settings_description: "Configure the device settings like sounds and devices.",
                 sessions_description: "Add and remove persons into a basketball shot tracker",
-                device_name_description: "Enter a name for the device.",
-                device_password_description: "Enter a password for the device.",
+                device_name_description: "Enter a new name for the device",
+                device_password_description: "Enter a new password for the device",
                 dashboard_description: "Here you can create new games and configure the device settings.",
                 gameModes_description: "Here you can choose a game mode",
                 gameMode_description: "Select a game mode",
             },
             settings: {
-                connection: "WiFi connection",
+                connection: "WiFi Connection",
                 settings: "Settings",
                 led: "LED",
-                sensors: "Sensoren",
+                sensors: "Sensors",
                 general: "General",
                 wifi: "WiFi",
                 devices: "Devices",
@@ -59,7 +75,19 @@ const i18n = createI18n({
                 theme_light: "Light",
                 theme_dark: "Dark",
                 theme_auto: "Auto",
-                language: "Language"
+                language: "Language",
+                metronome_sound: "Metronome Sound",
+                current_metronome_sound: "Current Metronome Sound: ",
+                miss_sound: "Miss Sound",
+                current_miss_sound: "Current Miss Sound: ",
+                info: "Information",
+                more_info: "For more information visit the ",
+                doc: "GoalFinder User Documentation"
+            },
+            about: {
+                about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of vienna by students of the HTBLA Leonding",
+                developers: "Developed by:",
+                visit_page: "Also visit our"
             },
             word : {
                 on: "Ein",
@@ -92,6 +120,8 @@ const i18n = createI18n({
                 flash: "Flash",
                 turbo: "Turbo",
                 off:"Off",
+                device_name: "Device Name",
+                device_password: "Password",
                 curr_mode: "Current Mode",
                 curr_volume: "Current Volume",
                 curr_sensitivity: "Current Sensitivity",
@@ -100,7 +130,9 @@ const i18n = createI18n({
                 software_update: "Software Update",
                 curr_version: "Current Version",
                 finish: "Finish",
-                leaderboard: "Leaderboard"
+                leaderboard: "Leaderboard",
+                sound: "Sound",
+                website: "website"
             }
         },
         de : {
@@ -135,7 +167,7 @@ const i18n = createI18n({
                 connection: "WiFi Verbindung",
                 settings: "Einstellungen",
                 general: "Allgemein",
-                wifi: "WLAN",
+                wifi: "WiFi",
                 devices: "Geräte",
                 audio: "Audio",
                 system: "System",
@@ -145,7 +177,19 @@ const i18n = createI18n({
                 theme_light: "Hell",
                 theme_dark: "Dunkel",
                 theme_auto: "Automatisch",
-                language: "Sprache"
+                language: "Sprache",
+                metronome_sound: "Metronome Ton",
+                current_metronome_sound: "Aktueller Metronome Ton: ",
+                miss_sound: "Fehlschuss Ton",
+                current_miss_sound: "Aktueller Fehlschuss Ton: ",
+                info: "Informationen",
+                more_info: "Besuchen Sie für mehr Informationen die ",
+                doc: "GoalFinder Benutzerdokumentation"
+            },
+            about: {
+                about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",
+                developers: "Entwickelt von:",
+                visit_page: "Besuchen Sie auch unsere "
             },
             word : {
                 welcome_back: "Willkommen zurück",
@@ -187,7 +231,9 @@ const i18n = createI18n({
                 curr_version: "Derzeitige Version",
                 finish: "Beenden",
                 leaderboard: "Rangliste",
-                bluetooth: "Bluetooth"
+                bluetooth: "Bluetooth",
+                sound: "Ton",
+                website: "Webseite"
             }
         }
     }

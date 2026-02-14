@@ -52,24 +52,24 @@ const setMissSound = (value: number) => {
   </div>
   
   <div class="sound-select">
-    <h3>Metronom Geräusch</h3>
+    <h3>{{ $t("settings.metronome_sound") }}</h3>
     <div class="button-container">
-      <Button class="button" @click="setMetronomeSound(0)">Ton 1</Button>
-      <Button class="button" @click="setMetronomeSound(1)">Ton 2</Button>
-      <Button class="button" @click="setMetronomeSound(2)">Ton 3</Button>
+      <Button class="button" @click="setMetronomeSound(0)">{{ $t("word.sound") }} 1</Button>
+      <Button class="button" @click="setMetronomeSound(1)">{{ $t("word.sound") }} 2</Button>
+      <Button class="button" @click="setMetronomeSound(2)">{{ $t("word.sound") }} 3</Button>
     </div>
   </div>
   
-  <div class="current-value">Aktueller Metronom Geräusch: {{ settings.metronomeSound + 1 }}</div>
+  <div class="current-value">{{ $t("settings.current_metronome_sound") }}: {{ settings.metronomeSound + 1 }}</div>
   
   <div class="sound-select">
-    <h3>Fehlschuss Ton</h3>
+    <h3>{{ $t("settings.miss_sound") }}</h3>
     <div class="button-container">
-      <Button class="button" @click="setMissSound(0)">Ton 1</Button>
-      <Button class="button" @click="setMissSound(1)">Ton 2</Button>
-      <Button class="button" @click="setMissSound(2)">Ton 3</Button>
+      <Button class="button" @click="setMissSound(0)">{{ $t("word.sound") }} 1</Button>
+      <Button class="button" @click="setMissSound(1)">{{ $t("word.sound") }} 2</Button>
+      <Button class="button" @click="setMissSound(2)">{{ $t("word.sound") }} 3</Button>
     </div>
   </div>
   
-  <div class="current-value">Aktueller Fehlschuss Ton : {{ settings.missSound + 1 }}</div>
+  <div class="current-value">{{ $t("settings.current_miss_sound") }}: {{ settings.missSound + 1 }}</div>
 </template>

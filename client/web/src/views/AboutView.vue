@@ -36,6 +36,7 @@ import Page from "@/components/Page.vue";
       <li><a href="https://github.com/7XDev">Florian Hetzmann</a></li>
       <li><a href="https://github.com/MarkusHarnusek">Markus Harnusek</a></li>
     </ul>
+    <p>{{ $t("about.visit_page") }} <a href="https://goalfinder.github.io/">{{ $t("word.website") }}</a></p>
   </Page>
 </template>
 
@@ -53,7 +54,7 @@ import Page from "@/components/Page.vue";
     max-width: 20rem;
     object-fit: contain;
   }
-
+  
   p {
     text-align: center;
   }
