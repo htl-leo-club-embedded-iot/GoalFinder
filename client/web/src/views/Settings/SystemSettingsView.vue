@@ -52,17 +52,16 @@ function isSSIDValid(value: string) {
                  :placeholder="$t('description.device_password_description')" type="password"/>
     </form>
 
-    <h4 id="sensors">{{$t("settings.sensoren")}}</h4>
+    <h3 id="sensors">{{$t("settings.sensoren")}}</h3>
     <VibrationSensorManager/>
     <LaserSensorManager/>
 
     <h3>{{ $t("settings.system") }}</h3>
-    <h4>{{ $t("settings.system") }}</h4>
     <div id="system-buttons">
       <Button @click="settings.restartDevice()" primary>{{ $t("word.restart") }}</Button>
       <Button @click="settings.factoryResetDevice()">{{ $t("word.factory_settings_reset") }}</Button>
     </div>
-    <h4>Info</h4>
+    <h3>Info</h3>
     <div id="device-info">
       <div>
         <div class="property-title">{{ $t("word.device_name") }}</div>
@@ -77,13 +76,13 @@ function isSSIDValid(value: string) {
         <div>{{ settings.macAddress }}</div>
       </div>
     </div>
-    <h4>{{ $t("word.software_update") }}</h4>
+    <h3>{{ $t("word.software_update") }}</h3>
     <Button primary @click="openUpdateDialog">{{ $t("word.search_for_update") }}</Button>
     <SoftwareUpdateModal ref="updateDialog"/>
   </div>
 </template>
 
-<style scoped>
+<style>
 .container {
   display: flex;
   flex-direction: column;
@@ -91,6 +90,89 @@ function isSSIDValid(value: string) {
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
+}
+
+.volume-slider-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.volume-slider-control label {
+  text-align: center;
+  font-weight: bold;
+  display: block;
+}
+
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.button {
+  margin-left: 0;
+}
+
+.current-value {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-weight: bold;
+  width: 100%;
+}
+
+.sound-select {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.sound-select label {
+  text-align: center;
+  font-weight: bold;
+}
+
+h3 {
+  margin: 0;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  font-size: 1.2rem;
+}
+
+#led {
+  width: 100%;
+}
+
+.label-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.label-container label {
+  text-align: center;
+  font-weight: bold;
+  display: block;
+}
+
+.current-mode {
+  text-align: center;
+  width: 100%;
+}
+
+.current-mode span {
+  font-weight: bold;
 }
 
 #sensors {
@@ -136,13 +218,5 @@ function isSSIDValid(value: string) {
 
 .property-title {
   min-width: 150px;
-  font-weight: bold;
-}
-
-h3 {
-  margin: 0;
-  margin-bottom: 1rem;
-  color: var(--accent-color);
-  font-size: 1.2rem;
 }
 </style>
