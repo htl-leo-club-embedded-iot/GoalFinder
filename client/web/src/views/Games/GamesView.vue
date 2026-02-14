@@ -60,14 +60,15 @@ import Card from "@/components/Card.vue";
 
 <style>
 #card-container {
-  margin-bottom: 1rem;
+  padding: 0 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 #timed-shots-challenge {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  padding: 0 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -90,6 +91,7 @@ import Card from "@/components/Card.vue";
 
 p {
   text-align: center;
+  margin-bottom: 1rem;
 }
 
 .game-description {
