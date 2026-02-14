@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 
-import VolumeManager from "@/components/VolumeManager.vue";
+import VolumeManager from "@/components/settings/VolumeManager.vue";
 </script>
 
 <template>

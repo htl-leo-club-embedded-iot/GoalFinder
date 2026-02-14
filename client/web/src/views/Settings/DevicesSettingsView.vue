@@ -15,7 +15,7 @@
  */
 
 <script setup lang="ts">
-import LedManager from "@/components/LedManager.vue";
+import LedManager from "@/components/settings/LedManager.vue";
 
 </script>
 

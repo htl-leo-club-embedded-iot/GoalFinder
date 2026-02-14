@@ -15,13 +15,13 @@
  */
 
 <script setup lang="ts">
-import SoftwareUpdateModal from "@/components/SoftwareUpdateModal.vue";
+import SoftwareUpdateModal from "@/components/settings/SoftwareUpdateModal.vue";
 import Button from "@/components/Button.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import InputForm from "@/components/InputForm.vue";
-import VibrationSensorManager from "@/components/VibratiosensorManager.vue";
-import LaserSensorManager from "@/components/LaserSensorManager.vue";
+import VibrationSensorManager from "@/components/settings/VibratiosensorManager.vue";
+import LaserSensorManager from "@/components/settings/LaserSensorManager.vue";
 
 const settings = useSettingsStore();
 
