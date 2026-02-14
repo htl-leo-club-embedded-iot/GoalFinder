@@ -20,7 +20,7 @@
       <div class="label-container">
         <label>{{ $t("word.sensitivity") }}</label>
         <div class="button-container">
-          <InputForm type="number" class="button" v-model="settings.vibrationSensorSensitivity" inputmode="numeric" min="0" max="100" step="1"></InputForm>
+          <InputForm type="number" class="button" v-model="sensitivity" inputmode="numeric" min="0" max="100" step="1"></InputForm>
         </div>
       </div>
     </div>
@@ -30,8 +30,15 @@
 <script setup lang="ts">
 import InputForm from "@/components/InputForm.vue";
 import { useSettingsStore } from "@/stores/settings";
+import { useClampedValue } from "@/models/clampedValue";
 
 const settings = useSettingsStore();
+
+const sensitivity = useClampedValue(
+  () => settings.vibrationSensorSensitivity,
+  (v) => settings.vibrationSensorSensitivity = v,
+  0, 100
+);
 </script>
 
 <style scoped>

@@ -6,7 +6,6 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import {createI18n} from "vue-i18n";
-import Modal from "@/components/Modal.vue";
 
 const app = createApp(App)
 

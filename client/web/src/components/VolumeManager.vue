@@ -19,8 +19,15 @@
 import {useSettingsStore} from "@/stores/settings";
 import Button from "@/components/Button.vue";
 import InputForm from "@/components/InputForm.vue";
+import { useClampedValue } from "@/models/clampedValue";
 
 const settings = useSettingsStore();
+
+const volume = useClampedValue(
+  () => settings.volume,
+  (v) => settings.volume = v,
+  0, 100
+);
 
 const setMetronomeSound = (value: number) => {
   settings.metronomeSound = value;
@@ -40,7 +47,7 @@ const setMissSound = (value: number) => {
   <div class="volume-slider-control">
     <h3>{{ $t("word.volume") }}</h3>
     <div class="button-container">
-      <InputForm type="number" class="button" v-model="settings.volume" inputmode="numeric" min="0" max="100" step="5"></InputForm>
+      <InputForm type="number" class="button" v-model="volume" inputmode="numeric" min="0" max="100" step="5"></InputForm>
     </div>
   </div>
   
