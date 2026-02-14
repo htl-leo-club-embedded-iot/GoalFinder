@@ -1,14 +1,32 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 <script setup lang="ts">
-import Page from "@/components/Page.vue";
-import Button from "@/components/Button.vue";
-import InputForm from "@/components/InputForm.vue";
 import {reactive, ref, useTemplateRef} from "vue";
 import {TimedShotsChallengeGame} from "@/models/game";
 import {Player} from "@/models/player";
+import {useSettingsStore} from "@/stores/settings";
+import {useI18n} from "vue-i18n";
+import Page from "@/components/Page.vue";
+import Button from "@/components/Button.vue";
+import InputForm from "@/components/InputForm.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
-import {useSettingsStore} from "@/stores/settings";
 import IconButton from "@/components/IconButton.vue";
+
 
 import AddIcon from "@/components/icons/AddIcon.vue";
 import MinusIcon from "@/components/icons/MinusIcon.vue";
@@ -20,6 +38,7 @@ const playerName = ref("");
 const settings = useSettingsStore();
 
 const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
+const { t } = useI18n();
 
 function recordShot(index: number, isHit: boolean) {
   if (index !== game.selectedPlayerIndex) return;
@@ -43,6 +62,9 @@ function restart() {
 }
 
 function onPlayerAddFormSubmit() {
+ if (playerName.value == "") {
+    playerName.value = t("word.player");
+  }
   game.addPlayer(new Player(playerName.value));
   addPlayerForm.value!.reset();
 }
@@ -60,7 +82,7 @@ function onGameStartBtnClick() {
 </script>
 
 <template>
-  <Page :title="$t('header.game_timed_shots_challenge')">
+  <Page :title="$t('games.timed_shots_challenge')">
     <div class="basketball-shot-tracker" v-if="!showLeaderboard">
       <form ref="add-player-form" @submit.prevent="onPlayerAddFormSubmit">
         <div>
@@ -85,10 +107,10 @@ function onGameStartBtnClick() {
         <table id="player-list">
           <thead>
             <tr>
-              <th>Player</th>
-              <th>Hits</th>
-              <th>Misses</th>
-              <th>Edit</th>
+              <th>{{ $t("word.player") }}</th>
+              <th>{{ $t("word.hits") }}</th>
+              <th>{{ $t("word.misses") }}</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -98,15 +120,15 @@ function onGameStartBtnClick() {
               <td>{{ person.misses }}</td>
               <td>
                 <div class="icon-buttons-container">
-                  <IconButton primary @click="recordShot(index, true)" title="Treffer">
+                  <IconButton primary @click="recordShot(index, true)" :title="$t('word.hit')">
                     <AddIcon />
                   </IconButton>
 
-                  <IconButton warning @click="recordShot(index, false)" title="Fehlschuss">
+                  <IconButton warning @click="recordShot(index, false)" :title="$t('word.miss')">
                     <MinusIcon />
                   </IconButton>
 
-                  <IconButton danger @click="game.removePlayer(index)" title="Entfernen">
+                  <IconButton danger @click="game.removePlayer(index)" :title="$t('word.remove')">
                     <TrashIcon />
                   </IconButton>
                 </div>
@@ -142,6 +164,7 @@ function onGameStartBtnClick() {
 .basketball-shot-tracker form label {
   display: block;
   margin-bottom: 5px;
+  text-align: center;
 }
 
 .basketball-shot-tracker form input {
@@ -153,19 +176,23 @@ function onGameStartBtnClick() {
 #player-list {
   width: 100%;
   margin-bottom: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #player-list th {
-  text-align: left;
+  text-align: center;
 }
 
 #player-list td {
   padding: 1rem 0 0 0.2rem;
+  text-align: center;
 }
 
 .basketball-shot-tracker ul, .leaderboard ul {
   list-style-type: none;
   padding: 0;
+  text-align: center;
 }
 
 .basketball-shot-tracker li, .leaderboard li {
@@ -179,6 +206,8 @@ function onGameStartBtnClick() {
   display: inline-flex;
   flex-basis: content;
   gap: 10px;
+  justify-content: center;
+  width: 100%;
 }
 
 #current-player-container {
@@ -214,12 +243,39 @@ function onGameStartBtnClick() {
   flex-wrap: nowrap;
 }
 
-/* On small screens buttons should not wrap */
+.basketball-shot-tracker h3 {
+  text-align: center;
+}
+
+.basketball-shot-tracker > div:last-child {
+  text-align: center;
+}
+
+.leaderboard {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.leaderboard h2 {
+  text-align: center;
+}
+
+.leaderboard ul {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .icon-buttons-container {
     flex-wrap: nowrap;
     justify-content: space-around;
   }
 }
-
 </style>

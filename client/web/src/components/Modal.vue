@@ -1,6 +1,21 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 <script setup lang="ts">
-import Card from "@/components/Card.vue";
-import {onMounted, useTemplateRef} from "vue";
+import { useTemplateRef} from "vue";
 import Button from "@/components/Button.vue";
 
 const props = defineProps({
@@ -36,6 +51,7 @@ defineExpose({openDialog});
     outline: none;
     border: 2px solid var(--border-color);
     border-radius: var(--corner-radius);
+    margin: 2rem;
   }
 
   dialog::backdrop {
@@ -47,12 +63,15 @@ defineExpose({openDialog});
   }
 
   #close-button {
-    padding-right: 0.7rem;
-    padding-left: 0.7rem;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
     position: relative;
     margin-left: auto;
     margin-right: 0;
-    float: right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   #dialog-title {

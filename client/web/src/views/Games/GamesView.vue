@@ -1,3 +1,19 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 <script setup lang="ts">
 import Button from "@/components/Button.vue";
 import Page from "@/components/Page.vue";
@@ -11,12 +27,8 @@ import Card from "@/components/Card.vue";
     <div id="card-container">
       <Card class="quick-link">
         <div>
-          <h2>{{ $t("header.game_shot_challenge") }}</h2>
-          <p class="game-description">
-            Teste deine Treffsicherheit! Du hast <strong>60 Sekunden</strong>, um zu treffen.
-            Bleib im Rhythmus,
-            halte den Druck aus und zeig, wer den besten Wurf hat!
-          </p>
+          <h2>{{ $t("games.shot_challenge") }}</h2>
+          <p class="game-description">{{ $t("games.shot_challenge_desc") }}</p>
           <RouterLink to="/games/shot-challenge">
             <Button primary>{{ $t("word.open") }}</Button>
           </RouterLink>
@@ -27,12 +39,8 @@ import Card from "@/components/Card.vue";
     <div id="timed-shots-challenge">
       <Card class="quick-link">
         <div>
-          <h2>{{ $t("header.game_timed_shots_challenge") }}</h2>
-          <p class="game-description">
-            Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es:
-            <strong>So viele Treffer wie möglich</strong> landen.
-            Wie viele Körbe schaffst du, bevor der Countdown endet?
-          </p>
+          <h2>{{ $t("games.timed_shots_challenge") }}</h2>
+          <p class="game-description">{{ $t("games.timed_shots_challenge_desc") }}</p>
           <RouterLink to="/games/timed-shots-challenge">
             <Button primary>{{ $t("word.open") }}</Button>
           </RouterLink>
@@ -44,11 +52,38 @@ import Card from "@/components/Card.vue";
 
 <style>
 #card-container {
-  margin-bottom: 1rem;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #timed-shots-challenge {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-link {
+  width: 100%;
+  max-width: 400px;
+}
+
+.quick-link h2 {
+  text-align: center;
+  margin: 0;
+}
+
+.quick-link > div {
+  margin: 0.5rem;
+  text-align: center;
+}
+
+p {
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .game-description {

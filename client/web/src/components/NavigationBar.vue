@@ -1,9 +1,24 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 <script setup lang="ts">
 import Button from "@/components/Button.vue";
 import PowerIcon from "@/components/icons/PowerIcon.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import {useSettingsStore} from "@/stores/settings";
-import {ref, watch} from "vue";
 
 const settings = useSettingsStore();
 
@@ -41,14 +56,11 @@ const settings = useSettingsStore();
 
   h1 {
     margin: 0.5rem;
-    color: cornflowerblue;
+    color: var(--accent-color);
     display: none;
   }
 
   @media (min-width: 768px) {
-    #nav-bar {
-    }
-
     h1 {
       display: block;
     }
@@ -66,7 +78,7 @@ const settings = useSettingsStore();
   }
 
   .router-link-active > Button {
-    border-color: cornflowerblue;
+    border-color: var(--accent-color);
   }
 
   #power-state-button {

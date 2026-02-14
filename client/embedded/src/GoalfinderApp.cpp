@@ -1,3 +1,19 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 #include <GoalfinderApp.h>
 #include <HardwareSerial.h>
 #include <Settings.h>
@@ -90,9 +106,9 @@ void GoalfinderApp::Init() {
 
     xMutex = xSemaphoreCreateMutex();
 
-    xTaskCreatePinnedToCore(TaskAudioCode, "TaskAudio", 8192, this, 1, &TaskAudio, 1);
-    xTaskCreatePinnedToCore(TaskDetectionCode, "TaskDetection", 8192, this, 2, &TaskDetection, 0);
-    xTaskCreatePinnedToCore(TaskLedCode, "TaskLed", 8192, this, 1, &TaskLed, 0);
+    xTaskCreatePinnedToCore(TaskAudioCode, "Audio", 8192, this, 2, &TaskAudio, 1);
+    xTaskCreatePinnedToCore(TaskDetectionCode, "Detection", 8192, this, 2, &TaskDetection, 0);
+    xTaskCreatePinnedToCore(TaskLedCode, "LED", 8192, this, 2, &TaskLed, 0);
 
     Serial.println("All tasks started.");
 }
@@ -101,7 +117,6 @@ void GoalfinderApp::WiFiSetup() {
     Settings* settings = Settings::GetInstance();
 
     if (settings->IsFirstRun()) {
-        // Scan for other GoalFinder APs to assign a unique number
         WiFi.mode(WIFI_STA);
         WiFi.disconnect();
         delay(100);
@@ -142,10 +157,9 @@ void GoalfinderApp::WiFiSetup() {
     }
 
     String ssid = settings->GetDeviceName();
-    String wifiPw = settings->GetDevicePassword();
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAP(ssid, wifiPw);
+    WiFi.softAP(ssid);
     WiFi.setSleep(false);
     Serial.println(WiFi.softAPIP());
 }

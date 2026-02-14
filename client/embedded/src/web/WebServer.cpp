@@ -1,3 +1,19 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 #include "WebServer.h"
 #include <AsyncJson.h>
 #include <ArduinoJson.h>
@@ -12,8 +28,16 @@
 #define COMPRESSED_FILE_EXTENSION ".gz"
 
 #define API_URL "/api"
+#define MAX_AUTH_ATTEMPTS 5
+#define AUTH_TIMEOUT_MS 60000 // 1 minute
 
 FileSystem* internalFS;
+
+// Rate limiting for auth endpoint
+static unsigned long authAttempts[MAX_AUTH_ATTEMPTS];
+static int authAttemptCount = 0;
+static bool authTimedOut = false;
+static unsigned long authTimeoutStart = 0;
 
 static String GetContentType(const String* fileName) 
 {
@@ -234,6 +258,104 @@ static void HandleStop(AsyncWebServerRequest* request) {
     request->send(204);
 }
 
+static void HandleConnection(AsyncWebServerRequest* request) {
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    response->addHeader("Server", "GoalFinder");
+    JsonVariant& root = response->getRoot();
+    
+    root["success"] = true;
+    root["message"] = "Connected to device";
+    
+    response->setLength();
+    request->send(response);
+}
+
+static void HandleAuth(AsyncWebServerRequest* request) {
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    response->addHeader("Server", "GoalFinder");
+    JsonVariant& root = response->getRoot();
+    
+    unsigned long now = millis();
+    
+    // Check if we're in timeout state
+    if (authTimedOut) {
+        if (now - authTimeoutStart < AUTH_TIMEOUT_MS) {
+            root["success"] = false;
+            root["error"] = "Too many attempts. Please wait.";
+            root["timeout"] = true;
+            response->setLength();
+            request->send(response);
+            return;
+        } else {
+            // Timeout expired, reset
+            authTimedOut = false;
+            authAttemptCount = 0;
+        }
+    }
+    
+    // Clean old attempts (older than 1 minute)
+    int validAttempts = 0;
+    for (int i = 0; i < authAttemptCount; i++) {
+        if (now - authAttempts[i] < AUTH_TIMEOUT_MS) {
+            authAttempts[validAttempts++] = authAttempts[i];
+        }
+    }
+    authAttemptCount = validAttempts;
+    
+    // Check rate limit
+    if (authAttemptCount >= MAX_AUTH_ATTEMPTS) {
+        authTimedOut = true;
+        authTimeoutStart = now;
+        root["success"] = false;
+        root["error"] = "Too many attempts. Please wait.";
+        root["timeout"] = true;
+        response->setLength();
+        request->send(response);
+        return;
+    }
+    
+    // Record this attempt
+    authAttempts[authAttemptCount++] = now;
+    
+    // Check if password parameter exists
+    if (!request->hasParam("password")) {
+        root["success"] = false;
+        root["error"] = "Password parameter required";
+        response->setLength();
+        request->send(response);
+        return;
+    }
+    
+    // Validate password
+    String providedPassword = request->getParam("password")->value();
+    String correctPassword = Settings::GetInstance()->GetDevicePassword();
+    
+    if (providedPassword == correctPassword) {
+        root["success"] = true;
+        root["message"] = "Authentication successful";
+    } else {
+        root["success"] = false;
+        root["error"] = "Invalid password";
+    }
+    
+    response->setLength();
+    request->send(response);
+}
+
+static void HandleIsAuth(AsyncWebServerRequest* request) {
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    response->addHeader("Server", "GoalFinder");
+    JsonVariant& root = response->getRoot();
+    
+    String devicePassword = Settings::GetInstance()->GetDevicePassword();
+    bool hasPassword = !devicePassword.isEmpty();
+    
+    root["isPasswordProtected"] = hasPassword;
+    
+    response->setLength();
+    request->send(response);
+}
+
 WebServer::WebServer(FileSystem* fileSystem) : server(80), updater(&server)
 {
     internalFS = fileSystem;
@@ -256,7 +378,7 @@ void WebServer::Begin()
 
     updater.Begin(API_URL"/update");
 
-    // === Captive portal detection endpoints ===
+    // Captive portal detection endpoints
     // Return 200 + HTML (not 204, not 302) so all platforms reliably detect the portal.
     // Android probes /generate_204 and /gen_204 — anything other than 204 triggers the sign-in sheet.
     // iOS looks for specific body content in /hotspot-detect.html.
@@ -287,6 +409,9 @@ void WebServer::Begin()
 
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);
+    server.on(API_URL"/connection", HTTP_GET, HandleConnection);
+    server.on(API_URL"/auth", HTTP_GET, HandleAuth);
+    server.on(API_URL"/isauth", HTTP_GET, HandleIsAuth);
     server.on(API_URL"/settings", HTTP_GET, HandleLoadSettings);
     server.on(API_URL"/settings", HTTP_POST, [](AsyncWebServerRequest* request) {}, 0, HandleSaveSettings);
     server.on(API_URL"/restart", HTTP_POST, HandleRestart);    

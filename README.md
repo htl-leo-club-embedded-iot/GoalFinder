@@ -26,6 +26,23 @@ There are still two discontinued branches from before the takeover
 + `pages-alt` Old GitHub Pages branch
 + `multithreading-alt` Old branch focused on adding multithreading to the GoalFinder device
 
+## Upload tool (ULT)
+
+**Always run the upload tool from the root directory**
+
+The upload tool is built to improve workflow when flashing firmware. Default workflow will be run by default:
+
+1. `npm run build`: build and compress the latest web app
+2. `pio run -t upload`: upload the firmware
+3. `pio run -t uploadfs`: upload the filesystem containing the Web App
+
+### Parameters
+
+- `-f`: Erases flash and cleans `pio`
+- `-m`: Monitor after upload
+
+All parameters can be combined
+
 ## Website
 
 The GoalFinder website is accessible at [goalfinder.github.io](https://goalfinder.github.io) and is split of into [it's own repository](https://github.com/goalfinder/goalfinder.github.io)

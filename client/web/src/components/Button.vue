@@ -1,3 +1,21 @@
+
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
+
 <script setup lang="ts">
   const props = defineProps({
     primary: Boolean,
@@ -23,19 +41,17 @@
   button:hover {
     cursor: pointer;
     background: inherit;
-    border-color: cornflowerblue;
-    color: cornflowerblue;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
   }
 
   .primary {
-    background: cornflowerblue;
+    background: var(--accent-color);
     color: white;
     border: 2px solid transparent;
   }
 
   .primary:hover {
-    border: 2px solid cornflowerblue;
+    border: 2px solid var(--accent-color);
   }
-
-  
 </style>
