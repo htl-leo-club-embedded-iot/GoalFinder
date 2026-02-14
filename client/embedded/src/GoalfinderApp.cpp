@@ -106,9 +106,9 @@ void GoalfinderApp::Init() {
 
     xMutex = xSemaphoreCreateMutex();
 
-    xTaskCreatePinnedToCore(TaskAudioCode, "TaskAudio", 8192, this, 1, &TaskAudio, 1);
-    xTaskCreatePinnedToCore(TaskDetectionCode, "TaskDetection", 8192, this, 2, &TaskDetection, 0);
-    xTaskCreatePinnedToCore(TaskLedCode, "TaskLed", 8192, this, 1, &TaskLed, 0);
+    xTaskCreatePinnedToCore(TaskAudioCode, "Audio", 8192, this, 2, &TaskAudio, 1);
+    xTaskCreatePinnedToCore(TaskDetectionCode, "Detection", 8192, this, 2, &TaskDetection, 0);
+    xTaskCreatePinnedToCore(TaskLedCode, "LED", 8192, this, 2, &TaskLed, 0);
 
     Serial.println("All tasks started.");
 }
@@ -117,7 +117,6 @@ void GoalfinderApp::WiFiSetup() {
     Settings* settings = Settings::GetInstance();
 
     if (settings->IsFirstRun()) {
-        // Scan for other GoalFinder APs to assign a unique number
         WiFi.mode(WIFI_STA);
         WiFi.disconnect();
         delay(100);
