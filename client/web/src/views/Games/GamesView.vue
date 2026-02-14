@@ -61,10 +61,35 @@ import Card from "@/components/Card.vue";
 <style>
 #card-container {
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #timed-shots-challenge {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-link {
+  width: 100%;
+  max-width: 400px;
+}
+
+.quick-link h2 {
+  text-align: center;
+  margin: 0;
+}
+
+.quick-link > div {
+  margin: 0.5rem;
+  text-align: center;
+}
+
+p {
+  text-align: center;
 }
 
 .game-description {

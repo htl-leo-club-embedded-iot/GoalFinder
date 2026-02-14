@@ -160,6 +160,7 @@ function onGameStartBtnClick() {
 .basketball-shot-tracker form label {
   display: block;
   margin-bottom: 5px;
+  text-align: center;
 }
 
 .basketball-shot-tracker form input {
@@ -171,19 +172,23 @@ function onGameStartBtnClick() {
 #player-list {
   width: 100%;
   margin-bottom: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #player-list th {
-  text-align: left;
+  text-align: center;
 }
 
 #player-list td {
   padding: 1rem 0 0 0.2rem;
+  text-align: center;
 }
 
 .basketball-shot-tracker ul, .leaderboard ul {
   list-style-type: none;
   padding: 0;
+  text-align: center;
 }
 
 .basketball-shot-tracker li, .leaderboard li {
@@ -197,6 +202,8 @@ function onGameStartBtnClick() {
   display: inline-flex;
   flex-basis: content;
   gap: 10px;
+  justify-content: center;
+  width: 100%;
 }
 
 #current-player-container {
@@ -230,6 +237,27 @@ function onGameStartBtnClick() {
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
+}
+
+.basketball-shot-tracker h3 {
+  text-align: center;
+}
+
+.basketball-shot-tracker > div:last-child {
+  text-align: center;
+}
+
+.leaderboard {
+  text-align: center;
+}
+
+.leaderboard h2 {
+  text-align: center;
+}
+
+.leaderboard ul {
+  display: inline-block;
+  text-align: left;
 }
 
 @media (max-width: 768px) {
