@@ -40,7 +40,7 @@ const setMissSound = (value: number) => {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" style="padding-top: 0;">
     <div class="volume-slider-control">
       <h3>{{ $t("word.volume") }}</h3>
       <div class="button-container1">

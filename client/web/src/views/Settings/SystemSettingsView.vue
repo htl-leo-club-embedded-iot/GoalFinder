@@ -90,6 +90,7 @@ function isSSIDValid(value: string) {
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
+  padding-top: 2rem;
 }
 
 .volume-slider-control {

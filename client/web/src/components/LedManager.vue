@@ -27,7 +27,7 @@ function setLedMode(value: string, mode: number) {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" style="padding-top: 0;">
     <div id="led">
       <div class="label-container">
         <h3 for="modus">{{ $t("word.led_mode") }}</h3>
@@ -41,7 +41,7 @@ function setLedMode(value: string, mode: number) {
       </div>
     </div>
     <div class="current-mode">
-      <span>{{ $t("word.curr_mode") }}: {{ settings.ledModeStr }}</span>
+      <p style="margin: 0;">{{ $t("word.curr_mode") }}: {{ settings.ledModeStr }}</p>
     </div>
   </div>
 </template>

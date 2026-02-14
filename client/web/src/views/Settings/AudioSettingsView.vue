@@ -32,6 +32,7 @@ import VolumeManager from "@/components/VolumeManager.vue";
   align-items: center;
   width: 100%;
   padding: 1rem;
+  padding-top: 0;
   box-sizing: border-box;
 }
 
@@ -72,7 +73,6 @@ import VolumeManager from "@/components/VolumeManager.vue";
 .current-value {
   text-align: center;
   margin-top: 0.5rem;
-  font-weight: bold;
   width: 100%;
 }
 
