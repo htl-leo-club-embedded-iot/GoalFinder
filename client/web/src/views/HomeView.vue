@@ -47,12 +47,13 @@ import Card from "@/components/Card.vue";
   #card-container {
     gap: 0.5rem;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
   }
 
   .quick-link {
-    width: 0;
-    flex-basis: 100%;
+    width: 100%;
+    max-width: 400px;
   }
 
   .quick-link h2 {
@@ -61,5 +62,14 @@ import Card from "@/components/Card.vue";
 
   .quick-link > div {
     margin: 0.5rem;
+    text-align: center;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  p {
+    text-align: center;
   }
 </style>
