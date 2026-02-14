@@ -42,7 +42,7 @@ const setMissSound = (value: number) => {
 <template>
   <div class="container">
     <div class="volume-slider-control">
-      <label>{{ $t("word.volume") }}</label>
+      <h3>{{ $t("word.volume") }}</h3>
       <div class="button-container1">
         <Button class="button" @click="setVolume(0)">0%</Button>
         <Button class="button" @click="setVolume(25)">25%</Button>
@@ -56,7 +56,7 @@ const setMissSound = (value: number) => {
     </div>
 
     <div class="sound-select">
-      <label>Metronom Geräusch</label>
+      <h3>Metronom Geräusch</h3>
       <div class="button-container">
         <Button class="button" @click="setMetronomeSound(0)">Ton 1</Button>
         <Button class="button" @click="setMetronomeSound(1)">Ton 2</Button>
@@ -68,7 +68,7 @@ const setMissSound = (value: number) => {
     </div>
 
     <div class="sound-select">
-      <label>Fehlschuss Ton</label>
+      <h3>Fehlschuss Ton</h3>
       <div class="button-container">
         <Button class="button" @click="setMissSound(0)">Ton 1</Button>
         <Button class="button" @click="setMissSound(1)">Ton 2</Button>
@@ -80,69 +80,3 @@ const setMissSound = (value: number) => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-
-.volume-slider-control {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 0.5rem;
-}
-
-.volume-slider-control label {
-  text-align: center;
-  font-weight: bold;
-  display: block;
-}
-
-.button-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  width: 100%;
-}
-
-.button-container1 {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  width: 100%;
-}
-
-.button {
-  margin-left: 0;
-}
-
-.current-value {
-  text-align: center;
-  margin-top: 0.5rem;
-  font-weight: bold;
-  width: 100%;
-}
-
-.sound-select {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 0.5rem;
-}
-
-.sound-select label {
-  text-align: center;
-  font-weight: bold;
-}
-</style>

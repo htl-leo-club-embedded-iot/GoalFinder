@@ -25,7 +25,7 @@ import VolumeManager from "@/components/VolumeManager.vue";
   </div>
 </template>
 
-<style scoped>
+<style>
 .container {
   display: flex;
   flex-direction: column;
@@ -33,5 +33,67 @@ import VolumeManager from "@/components/VolumeManager.vue";
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
+}
+
+.volume-slider-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.volume-slider-control label {
+  text-align: center;
+  font-weight: bold;
+  display: block;
+}
+
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.button-container1 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.button {
+  margin-left: 0;
+}
+
+.current-value {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-weight: bold;
+  width: 100%;
+}
+
+.sound-select {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.sound-select label {
+  text-align: center;
+  font-weight: bold;
+}
+
+h3 {
+  margin: 0;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  font-size: 1.2rem;
 }
 </style>

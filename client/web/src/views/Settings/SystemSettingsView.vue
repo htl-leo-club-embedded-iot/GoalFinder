@@ -44,7 +44,7 @@ function isSSIDValid(value: string) {
 
 <template>
   <div class="container">
-    <h3>{{ $t("settings.general") }}</h3>
+    <h3>{{ $t("settings.connection") }}</h3>
     <form id="general-input">
       <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
                  :placeholder="$t('description.device_name_description')" type="text"/>
@@ -93,16 +93,6 @@ function isSSIDValid(value: string) {
   box-sizing: border-box;
 }
 
-h3, h4 {
-  text-align: center;
-  margin: 0;
-  margin-bottom: 1rem;
-}
-
-h3 {
-  color: var(--accent-color);
-}
-
 #sensors {
   margin-top: 2rem;
 }
@@ -147,5 +137,12 @@ h3 {
 .property-title {
   min-width: 150px;
   font-weight: bold;
+}
+
+h3 {
+  margin: 0;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  font-size: 1.2rem;
 }
 </style>

@@ -34,6 +34,7 @@ const i18n = createI18n({
                 dashboard_description: "Here you can create new games and configure the device settings."
             },
             settings: {
+                connection: "WiFi connection",
                 settings: "Settings",
                 led: "LED",
                 sensoren: "Sensoren",
@@ -111,6 +112,7 @@ const i18n = createI18n({
                 gameModes_description: "Hier können Sie einen Spielmodus auswählen"
             },
             settings: {
+                connection: "WiFi Verbindung",
                 settings: "Einstellungen",
                 general: "Allgemein",
                 wifi: "WLAN",

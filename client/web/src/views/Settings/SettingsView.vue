@@ -67,3 +67,14 @@ onMounted(() => {
     color: var(--accent-color);
   }
 </style>
+
+<style>
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+</style>

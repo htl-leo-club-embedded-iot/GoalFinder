@@ -30,7 +30,7 @@ function setLedMode(value: string, mode: number) {
   <div class="container">
     <div id="led">
       <div class="label-container">
-        <label for="modus">{{ $t("word.led_mode") }}</label>
+        <h3 for="modus">{{ $t("word.led_mode") }}</h3>
         <div class="button-container">
           <Button class="button" @click="setLedMode('Ein', 1)">{{ $t("word.on") }}</Button>
           <Button class="button" @click="setLedMode('Fade', 2)">{{ $t("word.fade") }}</Button>
@@ -101,5 +101,12 @@ function setLedMode(value: string, mode: number) {
 span {
   text-align: center;
   font-weight: bold;
+}
+
+h3 {
+  margin: 0;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  font-size: 1.2rem;
 }
 </style>
