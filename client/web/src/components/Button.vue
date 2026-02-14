@@ -41,17 +41,17 @@
   button:hover {
     cursor: pointer;
     background: inherit;
-    border-color: cornflowerblue;
-    color: cornflowerblue;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
   }
 
   .primary {
-    background: cornflowerblue;
+    background: var(--accent-color);
     color: white;
     border: 2px solid transparent;
   }
 
   .primary:hover {
-    border: 2px solid cornflowerblue;
+    border: 2px solid var(--accent-color);
   }
 </style>

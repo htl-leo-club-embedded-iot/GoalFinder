@@ -61,6 +61,6 @@ const model = defineModel();
 }
 
 .input-container > input:focus {
-  border-color: cornflowerblue;
+  border-color: var(--accent-color);
 }
 </style>

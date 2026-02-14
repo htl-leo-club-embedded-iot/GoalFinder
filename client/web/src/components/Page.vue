@@ -33,7 +33,7 @@
 
 <style scoped>
 #page-title {
-  color: cornflowerblue;
+  color: var(--accent-color);
   text-align: center;
   margin-top: 1rem;
 }

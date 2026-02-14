@@ -54,7 +54,7 @@ onMounted(() => {
   }
 
   .settings-link :hover {
-    color: cornflowerblue;
+    color: var(--accent-color);
     transition: 0.4s;
   }
 
@@ -64,6 +64,6 @@ onMounted(() => {
   }
 
   .router-link-active {
-    color: cornflowerblue;
+    color: var(--accent-color);
   }
 </style>

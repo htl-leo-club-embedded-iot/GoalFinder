@@ -94,7 +94,7 @@ function uploadFirmwareFile() {
   }
 
   #update-icon {
-    color: cornflowerblue;
+    color: var(--accent-color);
     width: 6rem;
   }
 
@@ -123,7 +123,7 @@ function uploadFirmwareFile() {
 
   #progress-bar {
     height: 100%;
-    background: cornflowerblue;
+    background: var(--accent-color);
     border-radius: 0.6rem;
     transition: width 0.2s ease;
   }

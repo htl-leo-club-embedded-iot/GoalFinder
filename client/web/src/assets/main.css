@@ -7,6 +7,7 @@
     --border-color: rgba(0, 0, 0, 0.1);
     --text-color: rgb(55, 55, 55);
     --text-color-secondary: rgb(85, 85, 85);
+    --accent-color: cornflowerblue;
     --corner-radius: 10px;
     --corner-radius-secondary: 6px;
     background-color: var(--background-color);
@@ -21,6 +22,7 @@
         --border-color: rgba(255, 255, 255, 0.1);
         --text-color: rgb(200, 200, 200);
         --text-color-secondary: rgb(170, 170, 170);
+        --accent-color: cornflowerblue;
         --corner-radius: 10px;
         --corner-radius-secondary: 6px;
         background-color: var(--background-color);

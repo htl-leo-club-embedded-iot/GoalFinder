@@ -100,7 +100,7 @@ h3, h4 {
 }
 
 h3 {
-  color: cornflowerblue;
+  color: var(--accent-color);
 }
 
 #sensors {

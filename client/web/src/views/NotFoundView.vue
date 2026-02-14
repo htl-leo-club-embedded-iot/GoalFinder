@@ -37,6 +37,6 @@ import WifiOffIcon from "@/components/icons/WifiOffIcon.vue";
 
   #no-internet-icon {
     width: 10rem;
-    color: cornflowerblue;
+    color: var(--accent-color);
   }
 </style>
