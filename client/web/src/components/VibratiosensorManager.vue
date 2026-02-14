@@ -14,34 +14,24 @@
  * ===============================================================================
  */
 
-
-
 <template>
   <div>
     <div id="vb">
       <div class="label-container">
-        <label for="sensitivity">{{ $t("word.sensitivity") }}</label>
+        <label>{{ $t("word.sensitivity") }}</label>
         <div class="button-container">
-          <Button class="button" @click="setSensitivity(25)">25%</Button>
-          <Button class="button" @click="setSensitivity(50)">50%</Button>
-          <Button class="button" @click="setSensitivity(75)">75%</Button>
-          <Button class="button" @click="setSensitivity(100)">100%</Button>
+          <InputForm type="number" class="button" v-model="settings.vibrationSensorSensitivity" inputmode="numeric" min="0" max="100" step="1"></InputForm>
         </div>
       </div>
     </div>
-    <div class="current-value">{{ $t("word.curr_sensitivity") }}: {{ settings.vibrationSensorSensitivity }}%</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import Button from "@/components/Button.vue";
+import InputForm from "@/components/InputForm.vue";
 import { useSettingsStore } from "@/stores/settings";
 
 const settings = useSettingsStore();
-
-const setSensitivity = (value: number) => {
-  settings.vibrationSensorSensitivity = value;
-};
 </script>
 
 <style scoped>

@@ -94,7 +94,6 @@ h3 {
   width: 100%;
 }
 
-
 #sensors {
   margin-top: 2rem;
 }
@@ -110,9 +109,9 @@ h3 {
 
 #system-buttons {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  align-items: center;
   width: 100%;
   margin-bottom: 1rem;
 }

@@ -18,12 +18,9 @@
 <script setup lang="ts">
 import {useSettingsStore} from "@/stores/settings";
 import Button from "@/components/Button.vue";
+import InputForm from "@/components/InputForm.vue";
 
 const settings = useSettingsStore();
-
-const setVolume = (value: number) => {
-  settings.volume = value;
-};
 
 const setMetronomeSound = (value: number) => {
   settings.metronomeSound = value;
@@ -42,16 +39,10 @@ const setMissSound = (value: number) => {
 <template>
   <div class="volume-slider-control">
     <h3>{{ $t("word.volume") }}</h3>
-    <div class="button-container1">
-      <Button class="button" @click="setVolume(0)">0%</Button>
-      <Button class="button" @click="setVolume(25)">25%</Button>
-      <Button class="button" @click="setVolume(50)">50%</Button>
-      <Button class="button" @click="setVolume(75)">75%</Button>
-      <Button class="button" @click="setVolume(100)">100%</Button>
+    <div class="button-container">
+      <InputForm type="number" class="button" v-model="settings.volume" inputmode="numeric" min="0" max="100" step="5"></InputForm>
     </div>
   </div>
-  
-  <div class="current-value">{{ $t("word.curr_volume") }}: {{ settings.volume }}%</div>
   
   <div class="sound-select">
     <h3>Metronom Geräusch</h3>
@@ -62,7 +53,7 @@ const setMissSound = (value: number) => {
     </div>
   </div>
   
-  <div class="current-value">Derzeitiges Metronom Geräusch: {{ settings.metronomeSound + 1 }}</div>
+  <div class="current-value">Aktueller Metronom Geräusch: {{ settings.metronomeSound + 1 }}</div>
   
   <div class="sound-select">
     <h3>Fehlschuss Ton</h3>
@@ -73,5 +64,5 @@ const setMissSound = (value: number) => {
     </div>
   </div>
   
-  <div class="current-value">Derzeitiger Fehlschuss Ton : {{ settings.missSound + 1 }}</div>
+  <div class="current-value">Aktueller Fehlschuss Ton : {{ settings.missSound + 1 }}</div>
 </template>
