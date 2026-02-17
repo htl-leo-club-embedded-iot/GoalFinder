@@ -161,10 +161,20 @@ String Settings::GetWifiPassword()
 
 void Settings::SetWifiPassword(String wifiPassword)
 {
+	wifiPassword.trim();
+
 	if(wifiPassword.isEmpty())
 	{
 		wifiPassword = emptyString;
 		store.Remove(keyWifiPassword);
+		SetModified();
+		return;
+	}
+
+	if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
+	{
+		Serial.println("[WARN] Ignoring invalid WiFi password length. Expected 8-63 characters.");
+		return;
 	}
 
 	store.PutString(keyWifiPassword, wifiPassword);

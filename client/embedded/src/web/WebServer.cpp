@@ -180,6 +180,7 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
     Settings* settings = Settings::GetInstance();    
     
     root["deviceName"] = settings->GetDeviceName();
+    root["wifiPassword"] = settings->GetWifiPassword();
     root["devicePassword"] = settings->GetDevicePassword();
     root["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     root["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
@@ -208,6 +209,9 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
 
     Settings* settings = Settings::GetInstance();
     settings->SetDeviceName(doc["deviceName"]);
+    if (!doc["wifiPassword"].isNull()) {
+        settings->SetWifiPassword(doc["wifiPassword"]);
+    }
     settings->SetDevicePassword(doc["devicePassword"]);
     settings->SetVibrationSensorSensitivity(doc["vibrationSensorSensitivity"]);
     settings->SetBallHitDetectionDistance(doc["ballHitDetectionDistance"]);

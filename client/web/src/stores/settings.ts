@@ -2,6 +2,12 @@ import {defineStore} from "pinia";
 import {ref} from "vue";
 
 const API_URL = "/api"
+const WIFI_PASSWORD_MIN_LENGTH = 8;
+const WIFI_PASSWORD_MAX_LENGTH = 63;
+
+function isWifiPasswordValid(password: string): boolean {
+    return password.length === 0 || (password.length >= WIFI_PASSWORD_MIN_LENGTH && password.length <= WIFI_PASSWORD_MAX_LENGTH);
+}
 
 export const useSettingsStore = defineStore("settings", () => {
     let isValid = false;
@@ -11,6 +17,8 @@ export const useSettingsStore = defineStore("settings", () => {
     //General
     const deviceName = ref("");
     const devicePassword = ref("");
+    const wifiPassword = ref("");
+    const lastValidWifiPassword = ref("");
 
     //Devices
     const ledMode = ref(0);
@@ -53,6 +61,8 @@ export const useSettingsStore = defineStore("settings", () => {
 
                 deviceName.value = json["deviceName"];
                 devicePassword.value = json["devicePassword"];
+                wifiPassword.value = json["wifiPassword"];
+                lastValidWifiPassword.value = json["wifiPassword"];
                 volume.value = json["volume"];
                 metronomeSound.value = json["metronomeSound"];
                 hitSound.value = json["hitSound"];
@@ -84,10 +94,17 @@ export const useSettingsStore = defineStore("settings", () => {
 
     async function saveSettings(): Promise<void> {
         try {
+            const state = { ...useSettingsStore().$state };
+            state.wifiPassword = isWifiPasswordValid(wifiPassword.value) ? wifiPassword.value : lastValidWifiPassword.value;
+
             await fetch(`${API_URL}/settings`, {
                 method: "POST",
-                body: JSON.stringify(useSettingsStore().$state),
+                body: JSON.stringify(state),
             });
+
+            if (isWifiPasswordValid(wifiPassword.value)) {
+                lastValidWifiPassword.value = wifiPassword.value;
+            }
 
             if(isSoundEnabled.value) {
                 await fetch(`${API_URL}/start`, {
@@ -140,6 +157,7 @@ export const useSettingsStore = defineStore("settings", () => {
         enableDarkMode,
         deviceName,
         devicePassword,
+        wifiPassword,
         isBluetoothEnabled,
         connectedBluetoothDevices,
         availableBluetoothDevices,
