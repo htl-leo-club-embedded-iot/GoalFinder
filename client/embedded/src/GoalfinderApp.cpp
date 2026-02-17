@@ -121,9 +121,14 @@ void GoalfinderApp::WiFiSetup() {
     }
 
     String ssid = settings->GetDeviceName();
+    String wifiPassword = settings->GetWifiPassword();
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAP(ssid);
+    if (wifiPassword.isEmpty()) {
+        WiFi.softAP(ssid);
+    } else {
+        WiFi.softAP(ssid, wifiPassword.c_str());
+    }
     WiFi.setSleep(false);
     Serial.println(WiFi.softAPIP());
 }

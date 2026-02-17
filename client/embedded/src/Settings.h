@@ -58,6 +58,10 @@ class Settings : public Singleton<Settings>
 
         void SetDevicePassword(String devicePassword);
 
+        String GetWifiPassword();
+
+        void SetWifiPassword(String wifiPassword);
+
         int GetVibrationSensorSensitivity();
 
         void SetVibrationSensorSensitivity(int vibrationSensorSensitivity);
@@ -102,6 +106,9 @@ class Settings : public Singleton<Settings>
 
         static const char* keyDevicePassword;
         static const String defaultDevicePassword;
+
+        static const char* keyWifiPassword;
+        static const String defaultWifiPassword;
 
         static const char* keyVibrationSensorSensitivity;
         static const int defaultVibrationSensorSensitivity;
