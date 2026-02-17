@@ -6,7 +6,7 @@ void ToFSensor::Init(int sclPin, int sdaPin)
 
     if(!sensor.begin(41U, false, &wireConfig))
     {
-        Serial.println(F("Failed to boot VL53L0X"));
+        Serial.println(F("[ERROR][ToFSensor.cpp] Failed to boot VL53L0X"));
     }    
 }
 

@@ -37,7 +37,7 @@ void AudioPlayer::SetVolume(uint8_t percent)
         // calculate the gain for the player
         float gain = (gainPc / base) - epsilon;
         
-        Serial.printf("%4.3f: setting audio gain to: '%.3f'\n", millis() / 1000.0, gain);
+        Serial.printf("[INFO][AudioPlayer.cpp] %4.3f: setting audio gain to '%.3f'\n", millis() / 1000.0, gain);
         audioOutput->SetGain(gain);
     }
 }

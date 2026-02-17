@@ -173,7 +173,7 @@ void Settings::SetWifiPassword(String wifiPassword)
 
 	if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
 	{
-		Serial.println("[WARN] Ignoring invalid WiFi password length. Expected 8-63 characters.");
+		Serial.println("[WARN][Settings.cpp] Ignoring invalid WiFi password length. Expected 8-63 characters.");
 		return;
 	}
 
