@@ -39,7 +39,7 @@ void LedController::SetMode(LedMode mode)
     if (this->mode != mode) {
         this->mode = mode;
         lastStepTimeMs = 0;
-        Serial.printf("%4.3f: LED - mode set to: '%d'\n", millis() / 1000.0, this->mode);
+        Serial.printf("[INFO][LedController.cpp] %4.3f: LED mode set to '%d'\n", millis() / 1000.0, this->mode);
     }
 }
 
@@ -140,7 +140,7 @@ void LedController::RenderTurboStep() {
         flashPhaseCount = 0;
         lastStepTimeMs = now - stepActiveDurationMs;
     }
-    Serial.printf("%4.3f: LED - rendering turbo step: %s - '%d'\n", millis() / 1000.0, activePhase ? "flash" : "dark", flashPhaseCount);
+    Serial.printf("[INFO][LedController.cpp] %4.3f: LED turbo step %s '%d'\n", millis() / 1000.0, activePhase ? "flash" : "dark", flashPhaseCount);
     if (!activePhase && lastStepTimeMs + stepInactiveDurationMs <= now) {
         activePhase = true;
         flashPhaseCount = 0;
@@ -149,7 +149,7 @@ void LedController::RenderTurboStep() {
     if (activePhase && lastStepTimeMs + stepActiveDurationMs <= now) {
         lastStepTimeMs += stepActiveDurationMs;
         int dutyCycle = flashPhaseCount % 2 == 0 ? 255 : 0;
-        Serial.printf("%4.3f: LED - rendering turbo step: '%d'\n", millis() / 1000.0, dutyCycle);
+        Serial.printf("[INFO][LedController.cpp] %4.3f: LED turbo duty cycle '%d'\n", millis() / 1000.0, dutyCycle);
         ledcWrite(channel, dutyCycle);
         flashPhaseCount++;
 

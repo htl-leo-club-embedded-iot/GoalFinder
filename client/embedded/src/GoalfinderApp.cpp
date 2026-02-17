@@ -85,7 +85,7 @@ void GoalfinderApp::Init() {
     randomSeed(analogRead(pinRandomSeed));
 
     if (!fileSystem.Begin()) {
-        Serial.println("FS initialization failed");
+        Serial.println("[ERROR][GoalfinderApp.cpp] FS initialization failed");
         return;
     }
 
@@ -94,7 +94,7 @@ void GoalfinderApp::Init() {
 
     // Start DNS server for captive portal (redirect all domains to AP IP)
     dnsServer.start(53, "*", WiFi.softAPIP());
-    Serial.println("[INFO] DNS server started for captive portal");
+    Serial.println("[INFO][GoalfinderApp.cpp] DNS server started for captive portal");
 
     webServer.Begin();
     sntp.Init();
@@ -110,58 +110,67 @@ void GoalfinderApp::Init() {
     xTaskCreatePinnedToCore(TaskDetectionCode, "Detection", 8192, this, 2, &TaskDetection, 0);
     xTaskCreatePinnedToCore(TaskLedCode, "LED", 8192, this, 2, &TaskLed, 0);
 
-    Serial.println("All tasks started.");
+    Serial.println("[OK][GoalfinderApp.cpp] All tasks started");
 }
 
 void GoalfinderApp::WiFiSetup() {
     Settings* settings = Settings::GetInstance();
 
     if (settings->IsFirstRun()) {
-        WiFi.mode(WIFI_STA);
-        WiFi.disconnect();
-        delay(100);
-
-        int n = WiFi.scanNetworks();
-        Serial.printf("[INFO] First run: found %d networks\n", n);
-
-        bool usedNumbers[100] = { false };
-
-        for (int i = 0; i < n; i++) {
-            String ssid = WiFi.SSID(i);
-            if (ssid.startsWith("GoalFinder")) {
-                String numStr = ssid.substring(11);
-                int num = numStr.toInt();
-                if (num > 0 && num < 100) {
-                    usedNumbers[num] = true;
-                    Serial.printf("[INFO]   Found existing device: %s (number %d)\n", ssid.c_str(), num);
-                }
-            }
-        }
-        WiFi.scanDelete();
-
-        int nextNumber = 1;
-        for (int i = 1; i < 100; i++) {
-            if (!usedNumbers[i]) {
-                nextNumber = i;
-                break;
-            }
-        }
-
-        char numberStr[3];
-        snprintf(numberStr, sizeof(numberStr), "%02d", nextNumber);
-        String deviceName = "GoalFinder " + String(numberStr);
-
-        settings->SetDeviceName(deviceName);
-        settings->SetFirstRun(false);
-        Serial.printf("[INFO] First run: assigned device name '%s'\n", deviceName.c_str());
+        ApplyDeviceNameByScan();
     }
 
     String ssid = settings->GetDeviceName();
+    String wifiPassword = settings->GetWifiPassword();
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAP(ssid);
+    if (wifiPassword.isEmpty()) {
+        WiFi.softAP(ssid);
+    } else {
+        WiFi.softAP(ssid, wifiPassword.c_str());
+    }
     WiFi.setSleep(false);
-    Serial.println(WiFi.softAPIP());
+    Serial.printf("[INFO][GoalfinderApp.cpp] SoftAP IP: %s\n", WiFi.softAPIP().toString().c_str());
+}
+
+void GoalfinderApp::ApplyDeviceNameByScan() {
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    delay(100);
+
+    int n = WiFi.scanNetworks();
+    Serial.printf("[INFO][GoalfinderApp.cpp] First run found %d networks\n", n);
+
+    bool usedNumbers[100] = { false };
+
+    for (int i = 0; i < n; i++) {
+    String ssid = WiFi.SSID(i);
+        if (ssid.startsWith("GoalFinder")) {
+            String numStr = ssid.substring(11);
+            int num = numStr.toInt();
+            if (num > 0 && num < 100) {
+                usedNumbers[num] = true;
+                Serial.printf("[INFO][GoalfinderApp.cpp] Found existing device: %s (number %d)\n", ssid.c_str(), num);
+            }
+        }
+    }
+    WiFi.scanDelete();
+
+    int nextNumber = 1;
+    for (int i = 1; i < 100; i++) {
+        if (!usedNumbers[i]) {
+            nextNumber = i;
+            break;
+        }
+    }
+
+    char numberStr[3];
+    snprintf(numberStr, sizeof(numberStr), "%02d", nextNumber);
+    String deviceName = "GoalFinder " + String(numberStr);
+    
+    settings->SetDeviceName(deviceName);
+    settings->SetFirstRun(false);
+    Serial.printf("[OK][GoalfinderApp.cpp] First run assigned device name '%s'\n", deviceName.c_str());
 }
 
 void GoalfinderApp::UpdateSettings(bool force) {
@@ -228,7 +237,7 @@ void GoalfinderApp::DetectShot() {
             long vibration = vibrationSensor.Vibration(10000);
             if (vibration > shotVibrationThreshold) {
                 lastShockTime = millis();
-                Serial.printf("%4.3f: shot detected\n", millis() / 1000.0);
+                Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: shot detected\n", millis() / 1000.0);
             }
         }
     }
@@ -268,17 +277,17 @@ void GoalfinderApp::ProcessAnnouncement() {
 void GoalfinderApp::AnnounceHit() {
     detectedHits++;
     announcement = Announcement::Hit;
-    Serial.printf("%4.3f: Hit detected! Total hits: %d\n", millis() / 1000.0, detectedHits);
+    Serial.printf("[OK][GoalfinderApp.cpp] %4.3f: hit detected (total hits: %d)\n", millis() / 1000.0, detectedHits);
 }
 
 void GoalfinderApp::AnnounceMiss() {
     detectedMisses++;
     announcement = Announcement::Miss;
-    Serial.printf("%4.3f: Miss detected! Total misses: %d\n", millis() / 1000.0, detectedMisses);
+    Serial.printf("[WARN][GoalfinderApp.cpp] %4.3f: miss detected (total misses: %d)\n", millis() / 1000.0, detectedMisses);
 }
 
 void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
-    Serial.printf("%4.3f: announcing event '%s'\n", millis() / 1000.0, traceMsg);
+    Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: announcing event '%s'\n", millis() / 1000.0, traceMsg);
     if (sound) {
         announcing = true;
         PlaySound(sound);
@@ -287,7 +296,7 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
 
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
-        Serial.printf("%4.3f: starting playback of: '%s'\n", millis() / 1000.0, soundFileName);
+        Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: starting playback '%s'\n", millis() / 1000.0, soundFileName);
         if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
             audioPlayer.PlayMP3(soundFileName);
             xSemaphoreGive(xMutex);

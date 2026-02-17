@@ -75,7 +75,7 @@ static String GetContentType(const String* fileName)
     }
     else 
     {
-        Serial.println("[ERROR] Unknown file type to get content type."); // Debugging: Handle unknown file types
+        Serial.println("[ERROR][WebServer.cpp] Unknown file type to get content type"); // Debugging: Handle unknown file types
         return "";
     }
 }
@@ -88,13 +88,13 @@ static void HandleNotFound(AsyncWebServerRequest* request)
         request->redirect("http://" + WiFi.softAPIP().toString() + "/");
         return;
     }
-    Serial.println("Failed Request: " + request->url());
+    Serial.println("[WARN][WebServer.cpp] Failed request: " + request->url());
     request->send(404, "text/plain", "Not found");
 }
 
 static void HandleRequest(AsyncWebServerRequest* request)
 {
-    Serial.printf("Web Server: received request %s\n", request->url().c_str());
+    Serial.printf("[INFO][WebServer.cpp] Received request %s\n", request->url().c_str());
 
     String filePath = WEBAPP_DIR + request->url();  
     String contentType = GetContentType(&filePath);
@@ -121,7 +121,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     if(!fileExists)
     {
-        Serial.printf("Web Server: file not found: %s\n", filePath.c_str());
+        Serial.printf("[WARN][WebServer.cpp] File not found: %s\n", filePath.c_str());
         request->send(404, "text/plain", "File not found");
         return;
     }
@@ -131,7 +131,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     if(response == nullptr)
     {
-        Serial.println("Web Server: failed to create response");
+        Serial.println("[ERROR][WebServer.cpp] Failed to create response");
         request->send(500, "text/plain", "Internal server error");
         return;
     }
@@ -180,6 +180,7 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
     Settings* settings = Settings::GetInstance();    
     
     root["deviceName"] = settings->GetDeviceName();
+    root["wifiPassword"] = settings->GetWifiPassword();
     root["devicePassword"] = settings->GetDevicePassword();
     root["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     root["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
@@ -200,7 +201,7 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
 {
     JsonDocument doc;
         
-    Serial.printf("Web Server: received settings: %s\n", data);
+    Serial.printf("[INFO][WebServer.cpp] Received settings: %s\n", data);
     deserializeJson(doc, (const char*)data);
 
     GoalfinderApp* app = GoalfinderApp::GetInstance();
@@ -208,6 +209,9 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
 
     Settings* settings = Settings::GetInstance();
     settings->SetDeviceName(doc["deviceName"]);
+    if (!doc["wifiPassword"].isNull()) {
+        settings->SetWifiPassword(doc["wifiPassword"]);
+    }
     settings->SetDevicePassword(doc["devicePassword"]);
     settings->SetVibrationSensorSensitivity(doc["vibrationSensorSensitivity"]);
     settings->SetBallHitDetectionDistance(doc["ballHitDetectionDistance"]);
@@ -369,7 +373,7 @@ void WebServer::Init()
     server.onNotFound(HandleNotFound); 
     
     // TODO Replace any serial.out with "Log"
-    Serial.println("Web server initialized!");
+    Serial.println("[OK][WebServer.cpp] Web server initialized");
 }
 
 void WebServer::Begin() 
@@ -438,7 +442,7 @@ void WebServer::Begin()
 
     //server.serveStatic("/", LittleFS, "/web/").setDefaultFile("index.html").setCacheControl("max-age=604800");
     server.begin();
-    Serial.println("[INFO] Started web server.");
+    Serial.println("[OK][WebServer.cpp] Started web server");
 }
 
 void WebServer::Stop() 

@@ -36,6 +36,9 @@ const String Settings::defaultDeviceName = "GoalFinder 01";
 const char* Settings::keyDevicePassword = "devicePassword";
 const String Settings::defaultDevicePassword = emptyString;
 
+const char* Settings::keyWifiPassword = "wifiPassword";
+const String Settings::defaultWifiPassword = emptyString;
+
 const char* Settings::keyVibrationSensorSensitivity = "shotSensitivity";
 const int Settings::defaultVibrationSensorSensitivity = 100;
 
@@ -148,6 +151,33 @@ void Settings::SetDevicePassword(String devicePassword)
 	}
 
 	store.PutString(keyDevicePassword, devicePassword);
+	SetModified();
+};
+
+String Settings::GetWifiPassword()
+{
+	return store.GetString(keyWifiPassword, defaultWifiPassword);
+};
+
+void Settings::SetWifiPassword(String wifiPassword)
+{
+	wifiPassword.trim();
+
+	if(wifiPassword.isEmpty())
+	{
+		wifiPassword = emptyString;
+		store.Remove(keyWifiPassword);
+		SetModified();
+		return;
+	}
+
+	if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
+	{
+		Serial.println("[WARN][Settings.cpp] Ignoring invalid WiFi password length. Expected 8-63 characters.");
+		return;
+	}
+
+	store.PutString(keyWifiPassword, wifiPassword);
 	SetModified();
 };
 

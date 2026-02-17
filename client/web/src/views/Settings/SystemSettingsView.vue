@@ -31,16 +31,6 @@ const updateDialog = useTemplateRef<typeof SoftwareUpdateModal>("updateDialog");
 const openUpdateDialog = () => {
   updateDialog.value?.show();
 };
-
-function isSSIDValid(value: string) {
-  const regex = /^[a-zA-Z0-9_]+$/;
-  if (value == null || value.length < 3 || value.length > 32 || !regex.test(value)) {
-    settings.isValid = false;
-    return false;
-  }
-  settings.isValid = true;
-  return true;
-}
 </script>
 
 <template>
@@ -49,6 +39,9 @@ function isSSIDValid(value: string) {
     <form id="general-input">
       <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
                  :placeholder="$t('description.device_name_description')" type="text"/>
+      <InputForm v-model="settings.wifiPassword" :label="$t('word.ssid_password')"
+                 :placeholder="$t('description.ssid_password_description')" type="password"
+                 :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"/>
       <InputForm v-model="settings.devicePassword" :label="$t('word.device_password')"
                  :placeholder="$t('description.device_password_description')" type="password"/>
     </form>
