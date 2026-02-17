@@ -117,43 +117,7 @@ void GoalfinderApp::WiFiSetup() {
     Settings* settings = Settings::GetInstance();
 
     if (settings->IsFirstRun()) {
-        WiFi.mode(WIFI_STA);
-        WiFi.disconnect();
-        delay(100);
-
-        int n = WiFi.scanNetworks();
-        Serial.printf("[INFO] First run: found %d networks\n", n);
-
-        bool usedNumbers[100] = { false };
-
-        for (int i = 0; i < n; i++) {
-            String ssid = WiFi.SSID(i);
-            if (ssid.startsWith("GoalFinder")) {
-                String numStr = ssid.substring(11);
-                int num = numStr.toInt();
-                if (num > 0 && num < 100) {
-                    usedNumbers[num] = true;
-                    Serial.printf("[INFO]   Found existing device: %s (number %d)\n", ssid.c_str(), num);
-                }
-            }
-        }
-        WiFi.scanDelete();
-
-        int nextNumber = 1;
-        for (int i = 1; i < 100; i++) {
-            if (!usedNumbers[i]) {
-                nextNumber = i;
-                break;
-            }
-        }
-
-        char numberStr[3];
-        snprintf(numberStr, sizeof(numberStr), "%02d", nextNumber);
-        String deviceName = "GoalFinder " + String(numberStr);
-
-        settings->SetDeviceName(deviceName);
-        settings->SetFirstRun(false);
-        Serial.printf("[INFO] First run: assigned device name '%s'\n", deviceName.c_str());
+        ApplyDeviceNameByScan();
     }
 
     String ssid = settings->GetDeviceName();
@@ -162,6 +126,46 @@ void GoalfinderApp::WiFiSetup() {
     WiFi.softAP(ssid);
     WiFi.setSleep(false);
     Serial.println(WiFi.softAPIP());
+}
+
+void GoalfinderApp::ApplyDeviceNameByScan() {
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    delay(100);
+
+    int n = WiFi.scanNetworks();
+    Serial.printf("[INFO] First run: found %d networks\n", n);
+
+    bool usedNumbers[100] = { false };
+
+    for (int i = 0; i < n; i++) {
+    String ssid = WiFi.SSID(i);
+        if (ssid.startsWith("GoalFinder")) {
+            String numStr = ssid.substring(11);
+            int num = numStr.toInt();
+            if (num > 0 && num < 100) {
+                usedNumbers[num] = true;
+                Serial.printf("[INFO]   Found existing device: %s (number %d)\n", ssid.c_str(), num);
+            }
+        }
+    }
+    WiFi.scanDelete();
+
+    int nextNumber = 1;
+    for (int i = 1; i < 100; i++) {
+        if (!usedNumbers[i]) {
+            nextNumber = i;
+            break;
+        }
+    }
+
+    char numberStr[3];
+    snprintf(numberStr, sizeof(numberStr), "%02d", nextNumber);
+    String deviceName = "GoalFinder " + String(numberStr);
+    
+    settings->SetDeviceName(deviceName);
+    settings->SetFirstRun(false);
+    Serial.printf("[INFO] First run: assigned device name '%s'\n", deviceName.c_str());
 }
 
 void GoalfinderApp::UpdateSettings(bool force) {
