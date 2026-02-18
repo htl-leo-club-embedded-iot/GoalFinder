@@ -2,11 +2,12 @@
 """
 Script to update version numbers across the project.
 Usage:
-  python update-version.py <version>
-  
+  python scripts/update-version.py <version>
+
 Example:
-  python update-version.py 0.0.2
-  python update-version.py 0.0.2-dev
+  python scripts/update-version.py 0.0.2
+  python scripts/update-version.py 0.0.2a
+  python scripts/update-version.py 0.0.2-dev
 """
 
 import sys
@@ -14,10 +15,12 @@ import json
 import re
 from pathlib import Path
 
+
 def update_version_h(version: str, git_hash: str = "unknown"):
     """Update the version.h file with the new version."""
-    version_h_path = Path(__file__).parent / "client" / "embedded" / "src" / "version.h"
-    
+    repo_root = Path(__file__).resolve().parent.parent
+    version_h_path = repo_root / "client" / "embedded" / "src" / "version.h"
+
     content = f"""#ifndef VERSION_H
 #define VERSION_H
 
@@ -25,54 +28,59 @@ def update_version_h(version: str, git_hash: str = "unknown"):
 // For development builds, it shows the development version
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "{version}"
+#define FIRMWARE_VERSION \"{version}\"
 #endif
 
 #ifndef GIT_COMMIT_HASH
-#define GIT_COMMIT_HASH "{git_hash}"
+#define GIT_COMMIT_HASH \"{git_hash}\"
 #endif
 
 #endif // VERSION_H
 """
-    
+
     version_h_path.write_text(content)
     print(f"Updated {version_h_path} to version {version}")
 
+
 def update_package_json(version: str):
     """Update the package.json file with the new version."""
-    package_json_path = Path(__file__).parent / "client" / "web" / "package.json"
-    
+    repo_root = Path(__file__).resolve().parent.parent
+    package_json_path = repo_root / "client" / "web" / "package.json"
+
     with open(package_json_path, 'r') as f:
         package_data = json.load(f)
-    
+
     package_data['version'] = version
-    
+
     with open(package_json_path, 'w') as f:
         json.dump(package_data, f, indent=2)
         f.write('\n')  # Add trailing newline
-    
+
     print(f"Updated {package_json_path} to version {version}")
+
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python update-version.py <version> [git_hash]")
-        print("Example: python update-version.py 0.0.2")
-        print("Example: python update-version.py 0.0.2-dev abc123")
+        print("Usage: python scripts/update-version.py <version> [git_hash]")
+        print("Example: python scripts/update-version.py 0.0.2")
+        print("Example: python scripts/update-version.py 0.0.2a")
+        print("Example: python scripts/update-version.py 0.0.2-dev abc123")
         sys.exit(1)
-    
+
     version = sys.argv[1]
     git_hash = sys.argv[2] if len(sys.argv) > 2 else "unknown"
-    
+
     # Validate version format
-    if not re.match(r'^\d+\.\d+\.\d+(-dev)?$', version):
+    if not re.match(r'^\d+\.\d+\.\d+([a-z]|-dev)?$', version):
         print(f"Error: Invalid version format: {version}")
-        print("Expected format: X.Y.Z or X.Y.Z-dev")
+        print("Expected format: X.Y.Z, X.Y.Z<single-lowercase-letter>, or X.Y.Z-dev")
         sys.exit(1)
-    
+
     update_version_h(version, git_hash)
     update_package_json(version)
-    
+
     print(f"\n✓ Successfully updated project to version {version}")
+
 
 if __name__ == "__main__":
     main()

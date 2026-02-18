@@ -47,8 +47,7 @@ jobs:
       
       - name: Update version files
         run: |
-          cd ../..
-          python update-version.py ${{ steps.version.outputs.version }} ${{ steps.git_hash.outputs.hash }}
+          python ../../scripts/update-version.py ${{ steps.version.outputs.version }} ${{ steps.git_hash.outputs.hash }}
           
       - uses: actions/cache@v4
         with:
