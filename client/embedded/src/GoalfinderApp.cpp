@@ -134,6 +134,8 @@ void GoalfinderApp::WiFiSetup() {
 }
 
 void GoalfinderApp::ApplyDeviceNameByScan() {
+    Settings* settings = Settings::GetInstance();
+
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
     delay(100);
@@ -144,7 +146,7 @@ void GoalfinderApp::ApplyDeviceNameByScan() {
     bool usedNumbers[100] = { false };
 
     for (int i = 0; i < n; i++) {
-    String ssid = WiFi.SSID(i);
+        String ssid = WiFi.SSID(i);
         if (ssid.startsWith("GoalFinder")) {
             String numStr = ssid.substring(11);
             int num = numStr.toInt();
