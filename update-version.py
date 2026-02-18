@@ -6,6 +6,7 @@ Usage:
   
 Example:
   python update-version.py 0.0.2
+  python update-version.py 0.0.2a
   python update-version.py 0.0.2-dev
 """
 
@@ -57,6 +58,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python update-version.py <version> [git_hash]")
         print("Example: python update-version.py 0.0.2")
+        print("Example: python update-version.py 0.0.2a")
         print("Example: python update-version.py 0.0.2-dev abc123")
         sys.exit(1)
     
@@ -64,9 +66,9 @@ def main():
     git_hash = sys.argv[2] if len(sys.argv) > 2 else "unknown"
     
     # Validate version format
-    if not re.match(r'^\d+\.\d+\.\d+(-dev)?$', version):
+    if not re.match(r'^\d+\.\d+\.\d+([a-z]|-dev)?$', version):
         print(f"Error: Invalid version format: {version}")
-        print("Expected format: X.Y.Z or X.Y.Z-dev")
+        print("Expected format: X.Y.Z, X.Y.Z<single-lowercase-letter>, or X.Y.Z-dev")
         sys.exit(1)
     
     update_version_h(version, git_hash)
