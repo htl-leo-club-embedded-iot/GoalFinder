@@ -68,6 +68,10 @@ const i18n = createI18n({
                 devices: "Devices",
                 audio: "Audio",
                 system: "System",
+                detection: "Detection",
+                hit_detection: "Hit Detection",
+                distance_only_hit_detection: "Distance-Only Hit Detection",
+                distance_only_hit_detection_desc: "When enabled, only the laser distance sensor is used for hit detection. The vibration sensor will be ignored.",
                 device_name: "Device name",
                 device_password: "Device password",
                 web_app: "Web App",
@@ -91,7 +95,7 @@ const i18n = createI18n({
                 visit_page: "Also visit our"
             },
             word : {
-                on: "Ein",
+                on: "On",
                 welcome_back: "Welcome back",
                 save: "Save",
                 open: "Open",
@@ -188,6 +192,10 @@ const i18n = createI18n({
                 devices: "Geräte",
                 audio: "Audio",
                 system: "System",
+                detection: "Erkennung",
+                hit_detection: "Trefferkennung",
+                distance_only_hit_detection: "Nur Distanz-Trefferkennung",
+                distance_only_hit_detection_desc: "Wenn aktiviert, wird nur der Laser-Distanzsensor zur Trefferkennung verwendet. Der Vibrationssensor wird ignoriert.",
                 web_app: "Web App",
                 accent_color: "Akzent Farbe",
                 theme: "Erscheinungsbild",
@@ -209,6 +217,7 @@ const i18n = createI18n({
                 visit_page: "Besuchen Sie auch unsere "
             },
             word : {
+                on: "Ein",
                 welcome_back: "Willkommen zurück",
                 save: "Speichern",
                 open: "Öffnen",

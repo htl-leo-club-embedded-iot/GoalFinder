@@ -20,8 +20,6 @@ import Button from "@/components/Button.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import InputForm from "@/components/InputForm.vue";
-import VibrationSensorManager from "@/components/settings/VibratiosensorManager.vue";
-import LaserSensorManager from "@/components/settings/LaserSensorManager.vue";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
 
 const settings = useSettingsStore();
@@ -45,10 +43,6 @@ const openUpdateDialog = () => {
       <InputForm v-model="settings.devicePassword" :label="$t('word.device_password')"
                  :placeholder="$t('description.device_password_description')" type="password"/>
     </form>
-
-    <h3 id="sensors">{{$t("settings.sensors")}}</h3>
-    <VibrationSensorManager/>
-    <LaserSensorManager/>
 
     <h3>{{ $t("settings.web_app") }}</h3>
     <WebAppManager/>
@@ -89,10 +83,6 @@ h4 {
 
 #led {
   width: 100%;
-}
-
-#sensors {
-  margin-top: 2rem;
 }
 
 #general-input {

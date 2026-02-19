@@ -63,7 +63,11 @@ const router = createRouter({
           name: "devices",
           component: () => import('@/views/settings/DevicesSettingsView.vue')
         },
-        
+        {
+          path: "detection",
+          name: "detection",
+          component: () => import('@/views/settings/DetectionSettingsView.vue')
+        },
         {
           path: "system",
           name: "system",

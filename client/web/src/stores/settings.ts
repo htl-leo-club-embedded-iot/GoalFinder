@@ -29,6 +29,7 @@ export const useSettingsStore = defineStore("settings", () => {
     
     const vibrationSensorSensitivity = ref(0);
     const ballHitDetectionDistance = ref(0);
+    const distanceOnlyHitDetection = ref(false);
 
     const isWifiEnabled = ref(false);
     const connectedNetwork = ref("");
@@ -73,6 +74,7 @@ export const useSettingsStore = defineStore("settings", () => {
                 version.value = json["version"];
                 vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"];
                 ballHitDetectionDistance.value = json["ballHitDetectionDistance"];
+                distanceOnlyHitDetection.value = json["distanceOnlyHitDetection"] ?? false;
 
                 // Map ledMode to its corresponding string representation
                 const ledModeMapping: { [key: number]: string } = {
@@ -163,6 +165,7 @@ export const useSettingsStore = defineStore("settings", () => {
         availableBluetoothDevices,
         vibrationSensorSensitivity,
         ballHitDetectionDistance,
+        distanceOnlyHitDetection,
         isWifiEnabled,
         connectedNetwork,
         availableNetworks,
