@@ -19,10 +19,13 @@ export const useSettingsStore = defineStore("settings", () => {
     const devicePassword = ref("");
     const wifiPassword = ref("");
     const lastValidWifiPassword = ref("");
-
-    //Devices
+    
+    // LED
     const ledMode = ref(0);
     const ledModeStr = ref("Aus");
+    const ledBrightness = ref(100);
+
+    //Devices
     const isBluetoothEnabled = ref(false);
     const connectedBluetoothDevices = ref([]);
     const availableBluetoothDevices = ref([]);
@@ -69,6 +72,7 @@ export const useSettingsStore = defineStore("settings", () => {
                 hitSound.value = json["hitSound"];
                 missSound.value = json["missSound"];
                 ledMode.value = json["ledMode"];
+                ledBrightness.value = json["ledBrightness"]
                 macAddress.value = json["macAddress"];
                 isSoundEnabled.value = json["isSoundEnabled"];
                 version.value = json["version"];
@@ -182,6 +186,7 @@ export const useSettingsStore = defineStore("settings", () => {
         factoryResetDevice,
         ledMode,
         ledModeStr,
+        ledBrightness,
         isValid,
         isSoundEnabled,
         version,
