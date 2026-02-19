@@ -17,13 +17,21 @@
 <script setup lang="ts">
 import {useSettingsStore} from "@/stores/settings";
 import Button from "@/components/Button.vue";
+import InputForm from "@/components/InputForm.vue";
 import {computed} from "vue";
+import {useClampedValue} from "@/models/clampedValue";
 
 const settings = useSettingsStore();
 
 function setLedMode(mode: number) {
   settings.ledMode = mode;
 }
+
+const ledBrightness = useClampedValue(
+  () => settings.ledBrightness,
+  (v) => settings.ledBrightness = v,
+  0, 100
+);
 
 const ledModeKey = computed(() => {
   switch (settings.ledMode) {
@@ -54,6 +62,14 @@ const ledModeKey = computed(() => {
     <div class="current-mode">
       <p style="margin: 0;">{{ $t("word.curr_mode") }}: {{ $t(ledModeKey) }}</p>
     </div>
+    <div id="brightness">
+      <div class="label-container">
+        <h3>{{ $t("word.brightness") }}</h3>
+        <div class="button-container">
+          <InputForm type="number" class="button" v-model="ledBrightness" inputmode="numeric" min="0" max="100" step="5"></InputForm>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -63,6 +79,10 @@ h3 {
 }
 
 #led {
+  width: 100%;
+}
+
+#brightness {
   width: 100%;
 }
 </style>

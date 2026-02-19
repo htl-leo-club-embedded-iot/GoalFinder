@@ -138,7 +138,8 @@ const i18n = createI18n({
                 finish: "Finish",
                 leaderboard: "Leaderboard",
                 sound: "Sound",
-                website: "website"
+                website: "website",
+                brightness: "Brightness"
             },
             connection: {
                 warning_title: "Connection Error",
@@ -260,7 +261,8 @@ const i18n = createI18n({
                 leaderboard: "Rangliste",
                 bluetooth: "Bluetooth",
                 sound: "Ton",
-                website: "Webseite"
+                website: "Webseite",
+                brightness: "Helligkeit"
             },
             connection: {
                 warning_title: "Verbindungsfehler",
