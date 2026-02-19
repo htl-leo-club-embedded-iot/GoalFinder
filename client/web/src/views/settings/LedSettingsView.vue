@@ -38,7 +38,7 @@ const ledModeKey = computed(() => {
 </script>
 
 <template>
-  <div class="container" style="padding-top: 0;">
+  <div class="container">
     <div id="led">
       <div class="label-container">
         <h3 for="modus">{{ $t("word.led_mode") }}</h3>
@@ -56,3 +56,13 @@ const ledModeKey = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+h3 {
+  margin-top: 0.5rem;
+}
+
+#led {
+  width: 100%;
+}
+</style>
