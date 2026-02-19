@@ -102,6 +102,7 @@ private:
     void PlaySound(const char* soundFileName);
     void UpdateSettings(bool force = false);
     void WiFiSetup();
+    void ApplyDeviceNameByScan();
 
     // Internal objects
     FileSystem fileSystem;

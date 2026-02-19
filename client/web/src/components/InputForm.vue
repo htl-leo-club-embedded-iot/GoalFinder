@@ -23,7 +23,10 @@ const props = defineProps([
   'inputmode',
   'min',
   'max',
-  'step'
+  'step',
+  'minlength',
+  'maxlength',
+  'pattern'
 ]);
 
 const model = defineModel();
@@ -33,7 +36,7 @@ const model = defineModel();
   <div class="input-container">
     <label :for="$.uid.toString()">{{ label }}</label>
     <input :id="$.uid.toString()" :type="type" :placeholder="placeholder" v-model="model" :readonly="readonly"
-           :inputmode="inputmode" :step="step" :min="min" :max="max"/>
+          :inputmode="inputmode" :step="step" :min="min" :max="max" :minlength="minlength" :maxlength="maxlength" :pattern="pattern"/>
   </div>
 </template>
 

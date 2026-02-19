@@ -36,7 +36,7 @@ void SoftwareUpdater::Begin(const char* uri) {
 void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
     if (!index)
     {
-        Serial.println("Update started");
+        Serial.println("[INFO][SoftwareUpdater.cpp] Update started");
         int update_content_len = request->contentLength();
 
         if (!Update.begin(update_content_len, U_FLASH))
@@ -58,7 +58,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request, String filena
         }
         else
         {
-            Serial.println("Update complete");
+            Serial.println("[OK][SoftwareUpdater.cpp] Update complete");
         }
     }
 }

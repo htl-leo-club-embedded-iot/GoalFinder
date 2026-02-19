@@ -12,7 +12,7 @@ bool FileSystem::Begin()
 
 File FileSystem::OpenFile(String path) 
 {
-    Serial.println("[INFO] Opened file: " + path);
+    Serial.println("[INFO][FileSystem.cpp] Opened file: " + path);
     return LittleFS.open(path, FILE_READ);
 }
 

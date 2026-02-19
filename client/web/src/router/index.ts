@@ -24,63 +24,63 @@ const router = createRouter({
     {
       path: '/auth',
       name: 'auth',
-      component: () => import('../views/AuthView.vue'),
+      component: () => import('@/views/AuthView.vue'),
       meta: { skipAuth: true }
     },
     {
       path: '/',
       name: 'home',
-      component: () => import('../views/HomeView.vue')
+      component: () => import('@/views/HomeView.vue')
     },
     {
       path: '/games',
       name: 'games',
-      component: () => import('../views/games/GamesView.vue'),
+      component: () => import('@/views/games/GamesView.vue'),
     },
     {
       path: "/games/shot-challenge",
       name: "shot-challenge",
-      component: () => import('../views/games/ShotChallengeView.vue')
+      component: () => import('@/views/games/ShotChallengeView.vue')
     },
     {
       path: "/games/timed-shots-challenge",
       name: "timed_shots-challenge",
-      component: () => import('../views/games/TimedShotsChallengeView.vue')
+      component: () => import('@/views/games/TimedShotsChallengeView.vue')
     },
     {
       path: '/settings',
       name: 'settings',
       redirect: '/settings/audio',
-      component: () => import('../views/settings/SettingsView.vue'),
+      component: () => import('@/views/settings/SettingsView.vue'),
       children: [
         {
           path: "audio",
           name: "audio",
-          component: () => import('../views/settings/AudioSettingsView.vue')
+          component: () => import('@/views/settings/AudioSettingsView.vue')
         },
         {
           path: "devices",
           name: "devices",
-          component: () => import('../views/settings/DevicesSettingsView.vue')
+          component: () => import('@/views/settings/DevicesSettingsView.vue')
         },
         
         {
           path: "system",
           name: "system",
-          component: () => import('../views/settings/SystemSettingsView.vue')
+          component: () => import('@/views/settings/SystemSettingsView.vue')
         },
       ]
     },
     {
       path: '/about',
       name: 'about',
-      component: () => import('../views/AboutView.vue')
+      component: () => import('@/views/AboutView.vue')
     },
       //404 not found
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: () => import('../views/NotFoundView.vue')
+      component: () => import('@/views/NotFoundView.vue')
     }
     /*{
       path: '/about',
