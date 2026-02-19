@@ -45,6 +45,12 @@ const int Settings::defaultVibrationSensorSensitivity = 100;
 const char* Settings::keyBallHitDetectionDistance = "ballHitDetDist";
 const int Settings::defaultBallHitDetectionDistance = 180;
 
+const char* Settings::keyDistanceOnlyHitDetection = "distOnlyHitDet";
+const bool Settings::defaultDistanceOnlyHitDetection = false;
+
+const char* Settings::keyLedBrightness = "ledBrightness";
+const int Settings::defaultLedBrightness = 100;
+
 const char* Settings::keyLedMode = "ledMode";
 const LedMode Settings::defaultLedMode = LedMode::Flash;
 
@@ -202,6 +208,29 @@ void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
 {
 	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 200), 0);
 	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
+	SetModified();
+}
+
+bool Settings::GetDistanceOnlyHitDetection()
+{
+	return (bool)store.GetInt(keyDistanceOnlyHitDetection, (int)defaultDistanceOnlyHitDetection);
+}
+
+void Settings::SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection)
+{
+	store.PutInt(keyDistanceOnlyHitDetection, (int)distanceOnlyHitDetection);
+	SetModified();
+}
+
+int Settings::GetLedBrightness()
+{
+	return store.GetInt(keyLedBrightness, defaultLedBrightness);
+}
+
+void Settings::SetLedBrightness(int ledBrightness)
+{
+	ledBrightness = max(min(ledBrightness, 100), 0);
+	store.PutInt(keyLedBrightness, ledBrightness);
 	SetModified();
 }
 

@@ -70,6 +70,14 @@ class Settings : public Singleton<Settings>
 
         void SetBallHitDetectionDistance(int ballHitDetectionDistance);
 
+        bool GetDistanceOnlyHitDetection();
+
+        void SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection);
+
+        int GetLedBrightness();
+
+        void SetLedBrightness(int ledBrightness);
+
         LedMode GetLedMode();
 
         void SetLedMode(LedMode ledMode);
@@ -115,7 +123,13 @@ class Settings : public Singleton<Settings>
 
         static const char* keyBallHitDetectionDistance;
         static const int defaultBallHitDetectionDistance;
-        
+
+        static const char* keyDistanceOnlyHitDetection;
+        static const bool defaultDistanceOnlyHitDetection;
+
+        static const char* keyLedBrightness;
+        static const int defaultLedBrightness;
+
         static const char* keyLedMode;
         static const LedMode defaultLedMode;
 
