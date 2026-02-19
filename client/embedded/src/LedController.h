@@ -16,6 +16,7 @@
 
 #pragma once
 #include "LedMode.h"
+#include "Settings.h"
 #include <stdint.h>
 
 
@@ -26,6 +27,7 @@ class LedController
         void RenderFadeStep();
         void RenderFlashStep();
         void RenderTurboStep();
+        uint8_t ScaleBrightness(uint8_t value);
 
         int channel;
         LedMode mode;
