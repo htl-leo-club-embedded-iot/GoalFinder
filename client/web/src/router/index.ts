@@ -48,6 +48,11 @@ const router = createRouter({
       component: () => import('@/views/games/TimedShotsChallengeView.vue')
     },
     {
+      path: "/games/free-play",
+      name: "free-play",
+      component: () => import('@/views/games/FreePlay.vue')
+    },
+    {
       path: '/settings',
       name: 'settings',
       redirect: '/settings/audio',

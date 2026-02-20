@@ -24,7 +24,7 @@ import Card from "@/components/Card.vue";
   <Page :title="$t('header.games')">
     <p>{{ $t("description.gameModes_description") }}</p>
 
-    <div id="card-container">
+    <div id="card-container" class="game-card">
       <Card class="quick-link">
         <div>
           <h2>{{ $t("games.shot_challenge") }}</h2>
@@ -36,7 +36,7 @@ import Card from "@/components/Card.vue";
       </Card>
     </div>
 
-    <div id="timed-shots-challenge">
+    <div id="timed-shots-challenge" class="game-card">
       <Card class="quick-link">
         <div>
           <h2>{{ $t("games.timed_shots_challenge") }}</h2>
@@ -47,18 +47,23 @@ import Card from "@/components/Card.vue";
         </div>
       </Card>
     </div>
+
+    <div id="free-play" class="game-card">
+      <Card class="quick-link">
+        <div>
+          <h2>{{ $t("games.free_play") }}</h2>
+          <p class="game-description">{{ $t("games.free_play_desc") }}</p>
+          <RouterLink to="/games/free-play">
+            <Button primary>{{ $t("word.open") }}</Button>
+          </RouterLink>
+        </div>
+      </Card>
+    </div>
   </Page>
 </template>
 
 <style>
-#card-container {
-  padding: 0 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#timed-shots-challenge {
+.game-card {
   margin-top: 0.5rem;
   padding: 0 1rem;
   display: flex;
