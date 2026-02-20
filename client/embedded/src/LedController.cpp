@@ -73,7 +73,7 @@ void LedController::Loop()
 
 uint8_t LedController::ScaleBrightness(uint8_t value) {
     if (value == 0) return 0;
-    int ledBrightness = Settings::Instance().GetLedBrightness();
+    int ledBrightness = Settings::GetInstance()->GetLedBrightness();
     return (uint8_t)round(value * ledBrightness / 100.0f);
 }
 

@@ -184,6 +184,7 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
     root["devicePassword"] = settings->GetDevicePassword();
     root["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     root["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
+    root["distanceOnlyHitDetection"] = settings->GetDistanceOnlyHitDetection();
     root["volume"] = settings->GetVolume();
     root["metronomeSound"] = settings->GetMetronomeSound();
     root["hitSound"] = settings->GetHitSound();
@@ -215,6 +216,7 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
     settings->SetDevicePassword(doc["devicePassword"]);
     settings->SetVibrationSensorSensitivity(doc["vibrationSensorSensitivity"]);
     settings->SetBallHitDetectionDistance(doc["ballHitDetectionDistance"]);
+    settings->SetDistanceOnlyHitDetection(doc["distanceOnlyHitDetection"]);
     settings->SetVolume(doc["volume"]);
     settings->SetMetronomeSound(doc["metronomeSound"]);
     settings->SetHitSound(doc["hitSound"]);

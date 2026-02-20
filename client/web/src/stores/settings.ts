@@ -11,6 +11,7 @@ function isWifiPasswordValid(password: string): boolean {
 
 export const useSettingsStore = defineStore("settings", () => {
     let isValid = false;
+    let isLoading = false;
     const enableDarkMode = ref(false);
     const isSoundEnabled = ref(false);
 
@@ -57,6 +58,7 @@ export const useSettingsStore = defineStore("settings", () => {
     }
 
     async function getSettings(): Promise<void> {
+        isLoading = true;
         try {
             const response = await fetch(`${API_URL}/settings`, {method: "GET"});
 
@@ -95,6 +97,8 @@ export const useSettingsStore = defineStore("settings", () => {
 
         } catch (error) {
             console.error(error);
+        } finally {
+            isLoading = false;
         }
     }
 
@@ -189,6 +193,7 @@ export const useSettingsStore = defineStore("settings", () => {
         ledBrightness,
         isValid,
         isSoundEnabled,
+        isLoading,
         version,
         updateFirmware
     };

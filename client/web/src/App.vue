@@ -30,7 +30,9 @@ const route = useRoute();
 const isAuthPage = computed(() => route.name === 'auth');
 
 settingsStore.$subscribe((state) => {
-  settingsStore.saveSettings();
+  if (!settingsStore.isLoading) {
+    settingsStore.saveSettings();
+  }
 });
 
 async function checkDeviceConnection() {
