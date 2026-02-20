@@ -254,8 +254,9 @@ static void HandleMisses(AsyncWebServerRequest* request) {
 
 static void HandleRestart(AsyncWebServerRequest* request) 
 {
-    ESP.restart();
     request->send(204);
+    delay(200);
+    ESP.restart();
 }
 
 static void HandleFactoryReset(AsyncWebServerRequest* request) 

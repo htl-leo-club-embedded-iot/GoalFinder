@@ -132,6 +132,8 @@ export const useSettingsStore = defineStore("settings", () => {
 
     async function restartDevice() : Promise<void> {
         try {
+            if (saveTimeout) clearTimeout(saveTimeout);
+            await saveSettings();
             await fetch(`${API_URL}/restart`, {method: "POST"});
         } catch (error) {
             console.error(error);

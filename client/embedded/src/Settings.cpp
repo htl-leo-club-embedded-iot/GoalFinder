@@ -97,7 +97,7 @@ int Settings::GetHitSound() {
 }
 
 void Settings::SetHitSound(int hitSound) {
-	hitSound = max(min(hitSound, 0), 0);
+	hitSound = max(min(hitSound, 2), 0);
 	store.PutInt(keyHitSound, hitSound);
 	SetModified();
 }
@@ -136,7 +136,6 @@ void Settings::SetDeviceName(String deviceName)
 	if(deviceName.isEmpty())
 	{
 		deviceName = defaultDeviceName;
-		store.Remove(keyDeviceName);
 	}
 	
 	store.PutString(keyDeviceName, deviceName);
