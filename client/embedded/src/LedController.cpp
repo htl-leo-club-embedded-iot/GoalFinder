@@ -17,6 +17,7 @@
 #include "LedController.h"
 #include <HardwareSerial.h>
 #include <esp32-hal.h>
+#include <math.h>
 
 // TODO Transform to constants
 #define DEFAULT_FREQUENCY 5000
@@ -30,9 +31,7 @@ LedController::LedController(int ledPin, int ledChannel)
     ledcWrite(channel, 0);
 }
 
-LedController::~LedController() 
-{
-}
+LedController::~LedController() {}
 
 void LedController::SetMode(LedMode mode)
 {
@@ -72,23 +71,28 @@ void LedController::Loop()
     }
 }
 
+uint8_t LedController::ScaleBrightness(uint8_t value) {
+    if (value == 0) return 0;
+    int ledBrightness = Settings::GetInstance()->GetLedBrightness();
+    return (uint8_t)round(value * ledBrightness / 100.0f);
+}
+
 void LedController::RenderPermanentStep(uint8_t brightness) {
     static uint8_t prevBrightness = 0;
-    if (brightness != prevBrightness) {
-        prevBrightness = brightness;
+    uint8_t scaled = ScaleBrightness(brightness);
+    if (scaled != prevBrightness) {
+        prevBrightness = scaled;
         ledcWrite(channel, prevBrightness);
-        // Serial.printf("%4.3f: LED - rendering permanent brightness: '%d'\n", millis() / 1000.0, prevBrightness);
     }
 }
 
 void LedController::RenderFadeStep() {
     const unsigned long stepDurationMs = 3;
-    static uint32_t dutyCycle = 1; // start with 1 to ensure direction is not switched the very first time
+    static uint32_t dutyCycle = 1;
     static bool fadeUp = true; // fade direction
 
     unsigned long now = millis();
     if (lastStepTimeMs == 0) {
-        // reset
         dutyCycle = 1;
         lastStepTimeMs = now - stepDurationMs;
     }
@@ -99,20 +103,17 @@ void LedController::RenderFadeStep() {
             fadeUp = !fadeUp;
         }
         dutyCycle += (fadeUp ? 1 : -1);
-        // Serial.printf("%4.3f: LED - rendering fade step dir %s: '%u'\n", millis() / 1000.0, (fadeUp ? "up": "down"), dutyCycle);
-        ledcWrite(channel, dutyCycle);
+        ledcWrite(channel, ScaleBrightness(dutyCycle));
     }
 }
 
 void LedController::RenderFlashStep() {
-    // corresponding arrays: [0] -> off phase, [1] -> on phase
     const unsigned long stepDurationsMs[] = { 500, 100 };
     const unsigned long dutyCycles[] = { 0, 255 };
     static unsigned char phaseIdx = 0;
 
     unsigned long now = millis();
     if (lastStepTimeMs == 0) {
-        // reset
         phaseIdx = 0;
         lastStepTimeMs = now - stepDurationsMs[phaseIdx];
     }
@@ -121,8 +122,7 @@ void LedController::RenderFlashStep() {
         // switch phase
         lastStepTimeMs += stepDurationsMs[phaseIdx];
         phaseIdx = (phaseIdx + 1) % 2;
-        // Serial.printf("%4.3f: LED - rendering flash step: '%d'\n", millis() / 1000.0, dutyCycles[phaseIdx]);
-        ledcWrite(channel, dutyCycles[phaseIdx]);
+        ledcWrite(channel, ScaleBrightness(dutyCycles[phaseIdx]));
     }
 }
 
@@ -150,7 +150,7 @@ void LedController::RenderTurboStep() {
         lastStepTimeMs += stepActiveDurationMs;
         int dutyCycle = flashPhaseCount % 2 == 0 ? 255 : 0;
         Serial.printf("[INFO][LedController.cpp] %4.3f: LED turbo duty cycle '%d'\n", millis() / 1000.0, dutyCycle);
-        ledcWrite(channel, dutyCycle);
+        ledcWrite(channel, ScaleBrightness(dutyCycle));
         flashPhaseCount++;
 
         if (flashPhaseCount / 2 >= flashAmount) {
@@ -158,6 +158,3 @@ void LedController::RenderTurboStep() {
         }
     }
 }
-
-
-

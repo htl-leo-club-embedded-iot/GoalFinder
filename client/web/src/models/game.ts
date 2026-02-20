@@ -260,3 +260,59 @@ export class TimedShotsChallengeGame extends Game {
         this._timer = TimedShotsChallengeGame.PLAY_DURATION;
     }
 }
+
+export class FreePlayGame {
+    private _hits: number = 0;
+    private _misses: number = 0;
+    private _isRunning: boolean = false;
+    private pollingIntervalId: number = -1;
+
+    public get hits(): number {
+        return this._hits;
+    }
+
+    public get misses(): number {
+        return this._misses;
+    }
+
+    public get isRunning(): boolean {
+        return this._isRunning;
+    }
+
+    public async start(): Promise<void> {
+        if (!this._isRunning) {
+            this.pollingIntervalId = setInterval(async () => {
+                if (!this._isRunning) return;
+
+                const newHitsData = await fetch(`${API_URL}/hits`, { method: "GET" });
+                const newHits = parseInt(await newHitsData.text());
+
+                const newMissesData = await fetch(`${API_URL}/misses`, { method: "GET" });
+                const newMisses = parseInt(await newMissesData.text());
+
+                if (newHits > 0) {
+                    console.log("[FreePlay] hits detected:", newHits);
+                    this._hits += newHits;
+                }
+
+                if (newMisses > 0) {
+                    console.log("[FreePlay] misses detected:", newMisses);
+                    this._misses += newMisses;
+                }
+            }, 1000);
+        }
+
+        this._isRunning = true;
+    }
+
+    public pause(): void {
+        clearInterval(this.pollingIntervalId);
+        this._isRunning = false;
+    }
+
+    public reset(): void {
+        this.pause();
+        this._hits = 0;
+        this._misses = 0;
+    }
+}

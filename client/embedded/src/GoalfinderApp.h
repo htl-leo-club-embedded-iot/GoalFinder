@@ -115,6 +115,7 @@ private:
     // Internal Values
     bool isSoundEnabled;
     bool announcing;
+    bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
     unsigned long metronomeIntervalMs;
     unsigned long lastShockTime;

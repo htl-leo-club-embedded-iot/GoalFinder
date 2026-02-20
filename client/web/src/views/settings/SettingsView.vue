@@ -19,6 +19,7 @@ import Page from "@/components/Page.vue";
 import VolumeUpIcon from "@/components/icons/VolumeUpIcon.vue";
 import InfoCircleIcon from "@/components/icons/InfoCircleIcon.vue";
 import LightbulbIcon from "@/components/icons/LightbulbIcon.vue";
+import CrosshairIcon from "@/components/icons/CrosshairIcon.vue";
 import {onMounted} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 
@@ -34,6 +35,7 @@ onMounted(() => {
     <div id="settings-nav">
       <RouterLink class="settings-link" to="/settings/audio"><div><VolumeUpIcon/> {{ $t("settings.audio") }}</div></RouterLink>
       <RouterLink class="settings-link" to="/settings/devices"><div><LightbulbIcon/> LED </div></RouterLink>
+      <RouterLink class="settings-link" to="/settings/detection"><div><CrosshairIcon/> {{ $t("settings.detection") }}</div></RouterLink>
       <RouterLink class="settings-link" to="/settings/system"><div><InfoCircleIcon/> {{ $t("settings.system") }}</div></RouterLink>
     </div>
     <RouterView/>
@@ -43,7 +45,7 @@ onMounted(() => {
 <style scoped>
   #settings-nav {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     overflow-x: auto;
     gap: 1.5rem;
     border-bottom: 2px solid var(--border-color);
@@ -51,6 +53,19 @@ onMounted(() => {
     margin-left: -1rem;
     padding: 0 1rem 0.5rem 1rem;
     font-weight: bold;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  #settings-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 700px) {
+    #settings-nav {
+      justify-content: center;
+    }
   }
 
   .settings-link :hover {
@@ -61,6 +76,7 @@ onMounted(() => {
   .settings-link > div {
     display: flex;
     gap: 0.5rem;
+    white-space: nowrap;
   }
 
   .router-link-active {

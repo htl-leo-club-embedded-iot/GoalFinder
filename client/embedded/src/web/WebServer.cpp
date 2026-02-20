@@ -184,11 +184,13 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
     root["devicePassword"] = settings->GetDevicePassword();
     root["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     root["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
+    root["distanceOnlyHitDetection"] = settings->GetDistanceOnlyHitDetection();
     root["volume"] = settings->GetVolume();
     root["metronomeSound"] = settings->GetMetronomeSound();
     root["hitSound"] = settings->GetHitSound();
     root["missSound"] = settings->GetMissSound();
     root["ledMode"] = (int)settings->GetLedMode();
+    root["ledBrightness"] = settings->GetLedBrightness();
     root["macAddress"] = settings->GetMacAddress();
     root["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
     root["version"] = FIRMWARE_VERSION;
@@ -200,9 +202,15 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
 static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) 
 {
     JsonDocument doc;
-        
-    Serial.printf("[INFO][WebServer.cpp] Received settings: %s\n", data);
-    deserializeJson(doc, (const char*)data);
+
+    // Null-terminate data for safe string operations
+    char* jsonStr = new char[len + 1];
+    memcpy(jsonStr, data, len);
+    jsonStr[len] = '\0';
+
+    Serial.printf("[INFO][WebServer.cpp] Received settings: %s\n", jsonStr);
+    deserializeJson(doc, jsonStr, len);
+    delete[] jsonStr;
 
     GoalfinderApp* app = GoalfinderApp::GetInstance();
     //app->SetIsSoundEnabled(doc["isSoundEnabled"]);
@@ -215,11 +223,15 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
     settings->SetDevicePassword(doc["devicePassword"]);
     settings->SetVibrationSensorSensitivity(doc["vibrationSensorSensitivity"]);
     settings->SetBallHitDetectionDistance(doc["ballHitDetectionDistance"]);
+    settings->SetDistanceOnlyHitDetection(doc["distanceOnlyHitDetection"]);
     settings->SetVolume(doc["volume"]);
     settings->SetMetronomeSound(doc["metronomeSound"]);
     settings->SetHitSound(doc["hitSound"]);
     settings->SetMissSound(doc["missSound"]);
     settings->SetLedMode(doc["ledMode"]);
+    if (!doc["ledBrightness"].isNull()) {
+        settings->SetLedBrightness(doc["ledBrightness"]);
+    }
 
     request->send(204);
 }
@@ -242,8 +254,9 @@ static void HandleMisses(AsyncWebServerRequest* request) {
 
 static void HandleRestart(AsyncWebServerRequest* request) 
 {
-    ESP.restart();
     request->send(204);
+    delay(200);
+    ESP.restart();
 }
 
 static void HandleFactoryReset(AsyncWebServerRequest* request) 

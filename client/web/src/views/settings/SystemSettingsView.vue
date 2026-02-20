@@ -20,8 +20,6 @@ import Button from "@/components/Button.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import InputForm from "@/components/InputForm.vue";
-import VibrationSensorManager from "@/components/settings/VibratiosensorManager.vue";
-import LaserSensorManager from "@/components/settings/LaserSensorManager.vue";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
 
 const settings = useSettingsStore();
@@ -36,21 +34,20 @@ const openUpdateDialog = () => {
 <template>
   <div class="container">
     <h3>{{ $t("settings.connection") }}</h3>
-    <form id="general-input">
+    <form id="general-input" autocomplete="off">
       <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
-                 :placeholder="$t('description.device_name_description')" type="text"/>
+                 :placeholder="$t('description.device_name_description')" type="text"
+                 name="deviceName" autocomplete="off"/>
       <InputForm v-model="settings.wifiPassword" :label="$t('word.ssid_password')"
                  :placeholder="$t('description.ssid_password_description')" type="password"
-                 :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"/>
+                 :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"
+                 name="wifiPassword" autocomplete="new-password"/>
       <InputForm v-model="settings.devicePassword" :label="$t('word.device_password')"
-                 :placeholder="$t('description.device_password_description')" type="password"/>
+                 :placeholder="$t('description.device_password_description')" type="password"
+                 name="devicePassword" autocomplete="new-password"/>
     </form>
 
-    <h3 id="sensors">{{$t("settings.sensors")}}</h3>
-    <VibrationSensorManager/>
-    <LaserSensorManager/>
-
-    <h3>{{ $t("settings.web_app") }}</h3>
+    <h3 id="web-title">{{ $t("settings.web_app") }}</h3>
     <WebAppManager/>
     
     <h3>{{ $t("settings.system") }}</h3>
@@ -89,10 +86,6 @@ h4 {
 
 #led {
   width: 100%;
-}
-
-#sensors {
-  margin-top: 2rem;
 }
 
 #general-input {
@@ -144,5 +137,9 @@ h4 {
 #visit-text a {
   color: var(--accent-color);
   text-decoration: underline;
+}
+
+#web-title {
+  margin-top: 1rem;
 }
 </style>
