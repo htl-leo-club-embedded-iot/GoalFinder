@@ -2,7 +2,7 @@ import {defineStore} from "pinia";
 import {ref} from "vue";
 
 const API_URL = "/api"
-const WIFI_PASSWORD_MIN_LENGTH = 8;
+const WIFI_PASSWORD_MIN_LENGTH = 4;
 const WIFI_PASSWORD_MAX_LENGTH = 63;
 
 function isWifiPasswordValid(password: string): boolean {
@@ -12,6 +12,7 @@ function isWifiPasswordValid(password: string): boolean {
 export const useSettingsStore = defineStore("settings", () => {
     let isValid = false;
     let isLoading = false;
+    let saveTimeout: ReturnType<typeof setTimeout> | null = null;
     const enableDarkMode = ref(false);
     const isSoundEnabled = ref(false);
 
@@ -19,7 +20,6 @@ export const useSettingsStore = defineStore("settings", () => {
     const deviceName = ref("");
     const devicePassword = ref("");
     const wifiPassword = ref("");
-    const lastValidWifiPassword = ref("");
     
     // LED
     const ledMode = ref(0);
@@ -68,7 +68,6 @@ export const useSettingsStore = defineStore("settings", () => {
                 deviceName.value = json["deviceName"];
                 devicePassword.value = json["devicePassword"];
                 wifiPassword.value = json["wifiPassword"];
-                lastValidWifiPassword.value = json["wifiPassword"];
                 volume.value = json["volume"];
                 metronomeSound.value = json["metronomeSound"];
                 hitSound.value = json["hitSound"];
@@ -103,18 +102,18 @@ export const useSettingsStore = defineStore("settings", () => {
     }
 
     async function saveSettings(): Promise<void> {
+        if (isLoading) return;
         try {
             const state = { ...useSettingsStore().$state };
-            state.wifiPassword = isWifiPasswordValid(wifiPassword.value) ? wifiPassword.value : lastValidWifiPassword.value;
+
+            if (wifiPassword.value.length > 0 && wifiPassword.value.length < WIFI_PASSWORD_MIN_LENGTH) {
+                delete (state as any).wifiPassword;
+            }
 
             await fetch(`${API_URL}/settings`, {
                 method: "POST",
                 body: JSON.stringify(state),
             });
-
-            if (isWifiPasswordValid(wifiPassword.value)) {
-                lastValidWifiPassword.value = wifiPassword.value;
-            }
 
             if(isSoundEnabled.value) {
                 await fetch(`${API_URL}/start`, {
@@ -163,6 +162,14 @@ export const useSettingsStore = defineStore("settings", () => {
         xhr.send(data);
     }
 
+    function scheduleSave(): void {
+        if (isLoading) return;
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveSettings();
+        }, 500);
+    }
+
     return {
         enableDarkMode,
         deviceName,
@@ -186,6 +193,7 @@ export const useSettingsStore = defineStore("settings", () => {
         refreshAvailableBluetoothDevices,
         getSettings,
         saveSettings,
+        scheduleSave,
         restartDevice,
         factoryResetDevice,
         ledMode,
@@ -193,7 +201,6 @@ export const useSettingsStore = defineStore("settings", () => {
         ledBrightness,
         isValid,
         isSoundEnabled,
-        isLoading,
         version,
         updateFirmware
     };

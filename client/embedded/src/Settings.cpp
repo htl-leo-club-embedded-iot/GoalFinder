@@ -145,24 +145,27 @@ void Settings::SetDeviceName(String deviceName)
 
 String Settings::GetDevicePassword()
 {
-	return store.GetString(keyDevicePassword, defaultDevicePassword);
+	return store.IsKey(keyDevicePassword) ? store.GetString(keyDevicePassword, defaultDevicePassword) : defaultDevicePassword;
 };
 
 void Settings::SetDevicePassword(String devicePassword)
 {
 	if(devicePassword.isEmpty())
 	{
-		devicePassword = emptyString;
-		store.Remove(keyDevicePassword);
+		if (store.IsKey(keyDevicePassword)) {
+			store.Remove(keyDevicePassword);
+		}
 	}
-
-	store.PutString(keyDevicePassword, devicePassword);
+	else 
+	{
+		store.PutString(keyDevicePassword, devicePassword);
+	}
 	SetModified();
 };
 
 String Settings::GetWifiPassword()
 {
-	return store.GetString(keyWifiPassword, defaultWifiPassword);
+	return store.IsKey(keyWifiPassword) ? store.GetString(keyWifiPassword, defaultWifiPassword) : defaultWifiPassword;
 };
 
 void Settings::SetWifiPassword(String wifiPassword)
@@ -171,19 +174,19 @@ void Settings::SetWifiPassword(String wifiPassword)
 
 	if(wifiPassword.isEmpty())
 	{
-		wifiPassword = emptyString;
-		store.Remove(keyWifiPassword);
-		SetModified();
-		return;
+		if (store.IsKey(keyWifiPassword)) {
+			store.Remove(keyWifiPassword);
+		}
+	} else {
+		if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
+		{
+			Serial.println("[WARN][Settings.cpp] Ignoring invalid WiFi password length. Expected 8-63 characters.");
+			return;
+		}
+
+		store.PutString(keyWifiPassword, wifiPassword);
 	}
 
-	if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
-	{
-		Serial.println("[WARN][Settings.cpp] Ignoring invalid WiFi password length. Expected 8-63 characters.");
-		return;
-	}
-
-	store.PutString(keyWifiPassword, wifiPassword);
 	SetModified();
 };
 
