@@ -26,7 +26,9 @@ const props = defineProps([
   'step',
   'minlength',
   'maxlength',
-  'pattern'
+  'pattern',
+  'name',
+  'autocomplete'
 ]);
 
 const model = defineModel();
@@ -36,7 +38,8 @@ const model = defineModel();
   <div class="input-container">
     <label :for="$.uid.toString()">{{ label }}</label>
     <input :id="$.uid.toString()" :type="type" :placeholder="placeholder" v-model="model" :readonly="readonly"
-          :inputmode="inputmode" :step="step" :min="min" :max="max" :minlength="minlength" :maxlength="maxlength" :pattern="pattern"/>
+          :inputmode="inputmode" :step="step" :min="min" :max="max" :minlength="minlength" :maxlength="maxlength" :pattern="pattern"
+          :name="name" :autocomplete="autocomplete"/>
   </div>
 </template>
 

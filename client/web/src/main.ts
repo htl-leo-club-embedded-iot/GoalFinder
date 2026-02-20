@@ -47,7 +47,8 @@ const i18n = createI18n({
                 shot_challenge_desc: "Test your accuracy! You have 60 seconds to score a goal. Stay in the rhythm, don't give in to the pressure and show who has the best throw!",
                 timed_shots_challenge: "Timed-Game-Challenge",
                 timed_shots_challenge_desc: "Every second counts. Score as many hits as possible in a fixed time limit. How many goals can score before the time runs out?",
-            },
+                free_play: "Free Play",
+                free_play_desc: "Just want to play without the hustle of setting up players? Don't look further, just start the \"Free Play\" game mode and go back to basics with just hit detection.",            },
             description: {
                 settings_description: "Configure the device settings like sounds and devices.",
                 sessions_description: "Add and remove persons into a basketball shot tracker",
@@ -68,6 +69,10 @@ const i18n = createI18n({
                 devices: "Devices",
                 audio: "Audio",
                 system: "System",
+                detection: "Detection",
+                hit_detection: "Hit Detection",
+                distance_only_hit_detection: "Distance-Only Hit Detection",
+                distance_only_hit_detection_desc: "When enabled, only the laser distance sensor is used for hit detection. The vibration sensor will be ignored.",
                 device_name: "Device name",
                 device_password: "Device password",
                 web_app: "Web App",
@@ -91,7 +96,7 @@ const i18n = createI18n({
                 visit_page: "Also visit our"
             },
             word : {
-                on: "Ein",
+                on: "On",
                 welcome_back: "Welcome back",
                 save: "Save",
                 open: "Open",
@@ -134,7 +139,8 @@ const i18n = createI18n({
                 finish: "Finish",
                 leaderboard: "Leaderboard",
                 sound: "Sound",
-                website: "website"
+                website: "website",
+                brightness: "Brightness"
             },
             connection: {
                 warning_title: "Connection Error",
@@ -168,7 +174,9 @@ const i18n = createI18n({
                 shot_challenge: "Wurf-Challenge",
                 shot_challenge_desc: "Teste deine Treffsicherheit! Du hast 60 Sekunden, um zu treffen. Bleib im Rhythmus, halte den Druck aus und zeig, wer den besten Wurf hat!",
                 timed_shots_challenge: "Zeitspiel-Challenge",
-                timed_shots_challenge_desc: "Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es: So viele Treffer wie möglich landen. Wie viele Körbe schaffst du, bevor der Countdown endet?"
+                timed_shots_challenge_desc: "Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es: So viele Treffer wie möglich landen. Wie viele Körbe schaffst du, bevor der Countdown endet?",
+                free_play: "Freies Spiel",
+                free_play_desc: "Möchten Sie einfach spielen, ohne den Aufwand, Spieler einzurichten? Dann suchen Sie nicht weiter: Starten Sie einfach den Spielmodus „Freies Spiel“ und kehren Sie zu den Grundlagen zurück – mit reiner Treffererkennung."
             },
             description: {
                 settings_description: "Einstellungen für das Gerät vornehmen",
@@ -188,6 +196,10 @@ const i18n = createI18n({
                 devices: "Geräte",
                 audio: "Audio",
                 system: "System",
+                detection: "Erkennung",
+                hit_detection: "Trefferkennung",
+                distance_only_hit_detection: "Nur Distanz-Trefferkennung",
+                distance_only_hit_detection_desc: "Wenn aktiviert, wird nur der Laser-Distanzsensor zur Trefferkennung verwendet. Der Vibrationssensor wird ignoriert.",
                 web_app: "Web App",
                 accent_color: "Akzent Farbe",
                 theme: "Erscheinungsbild",
@@ -209,6 +221,7 @@ const i18n = createI18n({
                 visit_page: "Besuchen Sie auch unsere "
             },
             word : {
+                on: "Ein",
                 welcome_back: "Willkommen zurück",
                 save: "Speichern",
                 open: "Öffnen",
@@ -251,7 +264,8 @@ const i18n = createI18n({
                 leaderboard: "Rangliste",
                 bluetooth: "Bluetooth",
                 sound: "Ton",
-                website: "Webseite"
+                website: "Webseite",
+                brightness: "Helligkeit"
             },
             connection: {
                 warning_title: "Verbindungsfehler",

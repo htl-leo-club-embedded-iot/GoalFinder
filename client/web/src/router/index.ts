@@ -48,6 +48,11 @@ const router = createRouter({
       component: () => import('@/views/games/TimedShotsChallengeView.vue')
     },
     {
+      path: "/games/free-play",
+      name: "free-play",
+      component: () => import('@/views/games/FreePlay.vue')
+    },
+    {
       path: '/settings',
       name: 'settings',
       redirect: '/settings/audio',
@@ -61,9 +66,13 @@ const router = createRouter({
         {
           path: "devices",
           name: "devices",
-          component: () => import('@/views/settings/DevicesSettingsView.vue')
+          component: () => import('@/views/settings/LedSettingsView.vue')
         },
-        
+        {
+          path: "detection",
+          name: "detection",
+          component: () => import('@/views/settings/DetectionSettingsView.vue')
+        },
         {
           path: "system",
           name: "system",
