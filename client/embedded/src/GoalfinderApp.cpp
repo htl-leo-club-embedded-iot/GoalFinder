@@ -88,32 +88,29 @@ void GoalfinderApp::Init() {
     randomSeed(analogRead(pinRandomSeed));
 
     if (!fileSystem.Begin()) {
+        WiFiSetup();
+
+        dnsServer.start(53, "*", WiFi.softAPIP());
+        Serial.println("[INFO][GoalfinderApp.cpp] DNS server started for captive portal");
+
+        webServer.Begin();
+        sntp.Init();
+        vibrationSensor.Init();
+        tofSensor.Init(pinTofScl, pinTofSda);
+        ledController.SetMode(LedMode::Flash);
+
+        UpdateSettings(true);
+
+        xMutex = xSemaphoreCreateMutex();
+
+        xTaskCreatePinnedToCore(TaskAudioCode, "Audio", 8192, this, 2, &TaskAudio, 1);
+        xTaskCreatePinnedToCore(TaskDetectionCode, "Detection", 8192, this, 2, &TaskDetection, 0);
+        xTaskCreatePinnedToCore(TaskLedCode, "LED", 8192, this, 2, &TaskLed, 0);
+
+        Serial.println("[OK][GoalfinderApp.cpp] All tasks started");
+    } else {
         Serial.println("[ERROR][GoalfinderApp.cpp] FS initialization failed");
-        return;
     }
-
-    // Start WiFi
-    WiFiSetup();
-
-    // Start DNS server for captive portal (redirect all domains to AP IP)
-    dnsServer.start(53, "*", WiFi.softAPIP());
-    Serial.println("[INFO][GoalfinderApp.cpp] DNS server started for captive portal");
-
-    webServer.Begin();
-    sntp.Init();
-    vibrationSensor.Init();
-    tofSensor.Init(pinTofScl, pinTofSda);
-    ledController.SetMode(LedMode::Flash);
-
-    UpdateSettings(true);
-
-    xMutex = xSemaphoreCreateMutex();
-
-    xTaskCreatePinnedToCore(TaskAudioCode, "Audio", 8192, this, 2, &TaskAudio, 1);
-    xTaskCreatePinnedToCore(TaskDetectionCode, "Detection", 8192, this, 2, &TaskDetection, 0);
-    xTaskCreatePinnedToCore(TaskLedCode, "LED", 8192, this, 2, &TaskLed, 0);
-
-    Serial.println("[OK][GoalfinderApp.cpp] All tasks started");
 }
 
 void GoalfinderApp::WiFiSetup() {
@@ -127,6 +124,7 @@ void GoalfinderApp::WiFiSetup() {
     String wifiPassword = settings->GetWifiPassword();
 
     WiFi.mode(WIFI_AP);
+
     if (wifiPassword.isEmpty()) {
         WiFi.softAP(ssid);
     } else {

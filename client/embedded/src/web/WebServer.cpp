@@ -444,34 +444,45 @@ void WebServer::Begin()
     updater.Begin(API_URL"/update");
 
     // Captive portal detection endpoints
-    // Return 200 + HTML (not 204, not 302) so all platforms reliably detect the portal.
-    // Android probes /generate_204 and /gen_204 — anything other than 204 triggers the sign-in sheet.
-    // iOS looks for specific body content in /hotspot-detect.html.
-    // Windows & Firefox each have their own probe URLs.
-    auto captiveHandler = [](AsyncWebServerRequest *request) {
-        String portalUrl = "http://" + WiFi.softAPIP().toString() + "/games";
+    // Android (incl. Samsung) expects a 302 redirect on probe URLs to trigger the sign-in sheet.
+    // iOS expects a 200 with HTML body on /hotspot-detect.html.
+    // Windows & Firefox also work with 302 redirects.
+    String portalUrl = "http://" + WiFi.softAPIP().toString() + "/games";
+
+    // 302 redirect handler — used for Android, Samsung, Windows, Firefox
+    auto redirectHandler = [](AsyncWebServerRequest *request) {
+        String url = "http://" + WiFi.softAPIP().toString() + "/games";
+        request->redirect(url);
+    };
+
+    // 200 + HTML handler — used for iOS / macOS (expects body content)
+    auto htmlHandler = [](AsyncWebServerRequest *request) {
+        String url = "http://" + WiFi.softAPIP().toString() + "/games";
         String html = "<!DOCTYPE html><html><head>"
-                      "<meta http-equiv='refresh' content='0; url=" + portalUrl + "'>"
+                      "<meta http-equiv='refresh' content='0; url=" + url + "'>"
                       "</head><body>"
-                      "<p>Redirecting to <a href='" + portalUrl + "'>GoalFinder</a>...</p>"
+                      "<p>Redirecting to <a href='" + url + "'>GoalFinder</a>...</p>"
                       "</body></html>";
         request->send(200, "text/html", html);
     };
-    // Android
-    server.on("/generate_204", HTTP_GET, captiveHandler);
-    server.on("/gen_204", HTTP_GET, captiveHandler);
-    server.on("/204", HTTP_GET, captiveHandler);
-    // iOS / macOS
-    server.on("/hotspot-detect.html", HTTP_GET, captiveHandler);
+
+    // Android (including Samsung)
+    server.on("/generate_204", HTTP_GET, redirectHandler);
+    server.on("/gen_204", HTTP_GET, redirectHandler);
+    server.on("/204", HTTP_GET, redirectHandler);
+    // Samsung-specific probe
+    server.on("/mobile/status.php", HTTP_GET, redirectHandler);
+    // iOS / macOS — needs 200 response with HTML body
+    server.on("/hotspot-detect.html", HTTP_GET, htmlHandler);
     // Windows
-    server.on("/ncsi.txt", HTTP_GET, captiveHandler);
-    server.on("/connecttest.txt", HTTP_GET, captiveHandler);
-    server.on("/fwlink", HTTP_GET, captiveHandler);
+    server.on("/ncsi.txt", HTTP_GET, redirectHandler);
+    server.on("/connecttest.txt", HTTP_GET, redirectHandler);
+    server.on("/fwlink", HTTP_GET, redirectHandler);
     // Firefox
-    server.on("/canonical.html", HTTP_GET, captiveHandler);
-    server.on("/success.txt", HTTP_GET, captiveHandler);
+    server.on("/canonical.html", HTTP_GET, redirectHandler);
+    server.on("/success.txt", HTTP_GET, redirectHandler);
     // Generic fallback
-    server.on("/redirect", HTTP_GET, captiveHandler);
+    server.on("/redirect", HTTP_GET, redirectHandler);
 
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);

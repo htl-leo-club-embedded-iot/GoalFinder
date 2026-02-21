@@ -21,8 +21,10 @@ import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import InputForm from "@/components/InputForm.vue";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
+import {APP_VERSION} from "@/version";
 
 const settings = useSettingsStore();
+const appVersion = APP_VERSION;
 
 const updateDialog = useTemplateRef<typeof SoftwareUpdateModal>("updateDialog");
 
@@ -64,6 +66,10 @@ const openUpdateDialog = () => {
       <div>
         <div class="property-title">{{ $t("word.curr_version") }}</div>
         <div>{{ settings.version }}</div>
+      </div>
+      <div>
+        <div class="property-title">{{ $t("word.web_app_version") }}</div>
+        <div>{{ appVersion }}</div>
       </div>
       <div>
         <div class="property-title">{{ $t("word.mac_address") }}</div>
