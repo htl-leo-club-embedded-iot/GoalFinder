@@ -26,9 +26,9 @@ if [ $FORCE -eq 1 ]; then
   pio run -t clean
 fi
 
-pio run -t upload
-
 pio run -t uploadfs
+
+pio run -t upload
 
 if [ $MONITOR -eq 1 ]; then
   pio device monitor

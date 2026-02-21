@@ -29,10 +29,10 @@ if "%FORCE%"=="1" (
     if errorlevel 1 exit /b 1
 )
 
-call pio run -t upload
+call pio run -t uploadfs
 if errorlevel 1 exit /b 1
 
-call pio run -t uploadfs
+call pio run -t upload
 if errorlevel 1 exit /b 1
 
 if "%MONITOR%"=="1" (
