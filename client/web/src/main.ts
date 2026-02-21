@@ -146,7 +146,9 @@ const i18n = createI18n({
             },
             connection: {
                 warning_title: "Connection Error",
-                warning_message: "Could not connect to the GoalFinder. Please make sure you are connected to the device's WiFi GoalFinder."
+                warning_message: "Could not connect to the GoalFinder. Please make sure you are connected to the device's WiFi GoalFinder.",
+                ok: "OK",
+                dont_show_again: "Don't show this again"
             },
             auth: {
                 title: "Authentication",
@@ -273,7 +275,9 @@ const i18n = createI18n({
             },
             connection: {
                 warning_title: "Verbindungsfehler",
-                warning_message: "Es konnte keine Verbindung zum GoalFinder hergestellt werden. Bitte stellen Sie sicher, dass Sie mit dem WLAN des GoalFinders verbunden sind."
+                warning_message: "Es konnte keine Verbindung zum GoalFinder hergestellt werden. Bitte stellen Sie sicher, dass Sie mit dem WLAN des GoalFinders verbunden sind.",
+                ok: "OK",
+                dont_show_again: "Nicht mehr anzeigen"
             },
             auth: {
                 title: "Authentifizierung",

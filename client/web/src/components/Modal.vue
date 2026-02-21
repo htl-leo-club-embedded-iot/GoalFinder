@@ -19,7 +19,9 @@ import { useTemplateRef} from "vue";
 import Button from "@/components/Button.vue";
 
 const props = defineProps({
-  title: {type: String, required: true}
+  title: {type: String, required: true},
+  centered: {type: Boolean, default: false},
+  hideCloseButton: {type: Boolean, default: false}
 });
 
 const dialog = useTemplateRef<HTMLDialogElement>("dialog");
@@ -32,15 +34,15 @@ const closeDialog = () => {
   dialog.value?.close();
 };
 
-defineExpose({openDialog});
+defineExpose({openDialog, closeDialog});
 
 </script>
 
 <template>
-  <dialog ref="dialog">
+  <dialog ref="dialog" :class="{ centered }">
     <div id="dialog-header">
       <h3 id="dialog-title">{{title}}</h3>
-      <Button id="close-button" @click="closeDialog">X</Button>
+      <Button v-if="!hideCloseButton" id="close-button" @click="closeDialog">X</Button>
     </div>
     <slot/>
   </dialog>
@@ -52,6 +54,13 @@ defineExpose({openDialog});
     border: 2px solid var(--border-color);
     border-radius: var(--corner-radius);
     margin: 2rem;
+    color: var(--text-color);
+    background: var(--background-color);
+  }
+
+  dialog.centered {
+    margin: auto;
+    text-align: center;
   }
 
   dialog::backdrop {
@@ -60,6 +69,10 @@ defineExpose({openDialog});
 
   #dialog-header {
     display: flex;
+  }
+
+  .centered #dialog-header {
+    justify-content: center;
   }
 
   #close-button {
