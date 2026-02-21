@@ -144,9 +144,21 @@ const i18n = createI18n({
                 website: "website",
                 brightness: "Brightness"
             },
+            update: {
+                upload: "Upload Update",
+                uploading: "Updating... Please do not turn off the device.",
+                success: "Update successful! The device is restarting.",
+                failed: "Update failed. Please try again."
+            },
             connection: {
                 warning_title: "Connection Error",
                 warning_message: "Could not connect to the GoalFinder. Please make sure you are connected to the device's WiFi GoalFinder.",
+                ok: "OK",
+                dont_show_again: "Don't show this again"
+            },
+            bin_warning: {
+                title: "Update Warning",
+                message: "You are about to upload a `.bin` file rather than a `.gfpkg` package. Please note that backporting to a version earlier than v0.4.0 is not recommended. Doing so will prevent updates through the Web App interface. Proceed only if you fully understand the potential risks and implications.",
                 ok: "OK",
                 dont_show_again: "Don't show this again"
             },
@@ -273,9 +285,21 @@ const i18n = createI18n({
                 website: "Webseite",
                 brightness: "Helligkeit"
             },
+            update: {
+                upload: "Update hochladen",
+                uploading: "Aktualisierung läuft... Bitte schalten Sie das Gerät nicht aus.",
+                success: "Update erfolgreich! Das Gerät wird neu gestartet.",
+                failed: "Update fehlgeschlagen. Bitte versuchen Sie es erneut."
+            },
             connection: {
                 warning_title: "Verbindungsfehler",
                 warning_message: "Es konnte keine Verbindung zum GoalFinder hergestellt werden. Bitte stellen Sie sicher, dass Sie mit dem WLAN des GoalFinders verbunden sind.",
+                ok: "OK",
+                dont_show_again: "Nicht mehr anzeigen"
+            },
+            bin_warning: {
+                title: "Update Warnung",
+                message: "Sie sind gerade, eine .bin-Datei anstelle eines .gfpkg-Pakets hochzuladen. Bitte beachten Sie, dass ein Zurücksetzen auf eine Version älter als v0.4.0 nicht empfohlen wird. Dies wird dazu führen, dass das Gerät nicht mehr über die Web App aktualizierbar sein wird. Fahren Sie nur fort, wenn Sie die potenziellen Risiken verstehen.",
                 ok: "OK",
                 dont_show_again: "Nicht mehr anzeigen"
             },

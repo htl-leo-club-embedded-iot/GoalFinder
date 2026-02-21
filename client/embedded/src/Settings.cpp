@@ -59,6 +59,9 @@ const bool Settings::defaultFirstRun = true;
 
 const char* Settings::keyAfterHitTimeout = "afterHitTimeout";
 const int Settings::defaultAfterHitTimeout = 5;
+
+const char* Settings::keyUpdateSuccess = "updateSuccess";
+const bool Settings::defaultUpdateSuccess = false;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -277,4 +280,14 @@ void Settings::SetAfterHitTimeout(int timeout)
 	timeout = max(min(timeout, 60), 0);
 	store.PutInt(keyAfterHitTimeout, timeout);
 	SetModified();
+}
+
+bool Settings::GetUpdateSuccess()
+{
+	return (bool)store.GetInt(keyUpdateSuccess, (int)defaultUpdateSuccess);
+}
+
+void Settings::SetUpdateSuccess(bool success)
+{
+	store.PutInt(keyUpdateSuccess, (int)success);
 }

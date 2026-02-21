@@ -73,10 +73,30 @@ static String GetContentType(const String* fileName)
     {
         return "image/jpeg";
     }
+    else if(fileName->endsWith("json"))
+    {
+        return "application/json";
+    }
+    else if(fileName->endsWith("woff2"))
+    {
+        return "font/woff2";
+    }
+    else if(fileName->endsWith("woff"))
+    {
+        return "font/woff";
+    }
+    else if(fileName->endsWith("ttf"))
+    {
+        return "font/ttf";
+    }
+    else if(fileName->endsWith("txt"))
+    {
+        return "text/plain";
+    }
     else 
     {
-        Serial.println("[ERROR][WebServer.cpp] Unknown file type to get content type"); // Debugging: Handle unknown file types
-        return "";
+        Serial.printf("[WARN][WebServer.cpp] Unknown file type for: %s\n", fileName->c_str());
+        return "application/octet-stream";
     }
 }
 
@@ -85,7 +105,7 @@ static void HandleNotFound(AsyncWebServerRequest* request)
     // Captive portal: redirect any unknown host to the AP
     if (request->host() != WiFi.softAPIP().toString()) 
     {
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
         return;
     }
     Serial.println("[WARN][WebServer.cpp] Failed request: " + request->url());
@@ -95,6 +115,14 @@ static void HandleNotFound(AsyncWebServerRequest* request)
 static void HandleRequest(AsyncWebServerRequest* request)
 {
     Serial.printf("[INFO][WebServer.cpp] Received request %s\n", request->url().c_str());
+
+    // Captive portal: redirect requests coming from non-AP hosts (e.g. connectivity checks)
+    // so they don't get served SPA content instead of a proper portal response
+    if (request->host() != WiFi.softAPIP().toString() && request->host() != "" ) 
+    {
+        request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
+        return;
+    }
 
     String filePath = WEBAPP_DIR + request->url();  
     String contentType = GetContentType(&filePath);
@@ -289,6 +317,24 @@ static void HandleConnection(AsyncWebServerRequest* request) {
     request->send(response);
 }
 
+static void HandleUpdateStatus(AsyncWebServerRequest* request) {
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    response->addHeader("Server", "GoalFinder");
+    JsonVariant& root = response->getRoot();
+
+    Settings* settings = Settings::GetInstance();
+    bool updateSuccess = settings->GetUpdateSuccess();
+
+    root["updateSuccess"] = updateSuccess;
+
+    if (updateSuccess) {
+        settings->SetUpdateSuccess(false);
+    }
+
+    response->setLength();
+    request->send(response);
+}
+
 static void HandleAuth(AsyncWebServerRequest* request) {
     AsyncJsonResponse* response = new AsyncJsonResponse();
     response->addHeader("Server", "GoalFinder");
@@ -403,7 +449,7 @@ void WebServer::Begin()
     // iOS looks for specific body content in /hotspot-detect.html.
     // Windows & Firefox each have their own probe URLs.
     auto captiveHandler = [](AsyncWebServerRequest *request) {
-        String portalUrl = "http://" + WiFi.softAPIP().toString() + "/";
+        String portalUrl = "http://" + WiFi.softAPIP().toString() + "/games";
         String html = "<!DOCTYPE html><html><head>"
                       "<meta http-equiv='refresh' content='0; url=" + portalUrl + "'>"
                       "</head><body>"
@@ -414,6 +460,7 @@ void WebServer::Begin()
     // Android
     server.on("/generate_204", HTTP_GET, captiveHandler);
     server.on("/gen_204", HTTP_GET, captiveHandler);
+    server.on("/204", HTTP_GET, captiveHandler);
     // iOS / macOS
     server.on("/hotspot-detect.html", HTTP_GET, captiveHandler);
     // Windows
@@ -429,6 +476,7 @@ void WebServer::Begin()
     server.on(API_URL"/start", HTTP_POST, HandleStart);
     server.on(API_URL"/stop", HTTP_POST, HandleStop);
     server.on(API_URL"/connection", HTTP_GET, HandleConnection);
+    server.on(API_URL"/update-status", HTTP_GET, HandleUpdateStatus);
     server.on(API_URL"/auth", HTTP_GET, HandleAuth);
     server.on(API_URL"/isauth", HTTP_GET, HandleIsAuth);
     server.on(API_URL"/settings", HTTP_GET, HandleLoadSettings);
@@ -449,7 +497,7 @@ void WebServer::Begin()
             request->send(response);
         } else if (request->host() != WiFi.softAPIP().toString()) {
             // Captive portal: any request to a non-AP host gets redirected
-            request->redirect("http://" + WiFi.softAPIP().toString() + "/");
+            request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
         } else {
             request->send(404, "text/plain", "Not found");
         }

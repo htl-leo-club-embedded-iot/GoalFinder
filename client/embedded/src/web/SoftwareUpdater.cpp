@@ -16,6 +16,7 @@
 
 #include "SoftwareUpdater.h"
 #include <Update.h>
+#include "Settings.h"
 
 // ── static member initialization ─────────────────────────────────────────────
 SoftwareUpdater::UpdatePhase SoftwareUpdater::phase              = PHASE_IDLE;
@@ -46,6 +47,9 @@ void SoftwareUpdater::ResetState() {
 void SoftwareUpdater::Begin(const char* uri) {
     server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {
         bool success = (phase == PHASE_COMPLETE) && !Update.hasError();
+        if (success) {
+            Settings::GetInstance()->SetUpdateSuccess(true);
+        }
         AsyncWebServerResponse* response = request->beginResponse(
             200, "text/plain", success ? "OK" : "FAIL");
         response->addHeader("Connection", "close");

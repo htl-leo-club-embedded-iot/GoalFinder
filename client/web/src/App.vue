@@ -50,7 +50,7 @@ function closeConnectionModal() {
 
 async function checkDeviceConnection() {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 2000);
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
   try {
     const response = await fetch('/api/connection', { signal: controller.signal });

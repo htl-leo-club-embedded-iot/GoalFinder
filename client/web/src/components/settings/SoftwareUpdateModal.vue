@@ -22,13 +22,18 @@ import UpdateIcon from "@/components/icons/UpdateIcon.vue";
 import Button from "@/components/Button.vue";
 import {ref, useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
+import {useI18n} from "vue-i18n";
 
+const { t } = useI18n();
 const modal = useTemplateRef<typeof Modal>("modal");
+const binWarningModal = useTemplateRef<typeof Modal>("binWarningModal");
 
 const show = () => {
     modal.value?.openDialog();
     uploadProgress.value = 0;
     isUploading.value = false;
+    updateSuccess.value = false;
+    updateFailed.value = false;
 };
 
 defineExpose({show});
@@ -39,43 +44,98 @@ const fileInput = ref<HTMLInputElement | null>(null)
 let firmwareFile: File | undefined = undefined;
 const uploadProgress = ref(0);
 const isUploading = ref(false);
+const updateSuccess = ref(false);
+const updateFailed = ref(false);
+const dontShowBinWarning = ref(false);
 
 function onFileChanged() {
-    firmwareFile = fileInput.value!.files![0];
+    const file = fileInput.value!.files![0];
+    if (!file) return;
+
+    firmwareFile = file;
     uploadProgress.value = 0;
     isUploading.value = false;
+
+    if (file.name.endsWith('.bin')) {
+        const hidden = localStorage.getItem('hide-bin-warning-modal');
+        if (hidden !== 'true') {
+            dontShowBinWarning.value = false;
+            binWarningModal.value?.openDialog();
+        }
+    }
+}
+
+function closeBinWarning() {
+    if (dontShowBinWarning.value) {
+        localStorage.setItem('hide-bin-warning-modal', 'true');
+    }
+    binWarningModal.value?.closeDialog();
 }
 
 function uploadFirmwareFile() {
     if(!firmwareFile) return;
 
     isUploading.value = true;
+    updateSuccess.value = false;
+    updateFailed.value = false;
     uploadProgress.value = 0;
 
-    settings.updateFirmware(firmwareFile, (percent) => {
-        uploadProgress.value = percent;
-    });
+    settings.updateFirmware(
+        firmwareFile,
+        (percent) => {
+            uploadProgress.value = percent;
+        },
+        () => {
+            isUploading.value = false;
+            updateSuccess.value = true;
+        },
+        () => {
+            isUploading.value = false;
+            updateFailed.value = true;
+        }
+    );
 }
 
 </script>
 
 <template>
-  <Modal title="Software Update" id="update-modal" ref="modal">
+  <Modal title="Software Update" id="update-modal" ref="modal" centered>
     <div id="update-content">
       <UpdateIcon id="update-icon"/>
-      <div id="upload-form">
+
+      <div v-if="!isUploading && !updateSuccess && !updateFailed" id="upload-form">
         <input type="file" ref="fileInput" @change="onFileChanged" accept=".bin,.gfpkg">
-        <Button @click="uploadFirmwareFile" :disabled="isUploading" primary>
-          {{ isUploading ? 'Uploading...' : 'Upload Update' }}
+        <Button @click="uploadFirmwareFile" primary>
+          {{ t('update.upload') }}
         </Button>
       </div>
 
       <div v-if="isUploading" id="progress-section">
+        <p id="uploading-text">{{ t('update.uploading') }}</p>
         <div id="progress-bar-container">
           <div id="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
         </div>
         <span id="progress-text">{{ uploadProgress }}%</span>
       </div>
+
+      <div v-if="updateSuccess" id="result-section">
+        <p id="success-text">{{ t('update.success') }}</p>
+      </div>
+
+      <div v-if="updateFailed" id="result-section">
+        <p id="error-text">{{ t('update.failed') }}</p>
+      </div>
+    </div>
+  </Modal>
+
+  <Modal :title="t('bin_warning.title')" ref="binWarningModal" id="warning-modal" centered hide-close-button>
+    <p>{{ t('bin_warning.message') }}</p>
+    <label class="dont-show-again">
+      <input type="checkbox" v-model="dontShowBinWarning" />
+      {{ t('bin_warning.dont_show_again') }}
+    </label>
+    <div class="bin-warning-actions">
+      <Button primary @click="closeBinWarning">{{ t('bin_warning.ok') }}</Button>
     </div>
   </Modal>
 </template>
@@ -131,5 +191,50 @@ function uploadFirmwareFile() {
   #progress-text {
     font-size: 0.9rem;
     font-weight: bold;
+  }
+
+  #result-section {
+    text-align: center;
+  }
+
+  #success-text {
+    color: #4caf50;
+    font-weight: bold;
+  }
+
+  #error-text {
+    color: #f44336;
+    font-weight: bold;
+  }
+
+  .dont-show-again {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .dont-show-again input[type="checkbox"] {
+    cursor: pointer;
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--accent-color);
+  }
+
+  .bin-warning-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .bin-warning-actions button {
+    min-width: 5rem;
+  }
+
+  #warning-modal {
+    max-width: 50vw;
   }
 </style>
