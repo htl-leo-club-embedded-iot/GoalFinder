@@ -150,16 +150,78 @@ export const useSettingsStore = defineStore("settings", () => {
         }
     }
 
-    function updateFirmware(firmwareFile: File, onProgress?: (percent: number) => void): void {
+    function updateFirmware(
+        firmwareFile: File,
+        onProgress?: (percent: number) => void,
+        onSuccess?: () => void,
+        onError?: () => void
+    ): void {
         const data = new FormData();
         data.append('file', firmwareFile);
+
+        let uploadComplete = false;
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API_URL}/update`);
 
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable && onProgress) {
-                onProgress(Math.round((e.loaded / e.total) * 100));
+                const percent = Math.round((e.loaded / e.total) * 100);
+                onProgress(percent);
+                if (percent >= 100) {
+                    uploadComplete = true;
+                }
+            }
+        });
+
+        function pollUpdateStatus() {
+            let attempts = 0;
+            const maxAttempts = 30;
+            const interval = 2000;
+
+            const poll = () => {
+                attempts++;
+                fetch(`${API_URL}/update-status`, { signal: AbortSignal.timeout(3000) })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.updateSuccess) {
+                            onSuccess?.();
+                        } else if (attempts < maxAttempts) {
+                            setTimeout(poll, interval);
+                        } else {
+                            onError?.();
+                        }
+                    })
+                    .catch(() => {
+                        if (attempts < maxAttempts) {
+                            setTimeout(poll, interval);
+                        } else {
+                            onError?.();
+                        }
+                    });
+            };
+
+            // Wait for the ESP to restart before polling
+            setTimeout(poll, 5000);
+        }
+
+        xhr.addEventListener('load', () => {
+            pollUpdateStatus();
+        });
+
+        xhr.addEventListener('error', () => {
+            if (uploadComplete) {
+                pollUpdateStatus();
+            } else {
+                onError?.();
+            }
+        });
+
+        xhr.addEventListener('abort', () => {
+            if (uploadComplete) {
+                pollUpdateStatus();
+            } else {
+                onError?.();
             }
         });
 

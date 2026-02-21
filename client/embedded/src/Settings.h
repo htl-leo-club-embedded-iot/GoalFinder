@@ -92,6 +92,10 @@ class Settings : public Singleton<Settings>
 
         void SetAfterHitTimeout(int timeout);
 
+        bool GetUpdateSuccess();
+
+        void SetUpdateSuccess(bool success);
+
     private:
 		friend class Singleton<Settings>;
         /** Singleton constructor */
@@ -139,6 +143,9 @@ class Settings : public Singleton<Settings>
 
         static const char* keyAfterHitTimeout;
         static const int defaultAfterHitTimeout;
+
+        static const char* keyUpdateSuccess;
+        static const bool defaultUpdateSuccess;
 
         System::Settings store;
         bool modified;
