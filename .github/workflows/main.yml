@@ -79,13 +79,14 @@ jobs:
       - name: Build Filesystem
         run: pio run -t buildfs -e wemos_d1_mini32
 
+      - name: Package GFPKG
+        run: pio run -t package -e wemos_d1_mini32
+
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            client/embedded/.pio/build/wemos_d1_mini32/firmware.bin
-            client/embedded/.pio/build/wemos_d1_mini32/littlefs.bin
-            client/embedded/.pio/build/wemos_d1_mini32/system.bin
+            client/embedded/.pio/build/wemos_d1_mini32/system.gfpkg
 
       #- name: Upload Firmware
        # uses: actions/upload-artifact@v4

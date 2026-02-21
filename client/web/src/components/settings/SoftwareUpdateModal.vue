@@ -64,9 +64,9 @@ function uploadFirmwareFile() {
     <div id="update-content">
       <UpdateIcon id="update-icon"/>
       <div id="upload-form">
-        <input type="file" ref="fileInput" @change="onFileChanged" accept=".bin">
+        <input type="file" ref="fileInput" @change="onFileChanged" accept=".bin,.gfpkg">
         <Button @click="uploadFirmwareFile" :disabled="isUploading" primary>
-          {{ isUploading ? 'Uploading...' : 'Upload Firmware' }}
+          {{ isUploading ? 'Uploading...' : 'Upload Update' }}
         </Button>
       </div>
 
