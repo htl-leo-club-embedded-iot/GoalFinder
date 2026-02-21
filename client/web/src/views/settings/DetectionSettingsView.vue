@@ -19,6 +19,7 @@ import VibrationSensorManager from "@/components/settings/VibratiosensorManager.
 import LaserSensorManager from "@/components/settings/LaserSensorManager.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import {useSettingsStore} from "@/stores/settings";
+import InputForm from "@/components/InputForm.vue";
 
 const settings = useSettingsStore();
 </script>
@@ -36,6 +37,19 @@ const settings = useSettingsStore();
         {{ settings.distanceOnlyHitDetection ? $t("word.on") : $t("word.off") }}
       </ToggleButton>
       <p class="description-text">{{ $t("settings.distance_only_hit_detection_desc") }}</p>
+    </div>
+
+    <div class="label-container">
+      <label for="after-hit-timeout-input">{{ $t("settings.after_hit_timeout") }}</label>
+      <InputForm
+        id="after-hit-timeout-input"
+        type="number"
+        v-model.number="settings.afterHitTimeout"
+        min="0"
+        max="60"
+        @change="settings.scheduleSave()"
+      />
+      <p class="description-text">{{ $t("settings.after_hit_timeout_desc") }}</p>
     </div>
   </div>
 </template>

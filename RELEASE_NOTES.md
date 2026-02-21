@@ -1,4 +1,0 @@
- - Fixed WiFi password not saving
- - Distance only hit detection
- - Timing of restart improved
- - Added favicon

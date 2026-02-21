@@ -21,7 +21,7 @@
 // For development builds, it shows the development version
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "0.1.0a"
+#define FIRMWARE_VERSION "0.2.0"
 #endif
 
 #ifndef GIT_COMMIT_HASH

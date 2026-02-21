@@ -7,10 +7,11 @@ For more information, visit the [GoalFinder Website](https://goalfinder.github.i
 
 ## Latest Verion
 
-13.02.2026 `v0.1.0`:
- - Major Bug Fixes
- - Player Skipping now works
- - Captive Portal
+13.02.2026 `v0.3.0b`:
+- Fixed WiFi not being relaid to the GoalFinder Device
+- Added option for distance only hit detection
+- Improved timing of reset handling
+- Added favicon for the Web App
 
 ## Branches
 

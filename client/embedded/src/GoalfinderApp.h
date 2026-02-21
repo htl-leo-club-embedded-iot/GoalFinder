@@ -119,6 +119,8 @@ private:
     unsigned long lastMetronomeTickTime;
     unsigned long metronomeIntervalMs;
     unsigned long lastShockTime;
+    unsigned long lastHitTime;
+    unsigned long afterHitTimeoutMs;
 
     // Events
     struct Announcement {

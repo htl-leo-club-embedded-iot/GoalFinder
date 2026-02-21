@@ -56,6 +56,9 @@ const LedMode Settings::defaultLedMode = LedMode::Flash;
 
 const char* Settings::keyFirstRun = "firstRun";
 const bool Settings::defaultFirstRun = true;
+
+const char* Settings::keyAfterHitTimeout = "afterHitTimeout";
+const int Settings::defaultAfterHitTimeout = 5;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -262,4 +265,16 @@ void Settings::ResetToDefaults()
 {
 	store.Clear();
 	ESP.restart();
+}
+
+int Settings::GetAfterHitTimeout()
+{
+	return store.GetInt(keyAfterHitTimeout, defaultAfterHitTimeout);
+}
+
+void Settings::SetAfterHitTimeout(int timeout) 
+{
+	timeout = max(min(timeout, 60), 0);
+	store.PutInt(keyAfterHitTimeout, timeout);
+	SetModified();
 }
