@@ -82,14 +82,15 @@ class Settings : public Singleton<Settings>
 
         void SetLedMode(LedMode ledMode);
 
-        /** Returns whether this is the first startup of the device. */
         bool IsFirstRun();
 
-        /** Marks the device as having completed first run setup. */
         void SetFirstRun(bool firstRun);
 
-        /** Resets all settings to factory defaults and restarts the device. */
         void ResetToDefaults();
+
+        int GetAfterHitTimeout();
+
+        void SetAfterHitTimeout(int timeout);
 
     private:
 		friend class Singleton<Settings>;
@@ -135,6 +136,9 @@ class Settings : public Singleton<Settings>
 
         static const char* keyFirstRun;
         static const bool defaultFirstRun;
+
+        static const char* keyAfterHitTimeout;
+        static const int defaultAfterHitTimeout;
 
         System::Settings store;
         bool modified;

@@ -65,6 +65,8 @@ GoalfinderApp::GoalfinderApp() :
     lastMetronomeTickTime(0),
     announcement(Announcement::None),
     lastShockTime(0),
+    lastHitTime(0),
+    afterHitTimeoutMs(5000),
     isSoundEnabled(true),
     distanceOnlyHitDetection(false)
 {}
@@ -183,6 +185,7 @@ void GoalfinderApp::UpdateSettings(bool force) {
         ledController.SetMode(settings->GetLedMode());
         vibrationSensor.SetSensitivity(settings->GetVibrationSensorSensitivity());
         distanceOnlyHitDetection = settings->GetDistanceOnlyHitDetection();
+        afterHitTimeoutMs = settings->GetAfterHitTimeout() * 1000UL;
     }
 }
 
@@ -235,37 +238,44 @@ void GoalfinderApp::TickMetronome() {
 }
 
 void GoalfinderApp::DetectShot() {
-    if (distanceOnlyHitDetection) {
-        if (!(announcing && audioPlayer.IsPlaying())) {
-            announcing = false;
-            int distance = tofSensor.ReadSingleMillimeters();
-            if (distance > 20 && distance < ballHitDetectionDistance) {
-                AnnounceHit();
-            }
-        }
-    } else {        
-        if (lastShockTime == 0) {
+    if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
+        if (distanceOnlyHitDetection) {
             if (!(announcing && audioPlayer.IsPlaying())) {
                 announcing = false;
-                long vibration = vibrationSensor.Vibration(10000);
-                if (vibration > shotVibrationThreshold) {
-                    lastShockTime = millis();
-                    Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: shot detected\n", millis() / 1000.0);
+                int distance = tofSensor.ReadSingleMillimeters();
+                if (distance > 20 && distance < ballHitDetectionDistance) {
+                    AnnounceHit();
+                    lastHitTime = millis();
                 }
             }
-        }
-        unsigned long currentTime = millis();
-
-        if (lastShockTime > 0 && (currentTime - lastShockTime) < maxShotDurationMs) {
-            int distance = tofSensor.ReadSingleMillimeters();
-            if (distance > 20 && distance < ballHitDetectionDistance) {
-                AnnounceHit();
-                lastShockTime = 0;
+        } else {
+            if (lastShockTime == 0) {
+                if (!(announcing && audioPlayer.IsPlaying())) {
+                    announcing = false;
+                    long vibration = vibrationSensor.Vibration(10000);
+                    if (vibration > shotVibrationThreshold) {
+                        lastShockTime = millis();
+                        Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: shot detected\n", millis() / 1000.0);
+                    }
+                }
             }
-        }
-        if (lastShockTime > 0 && (currentTime - lastShockTime) > maxShotDurationMs) {
-            AnnounceMiss();
-            lastShockTime = 0;
+
+            unsigned long currentTime = millis();
+
+            if (lastShockTime > 0 && (currentTime - lastShockTime) < maxShotDurationMs) {
+                int distance = tofSensor.ReadSingleMillimeters();
+                if (distance > 20 && distance < ballHitDetectionDistance) {
+                    AnnounceHit();
+                    lastShockTime = 0;
+                    lastHitTime = millis();
+                }
+            }
+
+            if (lastShockTime > 0 && (currentTime - lastShockTime) > maxShotDurationMs) {
+                AnnounceMiss();
+                lastShockTime = 0;
+                lastHitTime = millis();
+            }
         }
     }
 }

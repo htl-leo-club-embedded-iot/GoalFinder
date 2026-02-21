@@ -1,4 +1,0 @@
-- Fixed WiFi not being relaid to the GoalFinder Device
-- Added option for distance only hit detection
-- Improved timing of reset handling
-- Added favicon for the Web App

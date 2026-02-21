@@ -194,6 +194,7 @@ static void HandleLoadSettings(AsyncWebServerRequest* request)
     root["macAddress"] = settings->GetMacAddress();
     root["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
     root["version"] = FIRMWARE_VERSION;
+    root["afterHitTimeout"] = settings->GetAfterHitTimeout();
 
     response->setLength();
     request->send(response);
@@ -229,6 +230,7 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
     settings->SetHitSound(doc["hitSound"]);
     settings->SetMissSound(doc["missSound"]);
     settings->SetLedMode(doc["ledMode"]);
+    settings->SetAfterHitTimeout(doc["afterHitTimeout"]);
     if (!doc["ledBrightness"].isNull()) {
         settings->SetLedBrightness(doc["ledBrightness"]);
     }
