@@ -90,7 +90,12 @@ const i18n = createI18n({
                 current_miss_sound: "Current Miss Sound: ",
                 info: "Information",
                 more_info: "For more information visit the ",
-                doc: "GoalFinder User Documentation"
+                doc: "GoalFinder User Documentation",
+                restart_title: "Restart Needed",
+                restart_desc: "A device restart is necessary to apply this setting change.",
+                restart_always: "Automatically restart device when this setting is changed and don't show again.",
+                restart_now: "Restart Now",
+                restart_later: "Restart Later"
             },
             about: {
                 about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of vienna by students of the HTBLA Leonding",
@@ -130,7 +135,7 @@ const i18n = createI18n({
                 off:"Off",
                 device_name: "Device Name",
                 ssid_password: "WiFi Password",
-                device_password: "Password",
+                device_password: "Web App Password",
                 curr_mode: "Current Mode",
                 curr_volume: "Current Volume",
                 curr_sensitivity: "Current Sensitivity",
@@ -232,7 +237,12 @@ const i18n = createI18n({
                 current_miss_sound: "Aktueller Fehlschuss Ton: ",
                 info: "Informationen",
                 more_info: "Besuchen Sie für mehr Informationen die ",
-                doc: "GoalFinder Benutzerdokumentation"
+                doc: "GoalFinder Benutzerdokumentation",
+                restart_title: "Neustart nötig",
+                restart_desc: "Ein Neustart des Gerätes ist nötig um die Änderung zu übernehmen.",
+                restart_always: "Automatisch das Gerät neustarten wenn diese Einstellung geändert wurde and nicht mehr anzeigen.",
+                restart_now: "Jetzt Neustarten",
+                restart_later: "Später Neustarten"
             },
             about: {
                 about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",
@@ -250,8 +260,8 @@ const i18n = createI18n({
                 measuring: "Mess",
                 distance: "Distanz",
                 device_name: "Gerätename",
-                ssid_password: "SSID Passwort",
-                device_password: "Passwort",
+                ssid_password: "WiFi Passwort",
+                device_password: "Web App Passwort",
                 restart: "Neustarten",
                 factory_settings_reset: "Auf Werkseinstellungen zurücksetzen",
                 search_for_update: "Firmware hochladen",

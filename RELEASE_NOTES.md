@@ -1,5 +1,2 @@
-- Web App Update OTA
-- Update Modal Styles
-- Backport Warning
-- Better update success response
-- Better redirect handling
+- Fix DNS init issue
+- Improved settings wording
