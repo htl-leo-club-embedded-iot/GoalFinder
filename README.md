@@ -3,7 +3,7 @@
 ## About
 
 The GoalFinder device aims to help blind or visually impaired people play basketball by playing a sound to help locate the basket and provides acoustic and visual feedback on hits and misses.
-For more information, visit the [GoalFinder Website](https://goalfinder.github.io)
+For more information, please visit the [GoalFinder Website](https://goalfinder.github.io)
 
 ## Branches
 
