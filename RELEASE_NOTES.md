@@ -1,2 +1,2 @@
 - Fix DNS init issue
-- 
+- Improved settings wording

@@ -23,26 +23,25 @@ function openConnectionModal() {
   connectionModal.value?.openDialog();
 }
 
-function closeConnectionModal() {
+function closeConnectionModal(restart: boolean) {
   if (dontShowAgain.value) {
     localStorage.setItem('connectionWarningDontShow', 'true');
   }
-  // update originals so repeated Enter won't reopen immediately
+
   originalDeviceName.value = settings.deviceName || "";
   originalWifiPassword.value = settings.wifiPassword || "";
   connectionModal.value?.closeDialog();
+
+  if (restart) {
+    settings.restartDevice();
+  }
 }
 
-function onPrimaryEnter(field: 'device'|'wifi') {
-  if (dontShowAgain.value) return;
-  if (field === 'device') {
-    if ((settings.deviceName || "") !== originalDeviceName.value) {
-      openConnectionModal();
-    }
-  } else {
-    if ((settings.wifiPassword || "") !== originalWifiPassword.value) {
-      openConnectionModal();
-    }
+function onPrimaryEnter() {
+  if (dontShowAgain.value) {
+    settings.restartDevice();
+  } else if ((settings.deviceName || "") !== originalDeviceName.value || (settings.wifiPassword || "") !== originalWifiPassword.value) {
+    openConnectionModal();
   }
 }
 </script>
@@ -50,25 +49,26 @@ function onPrimaryEnter(field: 'device'|'wifi') {
 <template>
   <form id="general-input" autocomplete="off">
     <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
-               :placeholder="$t('description.device_name_description')" type="text"
-               name="deviceName" autocomplete="off" @enter="onPrimaryEnter('device')"/>
+           :placeholder="$t('description.device_name_description')" type="text"
+           name="deviceName" autocomplete="off" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
     <InputForm v-model="settings.wifiPassword" :label="$t('word.ssid_password')"
-               :placeholder="$t('description.ssid_password_description')" type="password"
-               :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"
-               name="wifiPassword" autocomplete="new-password" @enter="onPrimaryEnter('wifi')"/>
+           :placeholder="$t('description.ssid_password_description')" type="password"
+           :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"
+           name="wifiPassword" autocomplete="new-password" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
     <InputForm v-model="settings.devicePassword" :label="$t('word.device_password')"
                :placeholder="$t('description.device_password_description')" type="password"
                name="devicePassword" autocomplete="new-password"/>
   </form>
 
-  <Modal ref="connectionModal" :title="$t('connection.warning_title')" centered hide-close-button>
-    <p>{{ $t('connection.warning_message') }}</p>
+  <Modal ref="connectionModal" :title="$t('settings.restart_title')" centered hide-close-button>
+    <p>{{ $t('settings.restart_desc') }}</p>
     <label class="dont-show-again">
       <input type="checkbox" v-model="dontShowAgain" />
-      {{ $t('connection.dont_show_again') }}
+      {{ $t('settings.restart_always') }}
     </label>
     <div class="connection-modal-actions">
-      <Button primary @click="closeConnectionModal">{{ $t('connection.ok') }}</Button>
+      <Button primary @click="closeConnectionModal(true)">{{ $t('settings.restart_now') }}</Button>
+      <Button primary class="invert-hover" @click="closeConnectionModal(false)">{{ $t('settings.restart_later') }}</Button>
     </div>
   </Modal>
 </template>
@@ -94,5 +94,17 @@ function onPrimaryEnter(field: 'device'|'wifi') {
   margin-top: 1rem;
   display: flex;
   justify-content: center;
+  gap: 1rem;
+}
+
+.connection-modal-actions ::v-deep button.invert-hover {
+  background: transparent;
+  color: var(--accent-color);
+  border: 2px solid var(--accent-color);
+}
+.connection-modal-actions ::v-deep button.invert-hover:hover {
+  background: var(--accent-color);
+  color: white;
+  border: 2px solid transparent;
 }
 </style>

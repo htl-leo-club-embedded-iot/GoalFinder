@@ -31,7 +31,7 @@ const props = defineProps([
   'autocomplete'
 ]);
 
-const emit = defineEmits(['enter']);
+const emit = defineEmits(['enter', 'blur']);
 const model = defineModel();
 </script>
 
@@ -40,7 +40,7 @@ const model = defineModel();
     <label :for="$.uid.toString()">{{ label }}</label>
         <input :id="$.uid.toString()" :type="type" :placeholder="placeholder" v-model="model" :readonly="readonly"
           :inputmode="inputmode" :step="step" :min="min" :max="max" :minlength="minlength" :maxlength="maxlength" :pattern="pattern"
-          :name="name" :autocomplete="autocomplete" @keyup.enter="emit('enter')"/>
+          :name="name" :autocomplete="autocomplete" @keyup.enter="emit('enter')" @blur="emit('blur')"/>
   </div>
 </template>
 
