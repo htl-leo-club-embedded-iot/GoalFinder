@@ -87,9 +87,11 @@ void GoalfinderApp::Init() {
     Serial.begin(115200);
     randomSeed(analogRead(pinRandomSeed));
 
-    if (!fileSystem.Begin()) {
+    if (fileSystem.Begin()) {
         WiFiSetup();
+        delay(200); // Allow SoftAP setup
 
+        dnsServer.stop();
         dnsServer.start(53, "*", WiFi.softAPIP());
         Serial.println("[INFO][GoalfinderApp.cpp] DNS server started for captive portal");
 
@@ -327,8 +329,10 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
 }
 
 void GoalfinderApp::Process() {
-    // Process DNS requests for captive portal
-    dnsServer.processNextRequest();
+    if (WiFi.softAPgetStationNum() >= 0) {
+        dnsServer.processNextRequest();
+    }
+    delay(1);
 }
 
 int GoalfinderApp::GetDetectedHits()
