@@ -62,6 +62,9 @@ const int Settings::defaultAfterHitTimeout = 5;
 
 const char* Settings::keyUpdateSuccess = "updateSuccess";
 const bool Settings::defaultUpdateSuccess = false;
+
+const char* Settings::keyExtraLog = "extraLog";
+const bool Settings::defaultExtraLog = false;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -290,4 +293,15 @@ bool Settings::GetUpdateSuccess()
 void Settings::SetUpdateSuccess(bool success)
 {
 	store.PutInt(keyUpdateSuccess, (int)success);
+}
+
+bool Settings::GetExtraLog()
+{
+	return (bool)store.GetInt(keyExtraLog, (int)defaultExtraLog);
+}
+
+void Settings::SetExtraLog(bool enabled)
+{
+	store.PutInt(keyExtraLog, (int)enabled);
+	SetModified();
 }
