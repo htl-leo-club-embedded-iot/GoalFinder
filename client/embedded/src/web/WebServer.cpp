@@ -95,7 +95,8 @@ static String GetContentType(const String* fileName)
     }
     else 
     {
-        Serial.printf("[WARN][WebServer.cpp] Unknown file type for: %s\n", fileName->c_str());
+        Logger::log("Unknown File Type", "WebServer", Logger::LogLevel::WARN)
+        // Serial.printf("[WARN][WebServer.cpp] Unknown file type for: %s\n", fileName->c_str());
         return "application/octet-stream";
     }
 }
@@ -108,7 +109,9 @@ static void HandleNotFound(AsyncWebServerRequest* request)
         request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
         return;
     }
-    Serial.println("[WARN][WebServer.cpp] Failed request: " + request->url());
+    // Serial.println("[WARN][WebServer.cpp] Failed request: " + request->url());
+    Logger::log("Failed Request", "WebServer", Logger::LogLevel::WARN)
+
     request->send(404, "text/plain", "Not found");
 }
 

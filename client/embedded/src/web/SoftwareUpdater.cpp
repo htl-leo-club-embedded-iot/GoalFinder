@@ -17,8 +17,9 @@
 #include "SoftwareUpdater.h"
 #include <Update.h>
 #include "Settings.h"
+#include "util/Logger.h"
 
-// ── static member initialization ─────────────────────────────────────────────
+// static member initialization 
 SoftwareUpdater::UpdatePhase SoftwareUpdater::phase              = PHASE_IDLE;
 uint32_t                     SoftwareUpdater::firmwareSize        = 0;
 uint32_t                     SoftwareUpdater::filesystemSize      = 0;
@@ -27,12 +28,12 @@ uint32_t                     SoftwareUpdater::fsBytesWritten      = 0;
 uint8_t                      SoftwareUpdater::headerBuffer[GFPKG_HEADER_SIZE] = {};
 uint8_t                      SoftwareUpdater::headerPos           = 0;
 
-// ── constructor ──────────────────────────────────────────────────────────────
+// constructor
 SoftwareUpdater::SoftwareUpdater(AsyncWebServer* server) {
     this->server = server;
 }
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// helpers
 void SoftwareUpdater::ResetState() {
     phase              = PHASE_HEADER;
     firmwareSize       = 0;
@@ -43,7 +44,7 @@ void SoftwareUpdater::ResetState() {
     memset(headerBuffer, 0, GFPKG_HEADER_SIZE);
 }
 
-// ── register the OTA endpoint ────────────────────────────────────────────────
+// register the OTA endpoint 
 void SoftwareUpdater::Begin(const char* uri) {
     server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {
         bool success = (phase == PHASE_COMPLETE) && !Update.hasError();
@@ -60,7 +61,7 @@ void SoftwareUpdater::Begin(const char* uri) {
     }, HandleUpdate);
 }
 
-// ── chunked upload handler (called for every chunk of the upload) ────────────
+// chunked upload handler (called for every chunk of the upload) 
 //
 // Supports two formats:
 //   1. Combined .gfpkg  – 16-byte header + firmware + filesystem
@@ -70,9 +71,9 @@ void SoftwareUpdater::Begin(const char* uri) {
 void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                                    String filename, size_t index,
                                    uint8_t *data, size_t len, bool final) {
-    // ── first chunk: reset state machine ─────────────────────────────────────
+    // first chunk: reset state machine 
     if (!index) {
-        Serial.println("[INFO][SoftwareUpdater.cpp] Update started");
+        Logger::log("Update Started", "SoftwareUpdater", Logger::LogLevel::INFO)
         ResetState();
     }
 
@@ -83,7 +84,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
     while (offset < len) {
         switch (phase) {
 
-        // ── 1. Buffer the 16-byte header ─────────────────────────────────────
+        // 1. Buffer the 16-byte header 
         case PHASE_HEADER: {
             while (offset < len && headerPos < GFPKG_HEADER_SIZE) {
                 headerBuffer[headerPos++] = data[offset++];
@@ -95,7 +96,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
 
             // Header complete – decide format
             if (memcmp(headerBuffer, GFPKG_MAGIC, 4) == 0) {
-                // ── combined .gfpkg package ──────────────────────────────────
+                // combined .gfpkg package 
                 uint8_t version = headerBuffer[4];
                 memcpy(&firmwareSize,    &headerBuffer[5], 4);
                 memcpy(&filesystemSize,  &headerBuffer[9], 4);
@@ -120,13 +121,13 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                     }
                     phase = PHASE_FILESYSTEM;
                 } else {
-                    Serial.println("[ERROR][SoftwareUpdater.cpp] GFPKG has zero-size payload");
+                    Logger::log("GFPKG has zero-size payload", "SoftwareUpdater", Logger::LogLevel::ERROR);
                     phase = PHASE_ERROR;
                     return;
                 }
             } else {
-                // ── legacy plain .bin firmware ───────────────────────────────
-                Serial.println("[INFO][SoftwareUpdater.cpp] Legacy firmware update detected");
+                // legacy plain .bin firmware
+                Logger::logExtra("Legacy firmware update detected", "SoftwareUpdater", Logger::LogLevel::INFO)
                 int contentLen = request->contentLength();
                 if (!Update.begin(contentLen, U_FLASH)) {
                     Update.printError(Serial);
@@ -144,7 +145,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
             break;
         }
 
-        // ── 2. Write firmware partition ──────────────────────────────────────
+        // 2. Write firmware partition 
         case PHASE_FIRMWARE: {
             uint32_t remaining = firmwareSize - firmwareBytesWritten;
             size_t   available = len - offset;
@@ -165,7 +166,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                     phase = PHASE_ERROR;
                     return;
                 }
-                Serial.println("[OK][SoftwareUpdater.cpp] Firmware update complete");
+                Logger::log("Firmware Upload Complete", "SoftwareUpdater", Logger::LogLevel::OK);
 
                 if (filesystemSize > 0) {
                     Serial.printf("[INFO][SoftwareUpdater.cpp] Starting filesystem "
@@ -183,7 +184,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
             break;
         }
 
-        // ── 3. Write filesystem (LittleFS) partition ─────────────────────────
+        // 3. Write filesystem (LittleFS) partition
         case PHASE_FILESYSTEM: {
             size_t toWrite = len - offset;
 
@@ -198,7 +199,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
             break;
         }
 
-        // ── 4. Legacy plain firmware .bin ────────────────────────────────────
+        // 4. Legacy plain firmware .bin
         case PHASE_LEGACY: {
             size_t toWrite = len - offset;
 
@@ -216,14 +217,14 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
         }
     }
 
-    // ── last chunk: finalise whichever update is active ──────────────────────
+    // last chunk: finalize whichever update is active
     if (final) {
         if (phase == PHASE_FIRMWARE || phase == PHASE_FILESYSTEM || phase == PHASE_LEGACY) {
             if (!Update.end(true)) {
                 Update.printError(Serial);
                 phase = PHASE_ERROR;
             } else {
-                Serial.println("[OK][SoftwareUpdater.cpp] Update complete");
+                Logger::log("Update Complete", "SoftwareUpdater", Logger::LogLevel::OK);
                 phase = PHASE_COMPLETE;
             }
         }

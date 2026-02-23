@@ -43,6 +43,9 @@ public:
     static void log(const String &message, const String &file, LogLevel level);
     static void logExtra(const String &message, const String &file, LogLevel level);
 
+    static void log(const char *file, LogLevel level, const char *fmt, ...);
+    static void logExtra(const char *file, LogLevel level, const char *fmt, ...);
+
     static void Loop();
 
 private:

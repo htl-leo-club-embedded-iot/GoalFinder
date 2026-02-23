@@ -68,6 +68,28 @@ void Logger::logExtra(const String &message, const String &file, Logger::LogLeve
     }
 }
 
+void Logger::log(const char *file, Logger::LogLevel level, const char *fmt, ...)
+{
+    char buf[256];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    printFormatted(String(buf), String(file), level);
+}
+
+void Logger::logExtra(const char *file, Logger::LogLevel level, const char *fmt, ...)
+{
+    if (Settings::GetInstance()->GetExtraLog()) {
+        char buf[256];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, sizeof(buf), fmt, args);
+        va_end(args);
+        printFormatted(String(buf), String(file), level);
+    }
+}
+
 void Logger::Loop()
 {
     if (logQueue == nullptr) {
@@ -83,6 +105,9 @@ void Logger::Loop()
 void Logger::printNow(const LogEntry &entry)
 {
     String out = String("[") + levelToString(entry.level) + "]";
+    if (!entry.file.isEmpty()) {
+        out += String("[") + entry.file + "]";
+    }
     out += " " + entry.message;
     Serial.println(out);
 }
