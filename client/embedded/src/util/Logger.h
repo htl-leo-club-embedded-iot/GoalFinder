@@ -12,3 +12,53 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * All trademarks used in this document are property of their respective owners.
  * =============================================================================== */
+
+#ifndef ___LOGGER_H
+#define ___LOGGER_H
+
+#include <WString.h>
+
+class Logger
+{
+public:
+    enum class LogLevel
+    {
+        OK,
+        DEBUG,
+        INFO,
+        WARN,
+        ERROR
+    };
+
+    struct LogEntry {
+        String message;
+        String file;
+        LogLevel level;
+    };
+
+    static void begin(unsigned long baudRate = 115200);
+
+    static void log(const String &message);
+    static void log(const String &message, LogLevel level);
+    static void log(const String &message, const String &file, LogLevel level);
+    static void logExtra(const String &message, const String &file, LogLevel level);
+
+    static void Loop();
+
+private:
+    static LogLevel currentLevel;
+    static void* logQueue;
+
+    static const char* levelToString(LogLevel level);
+    static void printNow(const LogEntry &entry);
+
+    static void printFormatted(const String &message,
+                               const String &file,
+                               LogLevel level);
+
+    static void enqueue(const String &message,
+                        const String &file,
+                        LogLevel level);
+};
+
+#endif

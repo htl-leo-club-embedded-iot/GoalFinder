@@ -12,3 +12,88 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * All trademarks used in this document are property of their respective owners.
  * =============================================================================== */
+
+ #include "Logger.h"
+#include <Arduino.h>
+#include "../Settings.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+
+Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
+void* Logger::logQueue = nullptr;
+
+void Logger::begin(unsigned long baudRate)
+{
+    Serial.begin(baudRate);
+    while (!Serial) { }
+
+    logQueue = (void*)xQueueCreate(50, sizeof(LogEntry));
+    if (logQueue == nullptr) {
+        Serial.println("[ERROR][Logger] failed to create log queue");
+    }
+}
+
+const char* Logger::levelToString(Logger::LogLevel level)
+{
+    switch (level)
+    {
+        case Logger::LogLevel::OK:     return "OK";
+        case Logger::LogLevel::DEBUG:  return "DEBUG";
+        case Logger::LogLevel::INFO:   return "INFO";
+        case Logger::LogLevel::WARN:   return "WARN";
+        case Logger::LogLevel::ERROR:  return "ERROR";
+        default:                             return "UNKNOWN";
+    }
+}
+
+void Logger::printFormatted(const String &message, const String &file, Logger::LogLevel level)
+{
+    enqueue(message, file, level);
+}
+
+void Logger::log(const String &message)
+{
+    printFormatted(message, "unknown", Logger::LogLevel::INFO);
+}
+
+void Logger::log(const String &message, Logger::LogLevel level)
+{
+    printFormatted(message, "unknown", level);
+}
+
+void Logger::logExtra(const String &message, const String &file, Logger::LogLevel level)
+{
+    if (Settings::GetInstance()->GetExtraLog()) {
+        printFormatted(message, file, level);
+    }
+}
+
+void Logger::Loop()
+{
+    if (logQueue == nullptr) {
+        return;
+    }
+
+    LogEntry entry;
+    if (xQueueReceive((QueueHandle_t)logQueue, &entry, 0) == pdTRUE) {
+        printNow(entry);
+    }
+}
+
+void Logger::printNow(const LogEntry &entry)
+{
+    String out = String("[") + levelToString(entry.level) + "]";
+    out += " " + entry.message;
+    Serial.println(out);
+}
+
+void Logger::enqueue(const String &message, const String &file, Logger::LogLevel level)
+{
+    if (logQueue == nullptr) {
+        printNow({message, file, level});
+        return;
+    }
+
+    LogEntry entry {message, file, level};
+    xQueueSend((QueueHandle_t)logQueue, &entry, 0);
+}

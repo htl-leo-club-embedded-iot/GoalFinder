@@ -28,6 +28,7 @@
 #include <FileSystem.h>
 #include <AudioPlayer.h>
 #include <LedController.h>
+#include <util/Logger.h>  // logger task
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
@@ -85,9 +86,10 @@ public:
     static const int   missClipsCnt;
 
     // FreeRTOS Tasks
-    static void TaskAudioCode(void *pvParameters);
-    static void TaskDetectionCode(void *pvParameters);
-    static void TaskLedCode(void *pvParameters);
+    static void TaskAudio(void *pvParameters);
+    static void TaskDetection(void *pvParameters);
+    static void TaskLed(void *pvParameters);
+    static void TaskLogger(void *pvParameters);  
 
 private:
     friend class Singleton<GoalfinderApp>;
@@ -139,8 +141,9 @@ private:
     
 
     // FreeRTOS Handles
-    static TaskHandle_t TaskAudio;
-    static TaskHandle_t TaskDetection;
-    static TaskHandle_t TaskLed;
+    static TaskHandle_t TaskAudioHandle;
+    static TaskHandle_t TaskDetectionHandle;
+    static TaskHandle_t TaskLedHandle;
+    static TaskHandle_t TaskLoggerHandle;
     static SemaphoreHandle_t xMutex;
 };

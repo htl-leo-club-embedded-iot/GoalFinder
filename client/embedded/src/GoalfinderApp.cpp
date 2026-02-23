@@ -45,9 +45,10 @@ const char* GoalfinderApp::missClips[] = { "/miss-1.mp3" };
 const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / sizeof(GoalfinderApp::missClips[0]);
 
 // FreeRTOS Handles
-TaskHandle_t GoalfinderApp::TaskAudio = nullptr;
-TaskHandle_t GoalfinderApp::TaskDetection = nullptr;
-TaskHandle_t GoalfinderApp::TaskLed = nullptr;
+TaskHandle_t GoalfinderApp::TaskAudioHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskDetectionHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskLedHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr; // new logger handle
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
 // Constructor
@@ -85,6 +86,9 @@ bool GoalfinderApp::IsSoundEnabled() {
 void GoalfinderApp::Init() {
     delay(100);
     Serial.begin(115200);
+    // initialize queue and task for asynchronous logging
+    Logger::begin(115200);
+
     randomSeed(analogRead(pinRandomSeed));
 
     if (fileSystem.Begin()) {
@@ -105,9 +109,10 @@ void GoalfinderApp::Init() {
 
         xMutex = xSemaphoreCreateMutex();
 
-        xTaskCreatePinnedToCore(TaskAudioCode, "Audio", 8192, this, 2, &TaskAudio, 1);
-        xTaskCreatePinnedToCore(TaskDetectionCode, "Detection", 8192, this, 2, &TaskDetection, 0);
-        xTaskCreatePinnedToCore(TaskLedCode, "LED", 8192, this, 2, &TaskLed, 0);
+        xTaskCreatePinnedToCore(TaskAudio, "Audio", 8192, this, 2, &TaskAudioHandle, 1);
+        xTaskCreatePinnedToCore(TaskDetection, "Detection", 8192, this, 2, &TaskDetectionHandle, 0);
+        xTaskCreatePinnedToCore(TaskLed, "LED", 8192, this, 2, &TaskLedHandle, 0);
+        xTaskCreatePinnedToCore(TaskLogger, "Logger", 4096, this, 1, &TaskLoggerHandle, 0);
 
         Serial.println("[OK][GoalfinderApp.cpp] All tasks started");
     } else {
@@ -190,7 +195,7 @@ void GoalfinderApp::UpdateSettings(bool force) {
 }
 
 // Tasks
-void GoalfinderApp::TaskAudioCode(void *pvParameters) {
+void GoalfinderApp::TaskAudio(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
         if (app->IsSoundEnabled()) {
@@ -207,7 +212,7 @@ void GoalfinderApp::TaskAudioCode(void *pvParameters) {
     }
 }
 
-void GoalfinderApp::TaskDetectionCode(void *pvParameters) {
+void GoalfinderApp::TaskDetection(void *pvParameters) {
     // Try and remove endless loop by adding a exit option
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     for (;;) {
@@ -218,13 +223,18 @@ void GoalfinderApp::TaskDetectionCode(void *pvParameters) {
     }
 }
 
-void GoalfinderApp::TaskLedCode(void *pvParameters) {
+void GoalfinderApp::TaskLed(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     // Try and remove endless loop by adding a exit option
     for (;;) {
         app->ledController.Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
+}
+
+void GoalfinderApp::TaskLogger(void *pvParameters) {
+    (void)pvParameters;
+    Logger::Loop();
 }
 
 // Play metronome sound
