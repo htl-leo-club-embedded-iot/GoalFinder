@@ -17,6 +17,7 @@
 #include <GoalfinderApp.h>
 #include <HardwareSerial.h>
 #include <Settings.h>
+#include "util/Logger.h"
 
 // Hardware pins and constants
 const int GoalfinderApp::pinTofSda = 22;
@@ -97,7 +98,7 @@ void GoalfinderApp::Init() {
 
         dnsServer.stop();
         dnsServer.start(53, "*", WiFi.softAPIP());
-        Serial.println("[INFO][GoalfinderApp.cpp] DNS server started for captive portal");
+        Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "DNS server started for captive portal");
 
         webServer.Begin();
         sntp.Init();
@@ -114,9 +115,9 @@ void GoalfinderApp::Init() {
         xTaskCreatePinnedToCore(TaskLed, "LED", 8192, this, 2, &TaskLedHandle, 0);
         xTaskCreatePinnedToCore(TaskLogger, "Logger", 4096, this, 1, &TaskLoggerHandle, 0);
 
-        Serial.println("[OK][GoalfinderApp.cpp] All tasks started");
+        Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
     } else {
-        Serial.println("[ERROR][GoalfinderApp.cpp] FS initialization failed");
+        Logger::log("GoalfinderApp", Logger::LogLevel::ERROR, "FS initialization failed");
     }
 }
 
@@ -138,7 +139,7 @@ void GoalfinderApp::WiFiSetup() {
         WiFi.softAP(ssid, wifiPassword.c_str());
     }
     WiFi.setSleep(false);
-    Serial.printf("[INFO][GoalfinderApp.cpp] SoftAP IP: %s\n", WiFi.softAPIP().toString().c_str());
+    Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "SoftAP IP: %s", WiFi.softAPIP().toString().c_str());
 }
 
 void GoalfinderApp::ApplyDeviceNameByScan() {
@@ -149,7 +150,7 @@ void GoalfinderApp::ApplyDeviceNameByScan() {
     delay(100);
 
     int n = WiFi.scanNetworks();
-    Serial.printf("[INFO][GoalfinderApp.cpp] First run found %d networks\n", n);
+    Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "First run found %d networks", n);
 
     bool usedNumbers[100] = { false };
 
@@ -160,7 +161,7 @@ void GoalfinderApp::ApplyDeviceNameByScan() {
             int num = numStr.toInt();
             if (num > 0 && num < 100) {
                 usedNumbers[num] = true;
-                Serial.printf("[INFO][GoalfinderApp.cpp] Found existing device: %s (number %d)\n", ssid.c_str(), num);
+                Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Found existing device: %s (number %d)", ssid.c_str(), num);
             }
         }
     }
@@ -180,7 +181,7 @@ void GoalfinderApp::ApplyDeviceNameByScan() {
     
     settings->SetDeviceName(deviceName);
     settings->SetFirstRun(false);
-    Serial.printf("[OK][GoalfinderApp.cpp] First run assigned device name '%s'\n", deviceName.c_str());
+    Logger::log("GoalfinderApp", Logger::LogLevel::OK, "First run assigned device name '%s'", deviceName.c_str());
 }
 
 void GoalfinderApp::UpdateSettings(bool force) {
@@ -234,7 +235,10 @@ void GoalfinderApp::TaskLed(void *pvParameters) {
 
 void GoalfinderApp::TaskLogger(void *pvParameters) {
     (void)pvParameters;
-    Logger::Loop();
+    for (;;) {
+        Logger::Loop();
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
 }
 
 // Play metronome sound
@@ -265,7 +269,7 @@ void GoalfinderApp::DetectShot() {
                     long vibration = vibrationSensor.Vibration(10000);
                     if (vibration > shotVibrationThreshold) {
                         lastShockTime = millis();
-                        Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: shot detected\n", millis() / 1000.0);
+                        Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
                     }
                 }
             }
@@ -311,17 +315,17 @@ void GoalfinderApp::ProcessAnnouncement() {
 void GoalfinderApp::AnnounceHit() {
     detectedHits++;
     announcement = Announcement::Hit;
-    Serial.printf("[OK][GoalfinderApp.cpp] %4.3f: hit detected (total hits: %d)\n", millis() / 1000.0, detectedHits);
+    Logger::log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected (total hits: %d)", detectedHits);
 }
 
 void GoalfinderApp::AnnounceMiss() {
     detectedMisses++;
     announcement = Announcement::Miss;
-    Serial.printf("[WARN][GoalfinderApp.cpp] %4.3f: miss detected (total misses: %d)\n", millis() / 1000.0, detectedMisses);
+    Logger::log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected (total misses: %d)", detectedMisses);
 }
 
 void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
-    Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: announcing event '%s'\n", millis() / 1000.0, traceMsg);
+    Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Announcing event '%s'", traceMsg);
     if (sound) {
         announcing = true;
         PlaySound(sound);
@@ -330,7 +334,7 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
 
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
-        Serial.printf("[INFO][GoalfinderApp.cpp] %4.3f: starting playback '%s'\n", millis() / 1000.0, soundFileName);
+        Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Starting playback '%s'", soundFileName);
         if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
             audioPlayer.PlayMP3(soundFileName);
             xSemaphoreGive(xMutex);

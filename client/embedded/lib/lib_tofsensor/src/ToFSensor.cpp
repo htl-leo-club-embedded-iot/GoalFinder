@@ -1,4 +1,5 @@
 #include <ToFSensor.h>
+#include "util/Logger.h"
 
 void ToFSensor::Init(int sclPin, int sdaPin) 
 {
@@ -6,8 +7,8 @@ void ToFSensor::Init(int sclPin, int sdaPin)
 
     if(!sensor.begin(41U, false, &wireConfig))
     {
-        Serial.println(F("[ERROR][ToFSensor.cpp] Failed to boot VL53L0X"));
-    }    
+        Logger::log("ToFSensor", Logger::LogLevel::ERROR, "Failed to boot VL53L0X");
+    }
 }
 
 int ToFSensor::ReadSingleMillimeters() 

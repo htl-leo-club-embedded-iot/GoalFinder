@@ -1,5 +1,6 @@
 #include <VibrationSensor.h>
 #include <Arduino.h>
+#include "util/Logger.h"
 
 
 VibrationSensor::~VibrationSensor()

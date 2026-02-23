@@ -1,4 +1,5 @@
 #include <AudioPlayer.h>
+#include "util/Logger.h"
 
 AudioPlayer::AudioPlayer(FileSystem* fileSystem, int bclkPin, int wclkPin, int doutPin) : volumePc(0)
 {
@@ -37,7 +38,7 @@ void AudioPlayer::SetVolume(uint8_t percent)
         // calculate the gain for the player
         float gain = (gainPc / base) - epsilon;
         
-        Serial.printf("[INFO][AudioPlayer.cpp] %4.3f: setting audio gain to '%.3f'\n", millis() / 1000.0, gain);
+        Logger::log("AudioPlayer", Logger::LogLevel::INFO, "%4.3f: setting audio gain to '%.3f'", millis() / 1000.0, gain);
         audioOutput->SetGain(gain);
     }
 }

@@ -17,6 +17,7 @@
 #include "Settings.h"
 #include "WiFi.h"
 #include <math.h>
+#include "util/Logger.h"
 
 const char* Settings::keyVolume = "volume";
 const int Settings::defaultVolume = 25;
@@ -188,7 +189,7 @@ void Settings::SetWifiPassword(String wifiPassword)
 	} else {
 		if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
 		{
-			Serial.println("[WARN][Settings.cpp] Ignoring invalid WiFi password length. Expected 8-63 characters.");
+			Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
 			return;
 		}
 

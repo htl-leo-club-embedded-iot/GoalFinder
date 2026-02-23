@@ -20,14 +20,14 @@
 #include "freertos/queue.h"
 
 Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
-void* Logger::logQueue = nullptr;
+QueueHandle_t Logger::logQueue = nullptr;
 
 void Logger::begin(unsigned long baudRate)
 {
     Serial.begin(baudRate);
     while (!Serial) { }
 
-    logQueue = (void*)xQueueCreate(50, sizeof(LogEntry));
+    logQueue = xQueueCreate(50, sizeof(LogEntry*));
     if (logQueue == nullptr) {
         Serial.println("[ERROR][Logger] failed to create log queue");
     }
@@ -59,6 +59,11 @@ void Logger::log(const String &message)
 void Logger::log(const String &message, Logger::LogLevel level)
 {
     printFormatted(message, "unknown", level);
+}
+
+void Logger::log(const String &message, const String &file, Logger::LogLevel level)
+{
+    printFormatted(message, file, level);
 }
 
 void Logger::logExtra(const String &message, const String &file, Logger::LogLevel level)
@@ -96,9 +101,10 @@ void Logger::Loop()
         return;
     }
 
-    LogEntry entry;
-    if (xQueueReceive((QueueHandle_t)logQueue, &entry, 0) == pdTRUE) {
-        printNow(entry);
+    LogEntry *entryPtr = nullptr;
+    if (xQueueReceive(logQueue, &entryPtr, 0) == pdTRUE && entryPtr != nullptr) {
+        printNow(*entryPtr);
+        delete entryPtr;
     }
 }
 
@@ -119,6 +125,10 @@ void Logger::enqueue(const String &message, const String &file, Logger::LogLevel
         return;
     }
 
-    LogEntry entry {message, file, level};
-    xQueueSend((QueueHandle_t)logQueue, &entry, 0);
+    LogEntry *entryPtr = new LogEntry{message, file, level};
+    if (xQueueSend(logQueue, &entryPtr, 0) != pdTRUE) {
+        // queue full or failed — fallback to immediate print and free
+        printNow(*entryPtr);
+        delete entryPtr;
+    }
 }

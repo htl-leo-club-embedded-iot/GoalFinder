@@ -22,7 +22,6 @@
 #include <Singleton.h>
 #include <ToFSensor.h>
 #include <VibrationSensor.h>
-#include <BluetoothManager.h>
 #include <web/WebServer.h>
 #include <web/SNTP.h>
 #include <FileSystem.h>

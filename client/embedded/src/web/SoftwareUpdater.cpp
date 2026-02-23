@@ -73,7 +73,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                                    uint8_t *data, size_t len, bool final) {
     // first chunk: reset state machine 
     if (!index) {
-        Logger::log("Update Started", "SoftwareUpdater", Logger::LogLevel::INFO)
+        Logger::log("Update Started", "SoftwareUpdater", Logger::LogLevel::INFO);
         ResetState();
     }
 
@@ -101,9 +101,9 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                 memcpy(&firmwareSize,    &headerBuffer[5], 4);
                 memcpy(&filesystemSize,  &headerBuffer[9], 4);
 
-                Serial.printf("[INFO][SoftwareUpdater.cpp] GFPKG v%u: "
-                              "firmware=%u bytes, filesystem=%u bytes\n",
-                              version, firmwareSize, filesystemSize);
+                Logger::log("SoftwareUpdater", Logger::LogLevel::INFO,
+                            "GFPKG v%u: firmware=%u bytes, filesystem=%u bytes",
+                            version, firmwareSize, filesystemSize);
 
                 if (firmwareSize > 0) {
                     if (!Update.begin(firmwareSize, U_FLASH)) {
@@ -127,7 +127,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                 }
             } else {
                 // legacy plain .bin firmware
-                Logger::logExtra("Legacy firmware update detected", "SoftwareUpdater", Logger::LogLevel::INFO)
+                Logger::logExtra("Legacy firmware update detected", "SoftwareUpdater", Logger::LogLevel::INFO);
                 int contentLen = request->contentLength();
                 if (!Update.begin(contentLen, U_FLASH)) {
                     Update.printError(Serial);
@@ -169,8 +169,7 @@ void SoftwareUpdater::HandleUpdate(AsyncWebServerRequest *request,
                 Logger::log("Firmware Upload Complete", "SoftwareUpdater", Logger::LogLevel::OK);
 
                 if (filesystemSize > 0) {
-                    Serial.printf("[INFO][SoftwareUpdater.cpp] Starting filesystem "
-                                  "update: %u bytes\n", filesystemSize);
+                    Logger::log("SoftwareUpdater", Logger::LogLevel::INFO, "Starting filesystem update: %u bytes", filesystemSize);
                     if (!Update.begin(filesystemSize, U_SPIFFS)) {
                         Update.printError(Serial);
                         phase = PHASE_ERROR;

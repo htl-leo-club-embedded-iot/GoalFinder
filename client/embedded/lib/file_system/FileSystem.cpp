@@ -1,4 +1,5 @@
 #include "FileSystem.h"
+#include "util/Logger.h"
 
 FileSystem::FileSystem(bool deleteOnFailed) 
 {
@@ -12,7 +13,7 @@ bool FileSystem::Begin()
 
 File FileSystem::OpenFile(String path) 
 {
-    Serial.println("[INFO][FileSystem.cpp] Opened file: " + path);
+    Logger::log("FileSystem", Logger::LogLevel::INFO, "Opened file: %s", path.c_str());
     return LittleFS.open(path, FILE_READ);
 }
 

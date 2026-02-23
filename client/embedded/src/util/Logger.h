@@ -17,6 +17,8 @@
 #define ___LOGGER_H
 
 #include <WString.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
 class Logger
 {
@@ -50,7 +52,7 @@ public:
 
 private:
     static LogLevel currentLevel;
-    static void* logQueue;
+    static QueueHandle_t logQueue;
 
     static const char* levelToString(LogLevel level);
     static void printNow(const LogEntry &entry);
