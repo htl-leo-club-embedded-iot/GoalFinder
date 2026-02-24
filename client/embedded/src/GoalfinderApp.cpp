@@ -246,7 +246,7 @@ void GoalfinderApp::TickMetronome() {
     unsigned long currentTime = millis();
     if ((currentTime - lastMetronomeTickTime) > metronomeIntervalMs) {
         lastMetronomeTickTime = currentTime;
-        const char* clipName = (lastShockTime > 0) ? waitingClip : tickClips[0];
+        const char* clipName = (lastShockTime > 0) ? waitingClip : tickClips[Settings::GetInstance()->GetMetronomeSound()];
         PlaySound(clipName);
     }
 }
@@ -300,10 +300,10 @@ void GoalfinderApp::ProcessAnnouncement() {
             AnnounceEvent("-> shot", nullptr);
             break;
         case Announcement::Hit:
-            AnnounceEvent("-> hit", hitClips[0]);
+            AnnounceEvent("-> hit", hitClips[Settings::GetInstance()->GetHitSound()]);
             break;
         case Announcement::Miss:
-            AnnounceEvent("-> miss", missClips[0]);
+            AnnounceEvent("-> miss", missClips[Settings::GetInstance()->GetHitSound()]);
             break;
         default:
             break;
