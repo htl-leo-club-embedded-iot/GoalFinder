@@ -22,12 +22,12 @@
 #include <Singleton.h>
 #include <ToFSensor.h>
 #include <VibrationSensor.h>
-#include <BluetoothManager.h>
 #include <web/WebServer.h>
 #include <web/SNTP.h>
 #include <FileSystem.h>
 #include <AudioPlayer.h>
 #include <LedController.h>
+#include <util/Logger.h>  // logger task
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
@@ -72,7 +72,6 @@ public:
 
     static const int ledPwmChannel;
 
-    static const int ballHitDetectionDistance;
     static const int shotVibrationThreshold;
     static const int maxShotDurationMs;
 
@@ -85,9 +84,10 @@ public:
     static const int   missClipsCnt;
 
     // FreeRTOS Tasks
-    static void TaskAudioCode(void *pvParameters);
-    static void TaskDetectionCode(void *pvParameters);
-    static void TaskLedCode(void *pvParameters);
+    static void TaskAudio(void *pvParameters);
+    static void TaskDetection(void *pvParameters);
+    static void TaskLed(void *pvParameters);
+    static void TaskLogger(void *pvParameters);  
 
 private:
     friend class Singleton<GoalfinderApp>;
@@ -98,7 +98,7 @@ private:
     void OnShotDetected();
     void AnnounceHit();
     void AnnounceMiss();
-    void AnnounceEvent(const char* traceMsg, const char* sound);
+    void AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs = 3000UL);
     void PlaySound(const char* soundFileName);
     void UpdateSettings(bool force = false);
     void WiFiSetup();
@@ -115,6 +115,7 @@ private:
     // Internal Values
     bool isSoundEnabled;
     bool announcing;
+    unsigned long announcingUntilMs;
     bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
     unsigned long metronomeIntervalMs;
@@ -139,8 +140,12 @@ private:
     
 
     // FreeRTOS Handles
-    static TaskHandle_t TaskAudio;
-    static TaskHandle_t TaskDetection;
-    static TaskHandle_t TaskLed;
+    static TaskHandle_t TaskAudioHandle;
+    static TaskHandle_t TaskDetectionHandle;
+    static TaskHandle_t TaskLedHandle;
+    static TaskHandle_t TaskLoggerHandle;
     static SemaphoreHandle_t xMutex;
+
+    /** Indicates wether or not to continue looping through tasks */
+    bool loop = true;
 };

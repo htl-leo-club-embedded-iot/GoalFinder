@@ -22,6 +22,7 @@
 
 #include "Settings.h"
 #include "version.h"
+#include "util/Logger.h"
 
 #define WEBAPP_DIR "/web"
 #define INDEX_PATH "/index.html"
@@ -95,7 +96,8 @@ static String GetContentType(const String* fileName)
     }
     else 
     {
-        Serial.printf("[WARN][WebServer.cpp] Unknown file type for: %s\n", fileName->c_str());
+        Logger::log("Unknown File Type", "WebServer", Logger::LogLevel::WARN);
+        // Serial.printf("[WARN][WebServer.cpp] Unknown file type for: %s\n", fileName->c_str());
         return "application/octet-stream";
     }
 }
@@ -108,13 +110,15 @@ static void HandleNotFound(AsyncWebServerRequest* request)
         request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
         return;
     }
-    Serial.println("[WARN][WebServer.cpp] Failed request: " + request->url());
+    // Serial.println("[WARN][WebServer.cpp] Failed request: " + request->url());
+    Logger::log("Failed Request", "WebServer", Logger::LogLevel::WARN);
+
     request->send(404, "text/plain", "Not found");
 }
 
 static void HandleRequest(AsyncWebServerRequest* request)
 {
-    Serial.printf("[INFO][WebServer.cpp] Received request %s\n", request->url().c_str());
+    Logger::log("WebServer", Logger::LogLevel::INFO, "Received request %s", request->url().c_str());
 
     // Captive portal: redirect requests coming from non-AP hosts (e.g. connectivity checks)
     // so they don't get served SPA content instead of a proper portal response
@@ -149,7 +153,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     if(!fileExists)
     {
-        Serial.printf("[WARN][WebServer.cpp] File not found: %s\n", filePath.c_str());
+        Logger::log("WebServer", Logger::LogLevel::WARN, "File not found: %s", filePath.c_str());
         request->send(404, "text/plain", "File not found");
         return;
     }
@@ -159,7 +163,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     if(response == nullptr)
     {
-        Serial.println("[ERROR][WebServer.cpp] Failed to create response");
+        Logger::log("WebServer", Logger::LogLevel::ERROR, "Failed to create response");
         request->send(500, "text/plain", "Internal server error");
         return;
     }
@@ -237,7 +241,7 @@ static void HandleSaveSettings(AsyncWebServerRequest* request, uint8_t* data, si
     memcpy(jsonStr, data, len);
     jsonStr[len] = '\0';
 
-    Serial.printf("[INFO][WebServer.cpp] Received settings: %s\n", jsonStr);
+    Logger::log("WebServer", Logger::LogLevel::INFO, "Received settings: %s", jsonStr);
     deserializeJson(doc, jsonStr, len);
     delete[] jsonStr;
 
@@ -434,7 +438,7 @@ void WebServer::Init()
     server.onNotFound(HandleNotFound); 
     
     // TODO Replace any serial.out with "Log"
-    Serial.println("[OK][WebServer.cpp] Web server initialized");
+    Logger::log("WebServer", Logger::LogLevel::OK, "Web server initialized");
 }
 
 void WebServer::Begin() 
@@ -516,7 +520,7 @@ void WebServer::Begin()
 
     //server.serveStatic("/", LittleFS, "/web/").setDefaultFile("index.html").setCacheControl("max-age=604800");
     server.begin();
-    Serial.println("[OK][WebServer.cpp] Started web server");
+    Logger::log("WebServer", Logger::LogLevel::OK, "Started web server");
 }
 
 void WebServer::Stop() 

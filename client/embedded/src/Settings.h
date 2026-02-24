@@ -96,6 +96,9 @@ class Settings : public Singleton<Settings>
 
         void SetUpdateSuccess(bool success);
 
+        bool GetExtraLog();
+        void SetExtraLog(bool enabled);
+
     private:
 		friend class Singleton<Settings>;
         /** Singleton constructor */
@@ -146,6 +149,9 @@ class Settings : public Singleton<Settings>
 
         static const char* keyUpdateSuccess;
         static const bool defaultUpdateSuccess;
+
+        static const char* keyExtraLog;
+        static const bool defaultExtraLog;
 
         System::Settings store;
         bool modified;

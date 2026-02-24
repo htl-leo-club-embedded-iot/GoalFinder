@@ -24,7 +24,7 @@ const settings = useSettingsStore();
 const distance = useClampedValue(
   () => settings.ballHitDetectionDistance,
   (v) => settings.ballHitDetectionDistance = v,
-  150, 300
+  150, 600
 );
 </script>
 
@@ -34,7 +34,7 @@ const distance = useClampedValue(
       <div class="label-container">
         <label>{{ $t("word.measuring")}} {{ $t("word.distance") }}</label>
         <div class="button-container">
-          <InputForm type="number" class="button" v-model="distance" inputmode="numeric" min="150" max="300" step="10"></InputForm>
+          <InputForm type="number" class="button" v-model="distance" inputmode="numeric" min="150" max="600" step="10"></InputForm>
         </div>
       </div>
     </div>

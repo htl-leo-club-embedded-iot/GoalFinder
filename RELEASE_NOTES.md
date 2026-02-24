@@ -1,2 +1,4 @@
-- Fix DNS init issue
-- Improved settings wording
+- Audio selection not working
+- Hit Detection not able to set
+- Better schedulability
+- Better audio timeouts

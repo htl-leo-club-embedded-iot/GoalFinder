@@ -32,7 +32,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const availableBluetoothDevices = ref([]);
     
     const vibrationSensorSensitivity = ref(0);
-    const ballHitDetectionDistance = ref(0);
+    const ballHitDetectionDistance = ref(180);
     const distanceOnlyHitDetection = ref(false);
     const afterHitTimeout = ref(5);
 

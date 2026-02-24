@@ -17,6 +17,7 @@
 #include "Settings.h"
 #include "WiFi.h"
 #include <math.h>
+#include "util/Logger.h"
 
 const char* Settings::keyVolume = "volume";
 const int Settings::defaultVolume = 25;
@@ -62,6 +63,9 @@ const int Settings::defaultAfterHitTimeout = 5;
 
 const char* Settings::keyUpdateSuccess = "updateSuccess";
 const bool Settings::defaultUpdateSuccess = false;
+
+const char* Settings::keyExtraLog = "extraLog";
+const bool Settings::defaultExtraLog = false;
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -185,7 +189,7 @@ void Settings::SetWifiPassword(String wifiPassword)
 	} else {
 		if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
 		{
-			Serial.println("[WARN][Settings.cpp] Ignoring invalid WiFi password length. Expected 8-63 characters.");
+			Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
 			return;
 		}
 
@@ -214,7 +218,7 @@ int Settings::GetBallHitDetectionDistance()
 
 void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
 {
-	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 200), 0);
+	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 600), 100);
 	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
 	SetModified();
 }
@@ -290,4 +294,15 @@ bool Settings::GetUpdateSuccess()
 void Settings::SetUpdateSuccess(bool success)
 {
 	store.PutInt(keyUpdateSuccess, (int)success);
+}
+
+bool Settings::GetExtraLog()
+{
+	return (bool)store.GetInt(keyExtraLog, (int)defaultExtraLog);
+}
+
+void Settings::SetExtraLog(bool enabled)
+{
+	store.PutInt(keyExtraLog, (int)enabled);
+	SetModified();
 }
