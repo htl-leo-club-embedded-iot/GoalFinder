@@ -218,7 +218,7 @@ int Settings::GetBallHitDetectionDistance()
 
 void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
 {
-	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 200), 0);
+	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 600), 100);
 	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
 	SetModified();
 }

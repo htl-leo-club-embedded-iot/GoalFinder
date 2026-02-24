@@ -251,7 +251,7 @@ void GoalfinderApp::TickMetronome() {
 void GoalfinderApp::DetectShot() {
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
         int distance = tofSensor.ReadSingleMillimeters();
-        Logger::log("Detection", Logger::LogLevel::DEBUG, "Distance: %f", distance);
+            Logger::log("Detection", Logger::LogLevel::DEBUG, "Distance: %d | Detection: %d", distance, Settings::GetInstance()->GetBallHitDetectionDistance());
         if (distanceOnlyHitDetection) {
             if (!(announcing && audioPlayer.IsPlaying())) {
                 announcing = false;
