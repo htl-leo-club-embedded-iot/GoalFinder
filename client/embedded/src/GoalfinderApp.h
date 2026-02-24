@@ -144,4 +144,7 @@ private:
     static TaskHandle_t TaskLedHandle;
     static TaskHandle_t TaskLoggerHandle;
     static SemaphoreHandle_t xMutex;
+
+    /** Indicates wether or not to continue looping through tasks */
+    bool loop = true;
 };

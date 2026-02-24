@@ -35,13 +35,13 @@ const int GoalfinderApp::maxShotDurationMs = 5000;
 
 const char* GoalfinderApp::waitingClip = "/waiting.mp3";
 
-const char* GoalfinderApp::hitClips[] = { "/hit-1.mp3" };
+const char* GoalfinderApp::hitClips[] = { "/hit-1.mp3", "/hit-2.mp3", "/hit-3.mp3" };
 const int   GoalfinderApp::hitClipsCnt = sizeof(GoalfinderApp::hitClips) / sizeof(GoalfinderApp::hitClips[0]);
 
-const char* GoalfinderApp::tickClips[] = { "/tick-1.mp3" };
+const char* GoalfinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3" };
 const int   GoalfinderApp::tickClipsCnt = sizeof(GoalfinderApp::tickClips) / sizeof(GoalfinderApp::tickClips[0]);
 
-const char* GoalfinderApp::missClips[] = { "/miss-1.mp3" };
+const char* GoalfinderApp::missClips[] = { "/miss-1.mp3", "/miss-2.mp3", "/miss-3.mp3" };
 const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / sizeof(GoalfinderApp::missClips[0]);
 
 // FreeRTOS Handles
@@ -197,7 +197,7 @@ void GoalfinderApp::UpdateSettings(bool force) {
 // Tasks
 void GoalfinderApp::TaskAudio(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
-    for (;;) {
+    while (app->loop) {
         if (app->IsSoundEnabled()) {
             if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
                 app->audioPlayer.Loop();
@@ -213,9 +213,8 @@ void GoalfinderApp::TaskAudio(void *pvParameters) {
 }
 
 void GoalfinderApp::TaskDetection(void *pvParameters) {
-    // Try and remove endless loop by adding a exit option
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
-    for (;;) {
+    while (app->loop) {
         app->UpdateSettings();
         app->DetectShot();
         app->ProcessAnnouncement();
@@ -225,16 +224,15 @@ void GoalfinderApp::TaskDetection(void *pvParameters) {
 
 void GoalfinderApp::TaskLed(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
-    // Try and remove endless loop by adding a exit option
-    for (;;) {
+    while (app->loop) {
         app->ledController.Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
 
 void GoalfinderApp::TaskLogger(void *pvParameters) {
-    (void)pvParameters;
-    for (;;) {
+    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+    while (app->loop) {
         Logger::Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
@@ -252,10 +250,11 @@ void GoalfinderApp::TickMetronome() {
 
 void GoalfinderApp::DetectShot() {
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
+        int distance = tofSensor.ReadSingleMillimeters();
+        Logger::log("Detection", Logger::LogLevel::DEBUG, "Distance: %f", distance);
         if (distanceOnlyHitDetection) {
             if (!(announcing && audioPlayer.IsPlaying())) {
                 announcing = false;
-                int distance = tofSensor.ReadSingleMillimeters();
                 if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
                     AnnounceHit();
                     lastHitTime = millis();
