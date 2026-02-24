@@ -1,2 +1,4 @@
 - Audio selection not working
-- 
+- Hit Detection not able to set
+- Better schedulability
+- Better audio timeouts

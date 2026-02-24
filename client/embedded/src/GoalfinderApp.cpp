@@ -62,6 +62,7 @@ GoalfinderApp::GoalfinderApp() :
     vibrationSensor(),
     ledController(pinLedPwm, ledPwmChannel),
     announcing(false),
+    announcingUntilMs(0),
     metronomeIntervalMs(2000),
     lastMetronomeTickTime(0),
     announcement(Announcement::None),
@@ -249,9 +250,12 @@ void GoalfinderApp::TickMetronome() {
 }
 
 void GoalfinderApp::DetectShot() {
+    if (announcing && (millis() > announcingUntilMs || !audioPlayer.IsPlaying())) {
+        announcing = false;
+    }
+
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
         int distance = tofSensor.ReadSingleMillimeters();
-            Logger::log("Detection", Logger::LogLevel::DEBUG, "Distance: %d | Detection: %d", distance, Settings::GetInstance()->GetBallHitDetectionDistance());
         if (distanceOnlyHitDetection) {
             if (!(announcing && audioPlayer.IsPlaying())) {
                 announcing = false;
@@ -295,13 +299,15 @@ void GoalfinderApp::DetectShot() {
 void GoalfinderApp::ProcessAnnouncement() {
     switch (announcement) {
         case Announcement::Shot:
-            AnnounceEvent("-> shot", nullptr);
+            // no sound for Shot; keep announcing off
+            AnnounceEvent("shot", nullptr, 0);
             break;
         case Announcement::Hit:
-            AnnounceEvent("-> hit", hitClips[Settings::GetInstance()->GetHitSound()]);
+            // play hit sound and set a short timeout
+            AnnounceEvent("hit", hitClips[Settings::GetInstance()->GetHitSound()], 2500UL);
             break;
         case Announcement::Miss:
-            AnnounceEvent("-> miss", missClips[Settings::GetInstance()->GetHitSound()]);
+            AnnounceEvent("miss", missClips[Settings::GetInstance()->GetHitSound()], 3500UL);
             break;
         default:
             break;
@@ -309,7 +315,6 @@ void GoalfinderApp::ProcessAnnouncement() {
     announcement = Announcement::None;
 }
 
-// Old comment mentioned some missing logic here but works fine
 void GoalfinderApp::AnnounceHit() {
     detectedHits++;
     announcement = Announcement::Hit;
@@ -322,10 +327,15 @@ void GoalfinderApp::AnnounceMiss() {
     Logger::log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected (total misses: %d)", detectedMisses);
 }
 
-void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound) {
+void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {
     Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Announcing event '%s'", traceMsg);
     if (sound) {
         announcing = true;
+        if (timeoutMs > 0) {
+            announcingUntilMs = millis() + timeoutMs;
+        } else {
+            announcingUntilMs = 0;
+        }
         PlaySound(sound);
     }
 }

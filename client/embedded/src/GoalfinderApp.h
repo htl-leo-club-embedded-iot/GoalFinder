@@ -98,7 +98,7 @@ private:
     void OnShotDetected();
     void AnnounceHit();
     void AnnounceMiss();
-    void AnnounceEvent(const char* traceMsg, const char* sound);
+    void AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs = 3000UL);
     void PlaySound(const char* soundFileName);
     void UpdateSettings(bool force = false);
     void WiFiSetup();
@@ -115,6 +115,7 @@ private:
     // Internal Values
     bool isSoundEnabled;
     bool announcing;
+    unsigned long announcingUntilMs;
     bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
     unsigned long metronomeIntervalMs;
