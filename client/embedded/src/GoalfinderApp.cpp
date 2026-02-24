@@ -30,7 +30,6 @@ const int GoalfinderApp::pinRandomSeed = 36;
 
 const int GoalfinderApp::ledPwmChannel = 0;
 
-const int GoalfinderApp::ballHitDetectionDistance = 180;
 const int GoalfinderApp::shotVibrationThreshold = 2000;
 const int GoalfinderApp::maxShotDurationMs = 5000;
 
@@ -49,7 +48,7 @@ const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / siz
 TaskHandle_t GoalfinderApp::TaskAudioHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskDetectionHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskLedHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr; // new logger handle
+TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
 // Constructor
@@ -108,7 +107,7 @@ void GoalfinderApp::Init() {
 
         UpdateSettings(true);
 
-        xMutex = xSemaphoreCreateMutex();
+        xMutex = xSemaphoreCreateMutex();    
 
         xTaskCreatePinnedToCore(TaskAudio, "Audio", 8192, this, 2, &TaskAudioHandle, 1);
         xTaskCreatePinnedToCore(TaskDetection, "Detection", 8192, this, 2, &TaskDetectionHandle, 0);
@@ -257,7 +256,7 @@ void GoalfinderApp::DetectShot() {
             if (!(announcing && audioPlayer.IsPlaying())) {
                 announcing = false;
                 int distance = tofSensor.ReadSingleMillimeters();
-                if (distance > 20 && distance < ballHitDetectionDistance) {
+                if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
                     AnnounceHit();
                     lastHitTime = millis();
                 }
@@ -278,7 +277,7 @@ void GoalfinderApp::DetectShot() {
 
             if (lastShockTime > 0 && (currentTime - lastShockTime) < maxShotDurationMs) {
                 int distance = tofSensor.ReadSingleMillimeters();
-                if (distance > 20 && distance < ballHitDetectionDistance) {
+                if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
                     AnnounceHit();
                     lastShockTime = 0;
                     lastHitTime = millis();
