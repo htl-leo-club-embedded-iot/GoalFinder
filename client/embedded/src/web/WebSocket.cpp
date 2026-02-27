@@ -14,34 +14,5 @@
  * ===============================================================================
  */
 
-#pragma once
+#include "WiFiManger.h"
 
-#ifndef ___WEB_SERVER_H
-#define ___WEB_SERVER_H
-
-#include <ESPAsyncWebServer.h>
-#include <GoalfinderApp.h>
-#include <FileSystem.h>
-#include <AsyncJson.h>
-#include <WiFi.h>
-#include <ArduinoJson.h>
-#include "SoftwareUpdater.h"
-#include "Settings.h"
-#include "version.h"
-#include "util/Logger.h"
-
-class WebServer 
-{
-    public:
-        virtual ~WebServer();
-        void Begin();
-        void Stop();
-        WebServer(FileSystem* fileSystem);
-    private:
-        AsyncWebServer server;
-        SoftwareUpdater updater;
-        void Init();
-        bool isDone;
-};
-
-#endif

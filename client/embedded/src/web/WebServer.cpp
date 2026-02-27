@@ -15,14 +15,6 @@
  */
 
 #include "WebServer.h"
-#include <AsyncJson.h>
-#include <ArduinoJson.h>
-#include <WiFi.h>
-#include <GoalfinderApp.h>
-
-#include "Settings.h"
-#include "version.h"
-#include "util/Logger.h"
 
 #define WEBAPP_DIR "/web"
 #define INDEX_PATH "/index.html"

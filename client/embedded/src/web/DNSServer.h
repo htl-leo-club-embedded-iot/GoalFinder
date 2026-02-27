@@ -14,34 +14,14 @@
  * ===============================================================================
  */
 
-#pragma once
+#ifndef ___DNS_SERVER_H
+#define ___DNS_SERVER_H
 
-#ifndef ___WEB_SERVER_H
-#define ___WEB_SERVER_H
-
-#include <ESPAsyncWebServer.h>
-#include <GoalfinderApp.h>
-#include <FileSystem.h>
-#include <AsyncJson.h>
-#include <WiFi.h>
-#include <ArduinoJson.h>
-#include "SoftwareUpdater.h"
-#include "Settings.h"
-#include "version.h"
-#include "util/Logger.h"
-
-class WebServer 
-{
-    public:
-        virtual ~WebServer();
-        void Begin();
-        void Stop();
-        WebServer(FileSystem* fileSystem);
+class DNSServer {
     private:
-        AsyncWebServer server;
-        SoftwareUpdater updater;
-        void Init();
-        bool isDone;
+
+    public:
+    
 };
 
 #endif
