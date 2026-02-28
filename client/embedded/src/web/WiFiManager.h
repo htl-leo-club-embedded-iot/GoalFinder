@@ -14,14 +14,18 @@
  * ===============================================================================
  */
 
-#ifndef ___WEB_SOCKET_H
-#define ___WEB_SOCKET_H
+#ifndef __WEB_WIFI_MANAGER_H
+#define __WEB_WIFI_MANAGER_H
 
-class WebSocket {
-    private:
+#include "..\Settings.h"
+#include "..\util\Logger.h"
+#include <WiFi.h>
 
+class WiFiManager {
     public:
-    
+        static void Setup();
+    private:
+        static void ApplyDeviceNameByScan();
 };
 
 #endif

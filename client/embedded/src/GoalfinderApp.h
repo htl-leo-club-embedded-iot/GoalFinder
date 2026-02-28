@@ -21,8 +21,6 @@
 #include <DNSServer.h>
 #include <Singleton.h>
 #include <ToFSensor.h>
-#include <VibrationSensor.h>
-#include <web/WebServer.h>
 #include <web/SNTP.h>
 #include <FileSystem.h>
 #include <AudioPlayer.h>
@@ -31,6 +29,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include <VibrationSensor.h>
+#include <web/WebServer.h>
+
 
 class GoalfinderApp : public Singleton<GoalfinderApp> {
 public:

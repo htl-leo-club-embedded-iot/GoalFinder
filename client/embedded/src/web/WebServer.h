@@ -20,8 +20,9 @@
 #define ___WEB_SERVER_H
 
 #include <ESPAsyncWebServer.h>
-#include <GoalfinderApp.h>
 #include <FileSystem.h>
+// forward declare to break include cycle
+class GoalfinderApp;
 #include <AsyncJson.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>

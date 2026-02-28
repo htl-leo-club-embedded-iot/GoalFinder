@@ -17,7 +17,7 @@
 #ifndef ___WIFI_MANAGER_H
 #define ___WIFI_MANAGER_H
 
-class WiFiManager {
+class WebSocket {
     private:
 
     public:

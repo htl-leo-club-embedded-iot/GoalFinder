@@ -15,6 +15,7 @@
  */
 
 #include "WebServer.h"
+#include <GoalfinderApp.h>
 
 #define WEBAPP_DIR "/web"
 #define INDEX_PATH "/index.html"
