@@ -18,7 +18,6 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <DNSServer.h>
 #include <Singleton.h>
 #include <ToFSensor.h>
 #include <web/SNTP.h>
@@ -31,6 +30,7 @@
 #include "freertos/semphr.h"
 #include <VibrationSensor.h>
 #include <web/WebServer.h>
+#include "web/WiFiManager.h"
 
 
 class GoalfinderApp : public Singleton<GoalfinderApp> {
@@ -88,6 +88,7 @@ public:
     static void TaskAudio(void *pvParameters);
     static void TaskDetection(void *pvParameters);
     static void TaskLed(void *pvParameters);
+    static void TaskWiFi(void *pvParameters);
     static void TaskLogger(void *pvParameters);  
 
 private:
@@ -109,7 +110,7 @@ private:
     FileSystem fileSystem;
     WebServer webServer;
     SNTP sntp;
-    DNSServer dnsServer;
+    WiFiManager wifiManager;
     ToFSensor tofSensor;
     VibrationSensor vibrationSensor;
 
@@ -144,6 +145,7 @@ private:
     static TaskHandle_t TaskAudioHandle;
     static TaskHandle_t TaskDetectionHandle;
     static TaskHandle_t TaskLedHandle;
+    static TaskHandle_t TaskWiFiHandle;
     static TaskHandle_t TaskLoggerHandle;
     static SemaphoreHandle_t xMutex;
 

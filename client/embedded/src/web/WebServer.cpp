@@ -97,8 +97,8 @@ static String GetContentType(const String* fileName)
 
 static void HandleNotFound(AsyncWebServerRequest* request) 
 {
-    // Captive portal: redirect any unknown host to the AP
-    if (request->host() != WiFi.softAPIP().toString()) 
+    // Captive portal: redirect any unknown host to the AP (only in AP mode)
+    if ((WiFi.getMode() & WIFI_AP) && request->host() != WiFi.softAPIP().toString()) 
     {
         request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
         return;
@@ -115,7 +115,7 @@ static void HandleRequest(AsyncWebServerRequest* request)
 
     // Captive portal: redirect requests coming from non-AP hosts (e.g. connectivity checks)
     // so they don't get served SPA content instead of a proper portal response
-    if (request->host() != WiFi.softAPIP().toString() && request->host() != "" ) 
+    if ((WiFi.getMode() & WIFI_AP) && request->host() != WiFi.softAPIP().toString() && request->host() != "" ) 
     {
         request->redirect("http://" + WiFi.softAPIP().toString() + "/games");
         return;

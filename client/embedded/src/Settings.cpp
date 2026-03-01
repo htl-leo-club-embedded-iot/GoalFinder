@@ -70,10 +70,10 @@ const bool Settings::defaultExtraLog = false;
 const char* Settings::keyUseExternalNW = "extNW";
 const bool Settings::defaultUseExternalNW = false;
 
-const char* Settings::keyExternalNW_SSID = "extNWSSID"
+const char* Settings::keyExternalNW_SSID = "extNWSSID";
 const String Settings::defaultExternalNW_SSID = emptyString;
 
-const char* Settings::keyExternalNW_PWD = "extNWPWD"
+const char* Settings::keyExternalNW_PWD = "extNWPWD";
 const String Settings::defaultExternalNW_PWD = emptyString;
 	
 Settings::Settings() :
@@ -316,27 +316,27 @@ bool Settings::GetUseExternalNW() {
 }
 
 
-void SetUseExternalNW(bool enable) {
-	store.PutInt(keyUseExternalNW, (int)enabled);
+void Settings::SetUseExternalNW(bool enable) {
+	store.PutInt(keyUseExternalNW, (int)enable);
 	SetModified();
 }
 
-String GetExternalNW_SSID() {
+String Settings::GetExternalNW_SSID() {
 	return store.IsKey(keyExternalNW_SSID) ? store.GetString(keyExternalNW_SSID, defaultExternalNW_SSID) : defaultExternalNW_SSID;
 }
 
 
-void SetExternalNW_SSID(String ssid) {
+void Settings::SetExternalNW_SSID(String ssid) {
 	ssid.trim();
 	store.PutString(keyExternalNW_SSID, ssid);
 	SetModified();
 }
 
-String GetExternalNW_PWD() {
+String Settings::GetExternalNW_PWD() {
 	return store.IsKey(keyExternalNW_PWD) ? store.GetString(keyExternalNW_PWD, defaultExternalNW_PWD) : defaultExternalNW_PWD;
 }
 
-void SetExternalNW_PWD(String pwd) {
+void Settings::SetExternalNW_PWD(String pwd) {
 	pwd.trim();
 
 	if(pwd.isEmpty())

@@ -17,8 +17,6 @@
 #include <GoalfinderApp.h>
 #include <HardwareSerial.h>
 #include <Settings.h>
-#include "web/WiFiManager.h"
-#include "web/WebServer.h"  // needed for member initialization
 #include "util/Logger.h"
 
 // Hardware pins and constants
@@ -50,6 +48,7 @@ const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / siz
 TaskHandle_t GoalfinderApp::TaskAudioHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskDetectionHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskLedHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskWiFiHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
@@ -95,12 +94,8 @@ void GoalfinderApp::Init() {
     randomSeed(analogRead(pinRandomSeed));
 
     if (fileSystem.Begin()) {
-        WiFiManager::Setup();
-        delay(200); // Allow SoftAP setup
-
-        dnsServer.stop();
-        dnsServer.start(53, "*", WiFi.softAPIP());
-        Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "DNS server started for captive portal");
+        wifiManager.Init();
+        delay(200);
 
         webServer.Begin();
         sntp.Init();
@@ -115,6 +110,7 @@ void GoalfinderApp::Init() {
         xTaskCreatePinnedToCore(TaskAudio, "Audio", 8192, this, 2, &TaskAudioHandle, 1);
         xTaskCreatePinnedToCore(TaskDetection, "Detection", 8192, this, 2, &TaskDetectionHandle, 0);
         xTaskCreatePinnedToCore(TaskLed, "LED", 8192, this, 2, &TaskLedHandle, 0);
+        xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 4096, this, 1, &TaskWiFiHandle, 0);
         xTaskCreatePinnedToCore(TaskLogger, "Logger", 4096, this, 1, &TaskLoggerHandle, 0);
 
         Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
@@ -167,6 +163,14 @@ void GoalfinderApp::TaskLed(void *pvParameters) {
     while (app->loop) {
         app->ledController.Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
+}
+
+void GoalfinderApp::TaskWiFi(void *pvParameters) {
+    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+    while (app->loop) {
+        app->wifiManager.Loop();
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
@@ -290,9 +294,6 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
 }
 
 void GoalfinderApp::Process() {
-    if (WiFi.softAPgetStationNum() >= 0) {
-        dnsServer.processNextRequest();
-    }
     delay(1);
 }
 
