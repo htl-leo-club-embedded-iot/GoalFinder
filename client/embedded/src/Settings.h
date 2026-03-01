@@ -34,70 +34,64 @@ class Settings : public Singleton<Settings>
 
         /** Provides the volume as a range from 0 to 100 percent. */
         int GetVolume();
-
         /** Sets the volume. The range is clipped to 0 to 100 percent.*/
         void SetVolume(int volume);
 
         void SetMetronomeSound(int metronomeSound);
-
         int GetMetronomeSound();
 
         void SetHitSound(int hitSound);
-
         int GetHitSound();
 
         void SetMissSound(int missSound);
-
         int GetMissSound();
 
         String GetDeviceName();
-
         void SetDeviceName(String deviceName);
 
         String GetDevicePassword();
-
         void SetDevicePassword(String devicePassword);
-
+        
         String GetWifiPassword();
-
         void SetWifiPassword(String wifiPassword);
 
         int GetVibrationSensorSensitivity();
-
         void SetVibrationSensorSensitivity(int vibrationSensorSensitivity);
 
         int GetBallHitDetectionDistance();
-
         void SetBallHitDetectionDistance(int ballHitDetectionDistance);
 
         bool GetDistanceOnlyHitDetection();
-
         void SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection);
 
         int GetLedBrightness();
-
         void SetLedBrightness(int ledBrightness);
 
         LedMode GetLedMode();
-
         void SetLedMode(LedMode ledMode);
 
         bool IsFirstRun();
-
         void SetFirstRun(bool firstRun);
 
         void ResetToDefaults();
 
         int GetAfterHitTimeout();
-
         void SetAfterHitTimeout(int timeout);
 
         bool GetUpdateSuccess();
-
         void SetUpdateSuccess(bool success);
 
         bool GetExtraLog();
         void SetExtraLog(bool enabled);
+
+        bool GetUseExternalNW();
+        void SetUseExternalNW(bool enable);
+
+        String GetExternalNW_SSID();
+        void SetExternalNW_SSID(String ssid);
+
+        String GetExternalNW_PWD();
+        void SetExternalNW_PWD(String pwd);
 
     private:
 		friend class Singleton<Settings>;
@@ -152,6 +146,15 @@ class Settings : public Singleton<Settings>
 
         static const char* keyExtraLog;
         static const bool defaultExtraLog;
+
+        static const char* keyUseExternalNW;
+        static const bool defaultUseExternalNW;
+
+        static const char* keyExternalNW_SSID;
+        static const String defaultExternalNW_SSID;
+
+        static const char* keyExternalNW_PWD;
+        static const String defaultExternalNW_PWD;
 
         System::Settings store;
         bool modified;

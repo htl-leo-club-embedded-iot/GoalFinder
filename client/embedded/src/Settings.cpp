@@ -66,17 +66,26 @@ const bool Settings::defaultUpdateSuccess = false;
 
 const char* Settings::keyExtraLog = "extraLog";
 const bool Settings::defaultExtraLog = false;
+
+const char* Settings::keyUseExternalNW = "extNW";
+const bool Settings::defaultUseExternalNW = false;
+
+const char* Settings::keyExternalNW_SSID = "extNWSSID"
+const String Settings::defaultExternalNW_SSID = emptyString;
+
+const char* Settings::keyExternalNW_PWD = "extNWPWD"
+const String Settings::defaultExternalNW_PWD = emptyString;
 	
 Settings::Settings() :
     Singleton<Settings>(),
 	store(),
 	modified(false)
-{
-    store.Begin("app_prefs");
-}
+	{
+    	store.Begin("app_prefs");
+	}
 
- Settings::~Settings() {
- }
+	Settings::~Settings() {
+}
 
 String Settings::GetMacAddress() {
 	return String(WiFi.macAddress());
@@ -135,11 +144,10 @@ void Settings::ClearModifiedState() {
 	modified = false;
 }
 
-
 String Settings::GetDeviceName()
 {
 	return store.GetString(keyDeviceName, defaultDeviceName);
-};
+}
 
 void Settings::SetDeviceName(String deviceName)
 {
@@ -150,12 +158,12 @@ void Settings::SetDeviceName(String deviceName)
 	
 	store.PutString(keyDeviceName, deviceName);
 	SetModified(); 
-};
+}
 
 String Settings::GetDevicePassword()
 {
 	return store.IsKey(keyDevicePassword) ? store.GetString(keyDevicePassword, defaultDevicePassword) : defaultDevicePassword;
-};
+}
 
 void Settings::SetDevicePassword(String devicePassword)
 {
@@ -170,12 +178,12 @@ void Settings::SetDevicePassword(String devicePassword)
 		store.PutString(keyDevicePassword, devicePassword);
 	}
 	SetModified();
-};
+}
 
 String Settings::GetWifiPassword()
 {
 	return store.IsKey(keyWifiPassword) ? store.GetString(keyWifiPassword, defaultWifiPassword) : defaultWifiPassword;
-};
+}
 
 void Settings::SetWifiPassword(String wifiPassword)
 {
@@ -185,19 +193,15 @@ void Settings::SetWifiPassword(String wifiPassword)
 	{
 		if (store.IsKey(keyWifiPassword)) {
 			store.Remove(keyWifiPassword);
+			SetModified();
 		}
-	} else {
-		if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
-		{
-			Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
-			return;
-		}
-
+	} else if (wifiPassword.length() >= 8 && wifiPassword.length() < 63) {
 		store.PutString(keyWifiPassword, wifiPassword);
+		SetModified();		
+	} else {
+		Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
 	}
-
-	SetModified();
-};
+}
 
 int Settings::GetVibrationSensorSensitivity()
 {
@@ -305,4 +309,46 @@ void Settings::SetExtraLog(bool enabled)
 {
 	store.PutInt(keyExtraLog, (int)enabled);
 	SetModified();
+}
+
+bool Settings::GetUseExternalNW() {
+	return (bool)store.GetInt(keyUseExternalNW, (int)defaultUseExternalNW);
+}
+
+
+void SetUseExternalNW(bool enable) {
+	store.PutInt(keyUseExternalNW, (int)enabled);
+	SetModified();
+}
+
+String GetExternalNW_SSID() {
+	return store.IsKey(keyExternalNW_SSID) ? store.GetString(keyExternalNW_SSID, defaultExternalNW_SSID) : defaultExternalNW_SSID;
+}
+
+
+void SetExternalNW_SSID(String ssid) {
+	ssid.trim();
+	store.PutString(keyExternalNW_SSID, ssid);
+	SetModified();
+}
+
+String GetExternalNW_PWD() {
+	return store.IsKey(keyExternalNW_PWD) ? store.GetString(keyExternalNW_PWD, defaultExternalNW_PWD) : defaultExternalNW_PWD;
+}
+
+void SetExternalNW_PWD(String pwd) {
+	pwd.trim();
+
+	if(pwd.isEmpty())
+	{
+		if (store.IsKey(keyExternalNW_PWD)) {
+			store.Remove(keyExternalNW_PWD);
+			SetModified();
+		}
+	} else if (pwd.length() >= 8 && pwd.length() < 64) {
+		store.PutString(keyExternalNW_PWD, pwd);
+		SetModified();
+	} else {
+		Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
+	}
 }
