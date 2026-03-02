@@ -19,6 +19,7 @@ import {reactive, ref, useTemplateRef} from "vue";
 import {TimedShotsChallengeGame} from "@/models/game";
 import {Player} from "@/models/player";
 import {useSettingsStore} from "@/stores/settings";
+import {useWebSocketStore} from "@/stores/websocket";
 import {useI18n} from "vue-i18n";
 import Page from "@/components/Page.vue";
 import Button from "@/components/Button.vue";
@@ -36,6 +37,7 @@ const game = reactive(new TimedShotsChallengeGame());
 const showLeaderboard = ref(false);
 const playerName = ref("");
 const settings = useSettingsStore();
+const wsStore = useWebSocketStore();
 
 const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
 const { t } = useI18n();
@@ -75,7 +77,7 @@ function onGameStartBtnClick() {
     settings.isSoundEnabled = false;
   }
   else {
-    game.start();
+    game.start(wsStore);
   }
 }
 

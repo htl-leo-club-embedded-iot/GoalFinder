@@ -51,13 +51,16 @@ TaskHandle_t GoalfinderApp::TaskLedHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskWiFiHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskDNSHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskWebSocketHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskHttpHandle = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
 // Constructor
 GoalfinderApp::GoalfinderApp() :
     Singleton<GoalfinderApp>(),
     fileSystem(true),
-    webServer(&fileSystem),
+    httpServer(&fileSystem),
+    webSocket(),
     sntp(),
     audioPlayer(&fileSystem, pinI2sBclk, pinI2sWclk, pinI2sDataOut),
     tofSensor(),
@@ -89,7 +92,6 @@ bool GoalfinderApp::IsSoundEnabled() {
 void GoalfinderApp::Init() {
     delay(100);
     Serial.begin(115200);
-    // initialize queue and task for asynchronous logging
     Logger::begin(115200);
 
     randomSeed(analogRead(pinRandomSeed));
@@ -98,7 +100,8 @@ void GoalfinderApp::Init() {
         wifiManager.Init();
         delay(200);
 
-        webServer.Begin();
+        httpServer.Begin();
+        webSocket.Begin();
         sntp.Init();
         vibrationSensor.Init();
         tofSensor.Init(pinTofScl, pinTofSda);
@@ -112,12 +115,14 @@ void GoalfinderApp::Init() {
         deviceIP.fromString(Settings::GetInstance()->GetDeviceIpAddress());
         dnsServer.Begin(deviceIP);
 
-        xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,        2, &TaskAudioHandle,     1);
-        xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,        2, &TaskDetectionHandle, 0);
-        xTaskCreatePinnedToCore(TaskLed,            "LED",       8192, this,        2, &TaskLedHandle,       0);
-        xTaskCreatePinnedToCore(TaskWiFi,           "WiFi",      4096, this,        1, &TaskWiFiHandle,      0);
-        xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,        1, &TaskLoggerHandle,    0);
-        xTaskCreatePinnedToCore(GFDNSServer::Task,    "DNS",       4096, &dnsServer,  1, &TaskDNSHandle,       0);
+        xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,           2, &TaskAudioHandle,     1);
+        xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,           2, &TaskDetectionHandle, 0);
+        xTaskCreatePinnedToCore(TaskLed,            "LED",       8192, this,           2, &TaskLedHandle,       0);
+        xTaskCreatePinnedToCore(TaskWiFi,           "WiFi",      4096, this,           1, &TaskWiFiHandle,      0);
+        xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,           1, &TaskLoggerHandle,    0);
+        xTaskCreatePinnedToCore(GFDNSServer::Task,  "DNS",       4096, &dnsServer,     1, &TaskDNSHandle,       0);
+        xTaskCreatePinnedToCore(TaskWebSocket,      "WS",        8192, &webSocket,     2, &TaskWebSocketHandle, 0);
+        xTaskCreatePinnedToCore(TaskHttp,           "HTTP",      8192, &httpServer,    1, &TaskHttpHandle,      0);
 
         Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
     } else {
@@ -184,6 +189,22 @@ void GoalfinderApp::TaskLogger(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     while (app->loop) {
         Logger::Loop();
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
+}
+
+void GoalfinderApp::TaskWebSocket(void *pvParameters) {
+    GFWebSocket* ws = (GFWebSocket*)pvParameters;
+    while (true) {
+        ws->Loop();
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
+}
+
+void GoalfinderApp::TaskHttp(void *pvParameters) {
+    HttpServer* http = (HttpServer*)pvParameters;
+    while (true) {
+        http->Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
@@ -265,15 +286,15 @@ void GoalfinderApp::ProcessAnnouncement() {
 }
 
 void GoalfinderApp::AnnounceHit() {
-    detectedHits++;
     announcement = Announcement::Hit;
-    Logger::log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected (total hits: %d)", detectedHits);
+    webSocket.SendHitEvent();
+    Logger::log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected");
 }
 
 void GoalfinderApp::AnnounceMiss() {
-    detectedMisses++;
     announcement = Announcement::Miss;
-    Logger::log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected (total misses: %d)", detectedMisses);
+    webSocket.SendMissEvent();
+    Logger::log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected");
 }
 
 void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {
@@ -301,24 +322,4 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
 
 void GoalfinderApp::Process() {
     delay(1);
-}
-
-int GoalfinderApp::GetDetectedHits()
-{
-    return detectedHits;
-}
-
-int GoalfinderApp::GetDetectedMisses()
-{
-    return detectedMisses;
-}
-
-void GoalfinderApp::ResetDetectedHits()
-{
-    detectedHits = 0;
-}
-
-void GoalfinderApp::ResetDetectedMisses()
-{
-    detectedMisses = 0;
 }

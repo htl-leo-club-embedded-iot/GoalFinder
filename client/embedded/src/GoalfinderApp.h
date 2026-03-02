@@ -29,7 +29,8 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include <VibrationSensor.h>
-#include <web/WebServer.h>
+#include <web/HttpServer.h>
+#include <web/WebSocket.h>
 #include "web/WiFiManager.h"
 #include "web/DNSServer.h"
 
@@ -40,11 +41,7 @@ public:
     void SetIsSoundEnabled(bool value);
     bool IsSoundEnabled();
 
-    int GetDetectedHits();
-	int GetDetectedMisses();
 
-	void ResetDetectedHits();
-	void ResetDetectedMisses();
 
     /** Destructor */
     virtual ~GoalfinderApp();
@@ -90,7 +87,9 @@ public:
     static void TaskDetection(void *pvParameters);
     static void TaskLed(void *pvParameters);
     static void TaskWiFi(void *pvParameters);
-    static void TaskLogger(void *pvParameters);  
+    static void TaskLogger(void *pvParameters);
+    static void TaskWebSocket(void *pvParameters);
+    static void TaskHttp(void *pvParameters);
 
 private:
     friend class Singleton<GoalfinderApp>;
@@ -109,7 +108,8 @@ private:
 
     // Internal objects
     FileSystem fileSystem;
-    WebServer webServer;
+    HttpServer httpServer;
+    GFWebSocket webSocket;
     SNTP sntp;
     WiFiManager wifiManager;
     GFDNSServer dnsServer;
@@ -138,11 +138,6 @@ private:
     };
     Announcement::Enum announcement;
 
-    // Statistics
-    int detectedHits = 0;
-    int detectedMisses = 0;
-    
-
     // FreeRTOS Handles
     static TaskHandle_t TaskAudioHandle;
     static TaskHandle_t TaskDetectionHandle;
@@ -150,6 +145,8 @@ private:
     static TaskHandle_t TaskWiFiHandle;
     static TaskHandle_t TaskLoggerHandle;
     static TaskHandle_t TaskDNSHandle;
+    static TaskHandle_t TaskWebSocketHandle;
+    static TaskHandle_t TaskHttpHandle;
     static SemaphoreHandle_t xMutex;
 
     /** Indicates wether or not to continue looping through tasks */

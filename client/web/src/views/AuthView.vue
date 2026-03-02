@@ -18,12 +18,14 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useWebSocketStore } from '@/stores/websocket';
 import Page from '@/components/Page.vue';
 import InputForm from '@/components/InputForm.vue';
 import Button from '@/components/Button.vue';
 
 const router = useRouter();
 const { t } = useI18n();
+const wsStore = useWebSocketStore();
 
 const password = ref('');
 const errorMessage = ref('');
@@ -38,27 +40,13 @@ async function authenticate() {
   isLoading.value = true;
   errorMessage.value = '';
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 2000);
-
   try {
-    const response = await fetch(`/api/auth?password=${encodeURIComponent(password.value)}`, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+    const result = await wsStore.sendAuth(password.value);
 
-    if (!response.ok) {
-      errorMessage.value = t('auth.error');
-      isLoading.value = false;
-      return;
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
+    if (result.success) {
       sessionStorage.setItem('authenticated', 'true');
       router.replace('/');
-    } else if (data.timeout) {
+    } else if (result.timeout) {
       errorMessage.value = t('auth.too_many_attempts');
     } else {
       errorMessage.value = t('auth.invalid_password');

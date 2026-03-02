@@ -17,18 +17,20 @@
 <script setup lang="ts">
 import {reactive} from "vue";
 import {FreePlayGame} from "@/models/game";
+import {useWebSocketStore} from "@/stores/websocket";
 import Page from "@/components/Page.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import Button from "@/components/Button.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
 
 const game = reactive(new FreePlayGame());
+const wsStore = useWebSocketStore();
 
 function onGameStartBtnClick() {
   if (game.isRunning) {
     game.pause();
   } else {
-    game.start();
+    game.start(wsStore);
   }
 }
 

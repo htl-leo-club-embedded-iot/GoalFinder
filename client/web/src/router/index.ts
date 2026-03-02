@@ -15,6 +15,7 @@
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
+import { useWebSocketStore } from '@/stores/websocket'
 
 let devicePasswordRequired: boolean | null = null;
 
@@ -113,22 +114,12 @@ router.beforeEach(async (to, from, next) => {
     return next();
   }
 
-  // Check if device requires authentication (cache the result)
+  // Check if device requires authentication via WebSocket
   if (devicePasswordRequired === null) {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 2000);
-      const response = await fetch('/api/isauth', { signal: controller.signal });
-      clearTimeout(timeout);
-
-      if (response.ok) {
-        const data = await response.json();
-        devicePasswordRequired = data.isPasswordProtected;
-      } else {
-        devicePasswordRequired = false;
-      }
+      const wsStore = useWebSocketStore();
+      devicePasswordRequired = await wsStore.waitForAuthStatus();
     } catch {
-      // If we can't reach the device, assume no password to let connection check handle it
       devicePasswordRequired = false;
     }
   }

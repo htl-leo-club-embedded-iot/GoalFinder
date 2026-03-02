@@ -15,7 +15,7 @@
  */
 
 #pragma once
-#include <ESPAsyncWebServer.h>
+#include <WebServer.h>
 
 #define GFPKG_HEADER_SIZE 16
 #define GFPKG_MAGIC       "GFPK"
@@ -23,12 +23,12 @@
 class SoftwareUpdater 
 {
     public:
-        SoftwareUpdater(AsyncWebServer* server);
+        SoftwareUpdater(WebServer* server);
         void Begin(const char* uri);
         static bool IsUpdating();
 
     private:
-        AsyncWebServer* server;
+        static WebServer* _server;
 
         /// Phases of a combined (.gfpkg) or legacy (.bin) OTA update.
         enum UpdatePhase {
@@ -50,5 +50,7 @@ class SoftwareUpdater
         static uint8_t       headerPos;
 
         static void ResetState();
-        static void HandleUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+        static void HandleComplete();
+        static void HandleUpload();
+        static void ProcessChunk(uint8_t* data, size_t len, bool final);
 };
