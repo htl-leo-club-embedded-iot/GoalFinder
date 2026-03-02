@@ -75,6 +75,12 @@ const String Settings::defaultExternalNW_SSID = emptyString;
 
 const char* Settings::keyExternalNW_PWD = "extNWPWD";
 const String Settings::defaultExternalNW_PWD = emptyString;
+
+const char* Settings::keyDeviceIpAddress = "deviceIP";
+const String Settings::defaultDeviceIpAddress = "192.168.4.1";
+
+const char* Settings::keySubnetMask = "subnetMask";
+const String Settings::defaultSubnetMask = "255.255.255.0";
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -350,5 +356,29 @@ void Settings::SetExternalNW_PWD(String pwd) {
 		SetModified();
 	} else {
 		Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
+	}
+}
+
+String Settings::GetDeviceIpAddress() {
+	return store.GetString(keyDeviceIpAddress, defaultDeviceIpAddress);
+}
+
+void Settings::SetDeviceIpAddress(String ip) {
+	ip.trim();
+	if (!ip.isEmpty()) {
+		store.PutString(keyDeviceIpAddress, ip);
+		SetModified();
+	}
+}
+
+String Settings::GetSubnetMask() {
+	return store.GetString(keySubnetMask, defaultSubnetMask);
+}
+
+void Settings::SetSubnetMask(String mask) {
+	mask.trim();
+	if (!mask.isEmpty()) {
+		store.PutString(keySubnetMask, mask);
+		SetModified();
 	}
 }

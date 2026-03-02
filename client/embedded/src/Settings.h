@@ -93,6 +93,12 @@ class Settings : public Singleton<Settings>
         String GetExternalNW_PWD();
         void SetExternalNW_PWD(String pwd);
 
+        String GetDeviceIpAddress();
+        void SetDeviceIpAddress(String ip);
+
+        String GetSubnetMask();
+        void SetSubnetMask(String mask);
+
     private:
 		friend class Singleton<Settings>;
         /** Singleton constructor */
@@ -155,6 +161,12 @@ class Settings : public Singleton<Settings>
 
         static const char* keyExternalNW_PWD;
         static const String defaultExternalNW_PWD;
+
+        static const char* keyDeviceIpAddress;
+        static const String defaultDeviceIpAddress;
+
+        static const char* keySubnetMask;
+        static const String defaultSubnetMask;
 
         System::Settings store;
         bool modified;

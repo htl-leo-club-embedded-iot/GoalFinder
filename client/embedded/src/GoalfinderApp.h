@@ -31,6 +31,7 @@
 #include <VibrationSensor.h>
 #include <web/WebServer.h>
 #include "web/WiFiManager.h"
+#include "web/DNSServer.h"
 
 
 class GoalfinderApp : public Singleton<GoalfinderApp> {
@@ -111,6 +112,7 @@ private:
     WebServer webServer;
     SNTP sntp;
     WiFiManager wifiManager;
+    GFDNSServer dnsServer;
     ToFSensor tofSensor;
     VibrationSensor vibrationSensor;
 
@@ -147,6 +149,7 @@ private:
     static TaskHandle_t TaskLedHandle;
     static TaskHandle_t TaskWiFiHandle;
     static TaskHandle_t TaskLoggerHandle;
+    static TaskHandle_t TaskDNSHandle;
     static SemaphoreHandle_t xMutex;
 
     /** Indicates wether or not to continue looping through tasks */

@@ -50,6 +50,7 @@ TaskHandle_t GoalfinderApp::TaskDetectionHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskLedHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskWiFiHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr;
+TaskHandle_t GoalfinderApp::TaskDNSHandle = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
 
 // Constructor
@@ -107,11 +108,16 @@ void GoalfinderApp::Init() {
 
         xMutex = xSemaphoreCreateMutex();    
 
-        xTaskCreatePinnedToCore(TaskAudio, "Audio", 8192, this, 2, &TaskAudioHandle, 1);
-        xTaskCreatePinnedToCore(TaskDetection, "Detection", 8192, this, 2, &TaskDetectionHandle, 0);
-        xTaskCreatePinnedToCore(TaskLed, "LED", 8192, this, 2, &TaskLedHandle, 0);
-        xTaskCreatePinnedToCore(TaskWiFi, "WiFi", 4096, this, 1, &TaskWiFiHandle, 0);
-        xTaskCreatePinnedToCore(TaskLogger, "Logger", 4096, this, 1, &TaskLoggerHandle, 0);
+        IPAddress deviceIP;
+        deviceIP.fromString(Settings::GetInstance()->GetDeviceIpAddress());
+        dnsServer.Begin(deviceIP);
+
+        xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,        2, &TaskAudioHandle,     1);
+        xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,        2, &TaskDetectionHandle, 0);
+        xTaskCreatePinnedToCore(TaskLed,            "LED",       8192, this,        2, &TaskLedHandle,       0);
+        xTaskCreatePinnedToCore(TaskWiFi,           "WiFi",      4096, this,        1, &TaskWiFiHandle,      0);
+        xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,        1, &TaskLoggerHandle,    0);
+        xTaskCreatePinnedToCore(GFDNSServer::Task,    "DNS",       4096, &dnsServer,  1, &TaskDNSHandle,       0);
 
         Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
     } else {
