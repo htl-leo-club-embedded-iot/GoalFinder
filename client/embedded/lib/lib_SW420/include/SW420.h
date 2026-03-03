@@ -2,16 +2,11 @@
 
 #include <stdint.h>
 
-class VibrationSensor {
+class SW420 {
     public: 
-        virtual ~VibrationSensor();
+        virtual ~SW420();
         void Init();
         long Vibration(uint64_t measureTimeUs);
-
-        /** 
-         * Sets the sensitivity of the sensor in the range of 0 to 100%.
-         * The value is clipped.
-         */
         void SetSensitivity(int sensitivity);
         
     private:

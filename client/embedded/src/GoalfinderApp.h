@@ -28,7 +28,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include <VibrationSensor.h>
+#include <SW420.h>
 #include <web/HttpServer.h>
 #include <web/WebSocket.h>
 #include "web/WiFiManager.h"
@@ -40,8 +40,6 @@ public:
     // Public functions
     void SetIsSoundEnabled(bool value);
     bool IsSoundEnabled();
-
-
 
     /** Destructor */
     virtual ~GoalfinderApp();
@@ -114,7 +112,7 @@ private:
     WiFiManager wifiManager;
     GFDNSServer dnsServer;
     ToFSensor tofSensor;
-    VibrationSensor vibrationSensor;
+    SW420 sw420Sensor;
 
     // Internal Values
     bool isSoundEnabled;

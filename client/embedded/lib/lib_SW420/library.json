@@ -1,0 +1,12 @@
+{
+    "name": "SW420",
+    "version": "1.0.0",
+    "description": "Library for the SW420 shake sensor",
+    "license": "MIT",
+    "keywords": [
+      "vibration",
+      "sensor"
+    ],
+    "dependencies": {}
+  }
+  

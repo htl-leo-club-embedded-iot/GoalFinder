@@ -1,0 +1,12 @@
+{
+  "name": "VL53L0X ToF",
+  "version": "1.0.0",
+  "description": "Library for reading from the VL53L0X ToF sensor",
+  "license": "MIT",
+  "keywords": [
+    "vibration",
+    "sensor"
+  ],
+  "dependencies": {}
+}
+  

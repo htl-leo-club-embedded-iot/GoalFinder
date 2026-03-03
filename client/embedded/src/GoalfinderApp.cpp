@@ -64,7 +64,7 @@ GoalfinderApp::GoalfinderApp() :
     sntp(),
     audioPlayer(&fileSystem, pinI2sBclk, pinI2sWclk, pinI2sDataOut),
     tofSensor(),
-    vibrationSensor(),
+    sw420Sensor(),
     ledController(pinLedPwm, ledPwmChannel),
     announcing(false),
     announcingUntilMs(0),
@@ -103,7 +103,7 @@ void GoalfinderApp::Init() {
         httpServer.Begin();
         webSocket.Begin();
         sntp.Init();
-        vibrationSensor.Init();
+        sw420Sensor.Init();
         tofSensor.Init(pinTofScl, pinTofSda);
         ledController.SetMode(LedMode::Flash);
 
@@ -135,7 +135,7 @@ void GoalfinderApp::UpdateSettings(bool force) {
     if (force || settings->IsModified()) {
         audioPlayer.SetVolume(settings->GetVolume());
         ledController.SetMode(settings->GetLedMode());
-        vibrationSensor.SetSensitivity(settings->GetVibrationSensorSensitivity());
+        sw420Sensor.SetSensitivity(settings->GetVibrationSensorSensitivity());
         distanceOnlyHitDetection = settings->GetDistanceOnlyHitDetection();
         afterHitTimeoutMs = settings->GetAfterHitTimeout() * 1000UL;
     }
@@ -242,7 +242,7 @@ void GoalfinderApp::DetectShot() {
             if (lastShockTime == 0) {
                 if (!(announcing && audioPlayer.IsPlaying())) {
                     announcing = false;
-                    long vibration = vibrationSensor.Vibration(10000);
+                    long vibration = sw420Sensor.Vibration(10000);
                     if (vibration > shotVibrationThreshold) {
                         lastShockTime = millis();
                         Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
