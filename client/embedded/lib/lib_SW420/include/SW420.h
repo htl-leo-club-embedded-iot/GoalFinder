@@ -35,10 +35,20 @@ class SW420 {
     virtual ~SW420();
 
     /**
-     * @brief Initialize the vibration sensor hardware.
+     * @brief Initialize the vibration sensor hardware on a specific pin.
      *
-     * Configures the default GPIO pin and sets its mode. Must be called
+     * Configures the provided GPIO pin and sets its mode. Must be called
      * before performing any measurements.
+     *
+     * @param pin Digital input pin number to which the SW-420 is connected.
+     */
+    void Init(uint8_t pin);
+
+    /**
+     * @brief Initialize the vibration sensor hardware on the default pin.
+     *
+     * This overload exists for backwards compatibility and simply calls
+     * Init(13).
      */
     void Init();
 

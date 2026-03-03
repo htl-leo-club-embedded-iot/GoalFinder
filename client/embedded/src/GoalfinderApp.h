@@ -19,7 +19,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <Singleton.h>
-#include <ToFSensor.h>
+#include <VL53L0X.h>
 #include <web/SNTP.h>
 #include <FileSystem.h>
 #include <AudioPlayer.h>
@@ -111,7 +111,7 @@ private:
     SNTP sntp;
     WiFiManager wifiManager;
     GFDNSServer dnsServer;
-    ToFSensor tofSensor;
+    VL53L0X tofSensor;
     SW420 sw420Sensor;
 
     // Internal Values

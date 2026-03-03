@@ -15,7 +15,7 @@
  */
 
 #include "util/Logger.h"
-#include <ToFSensor.h>
+#include <VL53L0X.h>
 
 /**
  * @file VL53L0X.cpp
