@@ -1,7 +1,10 @@
 {
   "cSpell.words": [
     "Adafruit",
+    "bblanchon",
+    "bclk",
     "dont",
+    "espressif",
     "GFDNS",
     "GFPK",
     "gfpkg",
@@ -11,6 +14,7 @@
     "Leonding",
     "qclass",
     "sntp",
-    "uploadfs"
+    "uploadfs",
+    "wclk"
   ]
 }

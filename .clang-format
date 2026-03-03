@@ -4,7 +4,6 @@ BreakBeforeBraces: Attach
 IndentWidth: 4
 TabWidth: 4
 ColumnLimit: 120
-AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
