@@ -1,6 +1,7 @@
 #pragma once
 #include <FileSystem.h>
 #include <AudioFileSourceFS.h>
+#include <AudioFileSourceBuffer.h>
 #include <AudioGeneratorMP3.h>
 #include <AudioOutputI2S.h>
 
@@ -15,8 +16,10 @@ class AudioPlayer
         void Stop();
         bool IsPlaying();
     private:
+        static const int AUDIO_BUFFER_SIZE = 2048;
         FileSystem* fileSystem;
-        AudioFileSource* currentFile;
+        AudioFileSourceFS* fsSource;
+        AudioFileSourceBuffer* bufferedSource;
         AudioGeneratorMP3* mp3Generator;
         AudioOutputI2S* audioOutput;
         /** The volume in percent */

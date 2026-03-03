@@ -24,6 +24,8 @@
 #include "SoftwareUpdater.h"
 #include "util/Logger.h"
 
+extern volatile bool g_httpServingFile;
+
 class HttpServer 
 {
 public:

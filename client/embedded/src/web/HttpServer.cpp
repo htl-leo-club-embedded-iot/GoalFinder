@@ -25,6 +25,7 @@
 #define API_URL "/api"
 
 static HttpServer* _instance = nullptr;
+volatile bool g_httpServingFile = false;
 
 String HttpServer::GetContentType(const String& fileName)
 {
@@ -201,8 +202,10 @@ void HttpServer::Loop()
 
 void HttpServer::ServeFile(const String& path, const String& contentType, bool isCompressed, bool noCache)
 {
+    g_httpServingFile = true;
     File file = LittleFS.open(path, "r");
     if (!file) {
+        g_httpServingFile = false;
         Logger::log("HttpServer", Logger::LogLevel::ERROR, "Failed to open file: %s", path.c_str());
         server.send(500, "text/plain", "Internal server error");
         return;
@@ -220,6 +223,7 @@ void HttpServer::ServeFile(const String& path, const String& contentType, bool i
 
     server.streamFile(file, contentType);
     file.close();
+    g_httpServingFile = false;
 }
 
 void HttpServer::Stop()

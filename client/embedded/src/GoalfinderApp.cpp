@@ -116,13 +116,13 @@ void GoalfinderApp::Init() {
         dnsServer.Begin(deviceIP);
 
         xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,           2, &TaskAudioHandle,     1);
-        xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,           2, &TaskDetectionHandle, 0);
-        xTaskCreatePinnedToCore(TaskLed,            "LED",       8192, this,           2, &TaskLedHandle,       0);
+        xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,           2, &TaskDetectionHandle, 1);
+        xTaskCreatePinnedToCore(TaskLed,            "LED",       8192, this,           2, &TaskLedHandle,       1);
+        xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,           1, &TaskLoggerHandle,    1);
         xTaskCreatePinnedToCore(TaskWiFi,           "WiFi",      4096, this,           1, &TaskWiFiHandle,      0);
-        xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,           1, &TaskLoggerHandle,    0);
         xTaskCreatePinnedToCore(GFDNSServer::Task,  "DNS",       4096, &dnsServer,     1, &TaskDNSHandle,       0);
         xTaskCreatePinnedToCore(TaskWebSocket,      "WS",        8192, &webSocket,     2, &TaskWebSocketHandle, 0);
-        xTaskCreatePinnedToCore(TaskHttp,           "HTTP",      8192, &httpServer,    1, &TaskHttpHandle,      0);
+        xTaskCreatePinnedToCore(TaskHttp,           "HTTP",      8192, &httpServer,    3, &TaskHttpHandle,      0);
 
         Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
     } else {
@@ -146,7 +146,11 @@ void GoalfinderApp::TaskAudio(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     while (app->loop) {
         if (app->IsSoundEnabled()) {
-            if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+            if (g_httpServingFile) {
+                vTaskDelay(pdMS_TO_TICKS(20));
+                continue;
+            }
+            if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
                 app->audioPlayer.Loop();
                 bool isPlaying = app->audioPlayer.IsPlaying();
                 xSemaphoreGive(xMutex);
@@ -155,7 +159,7 @@ void GoalfinderApp::TaskAudio(void *pvParameters) {
                 }
             }
         }
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
@@ -165,7 +169,7 @@ void GoalfinderApp::TaskDetection(void *pvParameters) {
         app->UpdateSettings();
         app->DetectShot();
         app->ProcessAnnouncement();
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
@@ -173,7 +177,7 @@ void GoalfinderApp::TaskLed(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     while (app->loop) {
         app->ledController.Loop();
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
@@ -313,7 +317,7 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsig
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
         Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Starting playback '%s'", soundFileName);
-        if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+        if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
             audioPlayer.PlayMP3(soundFileName);
             xSemaphoreGive(xMutex);
         }

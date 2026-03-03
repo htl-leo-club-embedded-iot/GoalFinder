@@ -4,7 +4,8 @@
 AudioPlayer::AudioPlayer(FileSystem* fileSystem, int bclkPin, int wclkPin, int doutPin) : volumePc(0)
 {
     this->fileSystem = fileSystem;
-    currentFile = new AudioFileSourceFS(*fileSystem->GetInternalFileSystem());
+    fsSource = new AudioFileSourceFS(*fileSystem->GetInternalFileSystem());
+    bufferedSource = nullptr;
     mp3Generator = new AudioGeneratorMP3();
     audioOutput = new AudioOutputI2S();
     audioOutput->SetPinout(bclkPin, wclkPin, doutPin);
@@ -13,7 +14,8 @@ AudioPlayer::AudioPlayer(FileSystem* fileSystem, int bclkPin, int wclkPin, int d
 
 AudioPlayer::~AudioPlayer() 
 {
-    delete currentFile;
+    Stop();
+    delete fsSource;
     delete mp3Generator;
     delete audioOutput;
 }
@@ -21,8 +23,9 @@ AudioPlayer::~AudioPlayer()
 void AudioPlayer::PlayMP3(const char* path)
 {
     Stop();
-    currentFile->open(path);
-    mp3Generator->begin(currentFile, audioOutput);
+    fsSource->open(path);
+    bufferedSource = new AudioFileSourceBuffer(fsSource, AUDIO_BUFFER_SIZE);
+    mp3Generator->begin(bufferedSource, audioOutput);
 }
 
 void AudioPlayer::SetVolume(uint8_t percent) 
@@ -54,6 +57,10 @@ void AudioPlayer::Stop()
 {
     if(IsPlaying()) {
         mp3Generator->stop();
+    }
+    if (bufferedSource) {
+        delete bufferedSource;
+        bufferedSource = nullptr;
     }
 }
 
