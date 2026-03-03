@@ -2,6 +2,15 @@
 // #ifdef ESP8266
 #pragma message("ESP8266: Preferences HAL")
 
+/**
+ * @file Esp8266Settings.cpp
+ * @brief ESP8266-specific settings implementation using a JSON file in RFS.
+ *
+ * Preferences are kept in a small JSON document stored under /nvs. Every
+ * write serializes the entire document back to the file. This file contains
+ * helper routines and the Settings methods that manipulate the JSON object.
+ */
+
 #include "util/Logger.h"
 #include <rfs/RootFileSystem.h>
 #include <utils/StringUtils.h>
@@ -9,6 +18,11 @@
 namespace System {
 // using namespace Rfs;
 
+/**
+ * @brief Per-instance data for ESP8266 Settings backend.
+ *
+ * Maintains the path information and a JSON document used for storage.
+ */
 struct Settings::SettingsInstanceData {
     const char *mNvsPath = "/nvs";
     const char *mDefaultFileName = "unnamed";
@@ -17,6 +31,11 @@ struct Settings::SettingsInstanceData {
     // File mFile;
     JsonDocument mDoc(512);
 
+    /**
+     * @brief Internal helper to store a value of any type.
+     *
+     * A lambda is provided which populates the "v" field of the JSON object.
+     */
     bool PutValue(const char *key, SettingsType type, ::std::function<void(JsonVariant &valueNode)> valueSupplier) {
         bool rc = false;
         if (mInitialized && key != 0 && !mReadOnly && mFile) {
@@ -33,6 +52,9 @@ struct Settings::SettingsInstanceData {
         return rc;
     }
 
+    /**
+     * @brief Internal helper to read a value of a given type.
+     */
     JsonVariant GetValue(const char *key, SettingsType type) {
         JsonVariant value;
         if (mInitialized && key != 0) {
@@ -44,6 +66,11 @@ struct Settings::SettingsInstanceData {
         return value;
     }
 
+    /**
+     * @brief Copy string/blob data into the provided buffer.
+     *
+     * When asCStr is true a terminating null is appended if there is space.
+     */
     size_t GetBlob(const char *key, void *buf, size_t maxLen, bool asCStr) {
         size_t len = 0;
         JsonVariant value = GetValue(key, SettingsType::PT_STR);
@@ -58,15 +85,24 @@ struct Settings::SettingsInstanceData {
     }
 };
 
+/**
+ * @brief Construct a Settings object and allocate the instance data.
+ */
 Settings::Settings() : mInitialized(false), mReadOnly(false), mInstanceData(0) {
     SettingsInstanceData *instanceData = new SettingsInstanceData();
     mInstanceData = instanceData;
 }
 
-Settings::~Settings() {
-    End();
-}
+/**
+ * @brief Destructor ensures the file is closed.
+ */
+Settings::~Settings() { End(); }
 
+/**
+ * @brief Open (and optionally create) the preferences JSON file for a namespace.
+ *
+ * In read-only mode the file is closed after loading. Returns true on success.
+ */
 bool Settings::Begin(const char *name, bool readOnly, const char *partition_label) {
     (void)partition_label; // partition_label is not used by this implementation
     bool rc = mInitialized;
@@ -125,6 +161,9 @@ bool Settings::Begin(const char *name, bool readOnly, const char *partition_labe
     return rc;
 }
 
+/**
+ * @brief Close the preferences file and mark the instance uninitialized.
+ */
 void Settings::End() {
     if (mFile) {
         mFile.close();
@@ -132,7 +171,9 @@ void Settings::End() {
     mInitialized = false;
 }
 
-/* Clear all keys in opened preferences */
+/**
+ * @brief Remove every entry from the JSON document.
+ */
 bool Settings::Clear() {
     bool rc = !mReadOnly && mFile;
     if (rc) {
@@ -142,7 +183,9 @@ bool Settings::Clear() {
     return rc;
 }
 
-/* Remove a key */
+/**
+ * @brief Delete a specific key from the JSON preferences.
+ */
 bool Settings::Remove(const char *key) {
     bool rc = key != 0 && !mReadOnly && mFile;
     if (rc) {
@@ -151,6 +194,11 @@ bool Settings::Remove(const char *key) {
     return rc;
 }
 
+/**
+ * @name Put routines
+ * These wrappers call the internal PutValue helper with the appropriate type
+ * tag and data supplied via a lambda.
+ */
 /* Put a key value */
 size_t Settings::PutChar(const char *key, int8_t value) {
     return GetInstanceData()->PutValue(key, SettingsType::PT_I8,
@@ -194,13 +242,9 @@ size_t Settings::PutUInt(const char *key, uint32_t value) {
                : 0;
 }
 
-size_t Settings::PutLong(const char *key, int32_t value) {
-    return PutInt(key, value);
-}
+size_t Settings::PutLong(const char *key, int32_t value) { return PutInt(key, value); }
 
-size_t Settings::PutULong(const char *key, uint32_t value) {
-    return PutUInt(key, value);
-}
+size_t Settings::PutULong(const char *key, uint32_t value) { return PutUInt(key, value); }
 
 size_t Settings::PutLong64(const char *key, int64_t value) {
     return GetInstanceData()->PutValue(key, SettingsType::PT_I64,
@@ -244,9 +288,7 @@ size_t Settings::PutString(const char *key, const char *value) {
                : 0;
 }
 
-size_t Settings::PutString(const char *key, const String value) {
-    return PutString(key, value.c_str());
-}
+size_t Settings::PutString(const char *key, const String value) { return PutString(key, value.c_str()); }
 
 size_t Settings::PutBytes(const char *key, const void *value, size_t len) {
     return GetInstanceData()->PutValue(key, SettingsType::PT_BLOB,
@@ -258,6 +300,9 @@ size_t Settings::PutBytes(const char *key, const void *value, size_t len) {
                : 0;
 }
 
+/**
+ * @brief Determine the stored type for a given key.
+ */
 SettingsType Settings::GetType(const char *key) {
     SettingsType type = SettingsType::PT_INVALID;
     if (mInitialized && key != 0) {
@@ -269,10 +314,13 @@ SettingsType Settings::GetType(const char *key) {
     return type;
 }
 
-bool Settings::IsKey(const char *key) {
-    return (mInitialized && key != 0 && mDoc[key]);
-}
+bool Settings::IsKey(const char *key) { return (mInitialized && key != 0 && mDoc[key]); }
 
+/**
+ * @name Get routines
+ * Read stored entries and convert them to the requested type, returning a
+ * provided default if the key is missing or of the wrong type.
+ */
 /* Get a key value */
 int8_t Settings::GetChar(const char *key, const int8_t defaultValue) {
     JsonVariant value = GetValue(key, SettingsType::PT_I8);
@@ -304,13 +352,9 @@ uint32_t Settings::GetUInt(const char *key, const uint32_t defaultValue) {
     return (value.is<unsigned int>()) ? value.as<unsigned int>() : defaultValue;
 }
 
-int32_t Settings::GetLong(const char *key, const int32_t defaultValue) {
-    return GetInt(key, defaultValue);
-}
+int32_t Settings::GetLong(const char *key, const int32_t defaultValue) { return GetInt(key, defaultValue); }
 
-uint32_t Settings::GetULong(const char *key, const uint32_t defaultValue) {
-    return GetUInt(key, defaultValue);
-}
+uint32_t Settings::GetULong(const char *key, const uint32_t defaultValue) { return GetUInt(key, defaultValue); }
 
 int64_t Settings::GetLong64(const char *key, const int64_t defaultValue) {
     JsonVariant value = GetInstanceData()->GetValue(key, SettingsType::PT_I64);
@@ -355,13 +399,12 @@ size_t Settings::GetBytes(const char *key, void *buf, size_t maxLen) {
     return GetInstanceData()->GetBlob(key, buf, maxLen, false);
 }
 
-size_t Settings::FreeEntries() {
-    return 2048;
-}
+size_t Settings::FreeEntries() { return 2048; }
 
-Settings::SettingsInstanceData *Settings::GetInstanceData() {
-    return (SettingsInstanceData *)mInstanceData;
-}
+/**
+ * @brief Cast opaque pointer to concrete instance data type.
+ */
+Settings::SettingsInstanceData *Settings::GetInstanceData() { return (SettingsInstanceData *)mInstanceData; }
 
 } // namespace System
 

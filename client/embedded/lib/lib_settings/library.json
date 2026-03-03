@@ -1,8 +1,8 @@
 {
     "name": "lib_settings",
     "version": "1.0.0",
-    "description": "LeoIoT Settings Library: Supplies ESP Preferences library for non ESP32 platforms",
-    "keywords": ["LeoIoT", "settings"],
+    "description": "LeoIoT Settings Library",
+    "keywords": ["LeoIoT", "settings", "saving"],
     "includeDir": "include",
     "srcDir": "src",
     "frameworks": ["arduino"],

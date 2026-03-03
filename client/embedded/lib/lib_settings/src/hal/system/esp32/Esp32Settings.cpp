@@ -13,78 +13,96 @@
 
 #pragma message("ESP32: Settings HAL")
 
+/**
+ * @file Esp32Settings.cpp
+ * @brief ESP32 backend for System::Settings using the Preferences library.
+ *
+ * All methods simply forward to an underlying Preferences instance stored in
+ * the private SettingsInstanceData structure.
+ */
+
 #include <Preferences.h>
 #include <system/Settings.h>
 
 namespace System {
 
+/**
+ * @brief Holds the concrete Preferences object for a Settings instance.
+ */
 struct Settings::SettingsInstanceData {
     Preferences mPfPrefs;
 };
 
+/**
+ * @brief Construct a Settings object and allocate instance data.
+ */
 Settings::Settings() : mInitialized(false), mReadOnly(false), mInstanceData(0) {
     SettingsInstanceData *instanceData = new SettingsInstanceData();
     mInstanceData = instanceData;
 }
 
+/**
+ * @brief Destructor cleans up the Preferences instance.
+ */
 Settings::~Settings() {
     End();
     delete mInstanceData;
     mInstanceData = 0;
 }
 
+/**
+ * @brief Open the named preferences namespace.
+ *
+ * This simply calls Preferences::begin() and returns its result.
+ */
 bool Settings::Begin(const char *name, bool readOnly, const char *partition_label) {
     return GetInstanceData()->mPfPrefs.begin(name, readOnly, partition_label);
 }
 
+/**
+ * @brief Close the preferences session and mark the object uninitialized.
+ */
 void Settings::End() {
     GetInstanceData()->mPfPrefs.end();
     mInitialized = false;
 }
 
-bool Settings::Clear() {
-    return GetInstanceData()->mPfPrefs.clear();
-}
+/**
+ * @brief Remove all keys from the current namespace.
+ */
+bool Settings::Clear() { return GetInstanceData()->mPfPrefs.clear(); }
 
-bool Settings::Remove(const char *key) {
-    return GetInstanceData()->mPfPrefs.remove(key);
-}
+/**
+ * @brief Delete a single key from storage.
+ */
+bool Settings::Remove(const char *key) { return GetInstanceData()->mPfPrefs.remove(key); }
 
-size_t Settings::PutChar(const char *key, int8_t value) {
-    return GetInstanceData()->mPfPrefs.putChar(key, value);
-}
+/**
+ * @name Put routines
+ * Convenience wrappers around Preferences::put* methods.
+ *
+ * Each function returns the number of bytes written.
+ */
 
-size_t Settings::PutUChar(const char *key, uint8_t value) {
-    return GetInstanceData()->mPfPrefs.putUChar(key, value);
-}
+size_t Settings::PutChar(const char *key, int8_t value) { return GetInstanceData()->mPfPrefs.putChar(key, value); }
 
-size_t Settings::PutShort(const char *key, int16_t value) {
-    return GetInstanceData()->mPfPrefs.putShort(key, value);
-}
+size_t Settings::PutUChar(const char *key, uint8_t value) { return GetInstanceData()->mPfPrefs.putUChar(key, value); }
+
+size_t Settings::PutShort(const char *key, int16_t value) { return GetInstanceData()->mPfPrefs.putShort(key, value); }
 
 size_t Settings::PutUShort(const char *key, uint16_t value) {
     return GetInstanceData()->mPfPrefs.putUShort(key, value);
 }
 
-size_t Settings::PutInt(const char *key, int32_t value) {
-    return GetInstanceData()->mPfPrefs.putInt(key, value);
-}
+size_t Settings::PutInt(const char *key, int32_t value) { return GetInstanceData()->mPfPrefs.putInt(key, value); }
 
-size_t Settings::PutUInt(const char *key, uint32_t value) {
-    return GetInstanceData()->mPfPrefs.putUInt(key, value);
-}
+size_t Settings::PutUInt(const char *key, uint32_t value) { return GetInstanceData()->mPfPrefs.putUInt(key, value); }
 
-size_t Settings::PutLong(const char *key, int32_t value) {
-    return GetInstanceData()->mPfPrefs.putLong(key, value);
-}
+size_t Settings::PutLong(const char *key, int32_t value) { return GetInstanceData()->mPfPrefs.putLong(key, value); }
 
-size_t Settings::PutULong(const char *key, uint32_t value) {
-    return GetInstanceData()->mPfPrefs.putULong(key, value);
-}
+size_t Settings::PutULong(const char *key, uint32_t value) { return GetInstanceData()->mPfPrefs.putULong(key, value); }
 
-size_t Settings::PutLong64(const char *key, int64_t value) {
-    return GetInstanceData()->mPfPrefs.putLong64(key, value);
-}
+size_t Settings::PutLong64(const char *key, int64_t value) { return GetInstanceData()->mPfPrefs.putLong64(key, value); }
 
 size_t Settings::PutULong64(const char *key, uint64_t value) {
     return GetInstanceData()->mPfPrefs.putULong64(key, value);
@@ -98,9 +116,7 @@ size_t Settings::PutDouble(const char *key, const double_t value) {
     return GetInstanceData()->mPfPrefs.putDouble(key, value);
 }
 
-size_t Settings::PutBool(const char *key, const bool value) {
-    return GetInstanceData()->mPfPrefs.putBool(key, value);
-}
+size_t Settings::PutBool(const char *key, const bool value) { return GetInstanceData()->mPfPrefs.putBool(key, value); }
 
 size_t Settings::PutString(const char *key, const char *value) {
     return GetInstanceData()->mPfPrefs.putString(key, value);
@@ -114,13 +130,14 @@ size_t Settings::PutBytes(const char *key, const void *value, size_t len) {
     return GetInstanceData()->mPfPrefs.putBytes(key, value, len);
 }
 
-SettingsType Settings::GetType(const char *key) {
-    return (SettingsType)GetInstanceData()->mPfPrefs.getType(key);
-}
+/**
+ * @name Get routines
+ * Return stored values (or default) by delegating to Preferences::get*.
+ */
 
-bool Settings::IsKey(const char *key) {
-    return GetInstanceData()->mPfPrefs.isKey(key);
-}
+SettingsType Settings::GetType(const char *key) { return (SettingsType)GetInstanceData()->mPfPrefs.getType(key); }
+
+bool Settings::IsKey(const char *key) { return GetInstanceData()->mPfPrefs.isKey(key); }
 
 int8_t Settings::GetChar(const char *key, const int8_t defaultValue) {
     return GetInstanceData()->mPfPrefs.getChar(key, defaultValue);
@@ -182,20 +199,17 @@ String Settings::GetString(const char *key, const String defaultValue) {
     return GetInstanceData()->mPfPrefs.getString(key, defaultValue);
 }
 
-size_t Settings::GetBytesLength(const char *key) {
-    return GetInstanceData()->mPfPrefs.getBytesLength(key);
-}
+size_t Settings::GetBytesLength(const char *key) { return GetInstanceData()->mPfPrefs.getBytesLength(key); }
 
 size_t Settings::GetBytes(const char *key, void *buf, size_t maxLen) {
     return GetInstanceData()->mPfPrefs.getBytes(key, buf, maxLen);
 }
 
-size_t Settings::FreeEntries() {
-    return GetInstanceData()->mPfPrefs.freeEntries();
-}
+size_t Settings::FreeEntries() { return GetInstanceData()->mPfPrefs.freeEntries(); }
 
-Settings::SettingsInstanceData *Settings::GetInstanceData() {
-    return (SettingsInstanceData *)mInstanceData;
-}
+/**
+ * @brief Cast the opaque instance pointer to concrete data.
+ */
+Settings::SettingsInstanceData *Settings::GetInstanceData() { return (SettingsInstanceData *)mInstanceData; }
 
 } // namespace System

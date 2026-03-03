@@ -13,6 +13,16 @@
 
 #pragma message("DUMMY: Settings HAL")
 
+/**
+ * @file DummySettings.cpp
+ * @brief No-op implementation of the Settings API used for testing or
+ *        platforms without persistent storage.
+ *
+ * All operations simply log their invocation and return failure or empty
+ * values. This stub allows application code to compile and run without
+ * relying on actual non-volatile memory.
+ */
+
 #include "util/Logger.h"
 #include <system/Settings.h>
 #include <utils/Log.h>
@@ -20,34 +30,50 @@
 
 namespace System {
 
-struct Settings::SettingsInstanceData {};
+/** Internal storage placeholder for dummy implementation (unused). */
+struct Settings::SettingsInstanceData {}; 
 
-Settings::Settings() : mInitialized(false), mReadOnly(false), mInstanceData(0) {
-}
+/** Constructor initializes internal flags. */
+Settings::Settings() : mInitialized(false), mReadOnly(false), mInstanceData(0) {}
 
-Settings::~Settings() {
-}
+/** Destructor (noop). */
+Settings::~Settings() {}
 
+/**
+ * @brief Start a dummy settings session.
+ *
+ * Always returns false; no storage is performed.
+ */
 bool Settings::Begin(const char *name, bool readOnly, const char *partition_label) {
     Logger::log("Settings", Logger::LogLevel::DEBUG, "Dummy Settings: Begin(\"%s\", %d, \"%s\")", name, readOnly,
                 partition_label);
     return false;
 }
 
-void Settings::End() {
-    Logger::log("Settings", Logger::LogLevel::DEBUG, "Dummy Settings: End()");
-}
+/**
+ * @brief End the dummy session.
+ */
+void Settings::End() { Logger::log("Settings", Logger::LogLevel::DEBUG, "Dummy Settings: End()"); }
 
+/**
+ * @brief Clear all entries (noop).
+ */
 bool Settings::Clear() {
     Logger::log("Settings", Logger::LogLevel::DEBUG, "Dummy Settings: Clear()");
     return false;
 }
 
+/**
+ * @brief Remove a key (noop).
+ */
 bool Settings::Remove(const char *key) {
     Logger::log("Settings", Logger::LogLevel::DEBUG, "Dummy Settings: Remove(\"%s\")", key);
     return false;
 }
 
+/**
+ * The put* methods below simply log their parameters and return zero.
+ */
 size_t Settings::PutChar(const char *key, int8_t value) {
     Logger::log("Settings", Logger::LogLevel::DEBUG, "Dummy Settings: PutChar(\"%s\", '%c')", key, value);
     return 0;
@@ -231,8 +257,6 @@ size_t Settings::FreeEntries() {
     return 0;
 }
 
-Settings::SettingsInstanceData *Settings::GetInstanceData() {
-    return 0;
-}
+Settings::SettingsInstanceData *Settings::GetInstanceData() { return 0; }
 
 } // namespace System

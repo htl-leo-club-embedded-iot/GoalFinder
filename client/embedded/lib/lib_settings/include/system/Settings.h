@@ -19,6 +19,15 @@
  * provided for ESP32 under the Apache License, Version 2.0 (the "License");
  */
 
+/**
+ * @file Settings.h
+ * @brief Cross-platform preferences API definition.
+ *
+ * The Settings class declared below provides a uniform interface for
+ * storing simple key/value pairs in non‑volatile storage. Concrete backends
+ * (ESP32, ESP8266, dummy) implement the actual persistence logic.
+ */
+
 #pragma once
 
 #include <functional>
@@ -28,12 +37,17 @@
 #include <stdint.h>
 #include <string.h>
 
-// #include <FS.h>
-// #include <ArduinoJson.h>
 #include "WString.h"
 
 namespace System {
 
+/**
+ * @enum SettingsType
+ * @brief Value types supported by the settings layer.
+ *
+ * Each stored entry is tagged with one of these values so that retrieval
+ * methods can validate and convert the data correctly.
+ */
 typedef enum {
     PT_I8,
     PT_U8,
@@ -51,6 +65,15 @@ typedef enum {
     PT_INVALID
 } SettingsType;
 
+/**
+ * @class Settings
+ * @brief Cross-platform key/value storage abstraction.
+ *
+ * This class mirrors the API of Espressif's Preferences library while
+ * allowing the underlying storage mechanism to vary depending on the
+ * platform. Clients should call Begin() before any read/write operations
+ * and End() when finished.
+ */
 class Settings {
     struct SettingsInstanceData;
 
@@ -111,4 +134,4 @@ class Settings {
     SettingsInstanceData *mInstanceData;
 };
 
-} // namespace System
+} 
