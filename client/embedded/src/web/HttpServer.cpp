@@ -27,6 +27,40 @@
 static HttpServer* _instance = nullptr;
 volatile bool g_httpServingFile = false;
 
+namespace {
+String StripQueryAndFragment(const String& uri)
+{
+    int q = uri.indexOf('?');
+    int h = uri.indexOf('#');
+    int cut = -1;
+
+    if (q >= 0 && h >= 0) {
+        cut = q < h ? q : h;
+    } else if (q >= 0) {
+        cut = q;
+    } else if (h >= 0) {
+        cut = h;
+    }
+
+    if (cut < 0) {
+        return uri;
+    }
+
+    return uri.substring(0, cut);
+}
+
+String StripPortFromHost(const String& host)
+{
+    // Keep IPv6 literals (multiple ':') untouched; only strip host:port patterns.
+    int firstColon = host.indexOf(':');
+    int lastColon = host.lastIndexOf(':');
+    if (firstColon > 0 && firstColon == lastColon) {
+        return host.substring(0, firstColon);
+    }
+    return host;
+}
+}
+
 String HttpServer::GetContentType(const String& fileName)
 {
     if (fileName.endsWith("html"))      return "text/html";
@@ -126,13 +160,16 @@ void HttpServer::Begin()
         server.send(200);
     });
 
-    // Catch-all: serve static files from LittleFS or SPA fallback
     server.onNotFound([this]() {
-        String uri = server.uri();
+        String uri = StripQueryAndFragment(server.uri());
+        if (uri.isEmpty()) {
+            uri = "/";
+        }
 
         // Captive portal: redirect requests from non-AP hosts
-        if ((WiFi.getMode() & WIFI_AP) && server.hostHeader() != WiFi.softAPIP().toString()
-            && !server.hostHeader().isEmpty()) {
+        String host = StripPortFromHost(server.hostHeader());
+        if ((WiFi.getMode() & WIFI_AP) && !host.isEmpty() && host != WiFi.softAPIP().toString()
+            && host != "goalfinder.local") {
             String url = "http://" + WiFi.softAPIP().toString() + "/games";
             server.sendHeader("Location", url, true);
             server.send(302, "text/plain", "");
@@ -148,15 +185,26 @@ void HttpServer::Begin()
             return;
         }
 
-        // Check if this looks like a file request (has a file extension) vs a SPA route
         bool isFileRequest = HasFileExtension(uri);
 
         if (isFileRequest) {
-            // --- Attempt to serve static file from LittleFS ---
             String filePath = WEBAPP_DIR + uri;
-            String contentType = GetContentType(filePath);
+            bool requestedGzip = filePath.endsWith(COMPRESSED_FILE_EXTENSION);
+            String contentType = GetContentType(requestedGzip
+                                                ? filePath.substring(0, filePath.length() - 3)
+                                                : filePath);
             if (contentType.isEmpty()) {
                 contentType = "application/octet-stream";
+            }
+
+            if (requestedGzip) {
+                if (!fs->FileExists(filePath)) {
+                    server.send(404, "text/plain", "Not found");
+                    return;
+                }
+
+                ServeFile(filePath, contentType, true, filePath.endsWith("index.html.gz"));
+                return;
             }
 
             // Try gzip-compressed version first
@@ -215,10 +263,6 @@ void HttpServer::ServeFile(const String& path, const String& contentType, bool i
         server.sendHeader("Cache-Control", "no-cache");
     } else {
         server.sendHeader("Cache-Control", "max-age=604800");
-    }
-
-    if (isCompressed) {
-        server.sendHeader("Content-Encoding", "gzip");
     }
 
     server.streamFile(file, contentType);
