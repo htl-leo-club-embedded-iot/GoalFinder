@@ -35,7 +35,7 @@ void GFWebSocket::Begin() {
     wsServer.onEvent([this](uint8_t clientId, WStype_t type, uint8_t* payload, size_t length) {
         this->OnEvent(clientId, type, payload, length);
     });
-    Logger::log("WebSocket", Logger::LogLevel::OK, "WebSocket server started on port 81");
+    Logger::log("WebSocket", Logger::LogLevel::INFO, "WebSocket server started");
 }
 
 void GFWebSocket::Loop() {

@@ -240,7 +240,7 @@ void HttpServer::Begin()
     });
 
     server.begin();
-    Logger::log("HttpServer", Logger::LogLevel::OK, "HTTP server started on port 80");
+    Logger::log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
 }
 
 void HttpServer::Loop()

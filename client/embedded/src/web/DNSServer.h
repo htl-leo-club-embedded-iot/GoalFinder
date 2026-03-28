@@ -22,6 +22,8 @@
 
 class GFDNSServer {
 public:
+    bool IsRunning = true;
+
     GFDNSServer();
     ~GFDNSServer();
 
