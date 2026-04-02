@@ -69,8 +69,6 @@ void GFDNSServer::HandlePacket() {
                     bool isClassIN  = (qclass == 1 || qclass == 255);
                     
                     if (isOurHost && isTypeA && isClassIN) {
-                        
-                        
                         uint8_t rsp[DNS_BUF_SIZE];
                         int     rLen = 0;
                         

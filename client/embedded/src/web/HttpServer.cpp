@@ -17,6 +17,7 @@
 #include "HttpServer.h"
 #include <WiFi.h>
 #include <LittleFS.h>
+#include <uri/UriGlob.h>
 #include "Settings.h"
 
 #define WEBAPP_DIR "/web"
@@ -58,6 +59,21 @@ String StripPortFromHost(const String& host)
         return host.substring(0, firstColon);
     }
     return host;
+}
+
+bool ShouldTryCompressedVariant(const String& filePath)
+{
+    String lower = filePath;
+    lower.toLowerCase();
+
+    // Skip speculative .gz probes for already-compressed/binary assets.
+    return lower.endsWith(".html") ||
+           lower.endsWith(".css")  ||
+           lower.endsWith(".js")   ||
+           lower.endsWith(".json") ||
+           lower.endsWith(".svg")  ||
+           lower.endsWith(".txt")  ||
+           lower.endsWith(".map");
 }
 }
 
@@ -160,7 +176,7 @@ void HttpServer::Begin()
         server.send(200);
     });
 
-    server.onNotFound([this]() {
+    auto webFallbackHandler = [this]() {
         String uri = StripQueryAndFragment(server.uri());
         if (uri.isEmpty()) {
             uri = "/";
@@ -209,7 +225,10 @@ void HttpServer::Begin()
 
             // Try gzip-compressed version first
             String compressedPath = filePath + COMPRESSED_FILE_EXTENSION;
-            bool isCompressed = fs->FileExists(compressedPath);
+            bool isCompressed = false;
+            if (ShouldTryCompressedVariant(filePath)) {
+                isCompressed = fs->FileExists(compressedPath);
+            }
             bool fileExists = isCompressed;
 
             // Try uncompressed
@@ -237,7 +256,10 @@ void HttpServer::Begin()
             String servePath = isCompressed ? compressedPath : String(WEBAPP_DIR INDEX_PATH);
             ServeFile(servePath, "text/html", isCompressed, true);
         }
-    });
+    };
+
+    server.on(UriGlob("/*"), HTTP_ANY, webFallbackHandler);
+    server.onNotFound(webFallbackHandler);
 
     server.begin();
     Logger::log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
