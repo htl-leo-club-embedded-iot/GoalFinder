@@ -22,7 +22,17 @@ export type EventCallback = () => void;
 export const useWebSocketStore = defineStore("websocket", () => {
     let ws: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let connectTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
     let reconnectAttempts = 0;
+    let connectionEpoch = 0;
+    let manualDisconnect = false;
+    let candidateUrls: string[] = [];
+    let candidateIndex = 0;
+
+    const WS_DEFAULT_PORT = "81";
+    const WS_CONNECT_TIMEOUT_MS = 2500;
+    const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
+
     const MAX_RECONNECT_DELAY = 5000;
     const BASE_RECONNECT_DELAY = 500;
 
@@ -34,62 +44,208 @@ export const useWebSocketStore = defineStore("websocket", () => {
     type MessageHandler = (msg: any) => void;
     const pendingHandlers = new Map<string, MessageHandler[]>();
 
-    function getWsUrl(): string {
+    function clearConnectTimeout(): void {
+        if (connectTimeoutTimer) {
+            clearTimeout(connectTimeoutTimer);
+            connectTimeoutTimer = null;
+        }
+    }
+
+    function buildWsUrl(protocol: string, hostname: string, port: string): string | null {
+        if (!hostname) return null;
+
+        try {
+            const url = new URL(window.location.href);
+            url.protocol = protocol;
+            url.hostname = hostname;
+            url.port = port;
+            url.pathname = "/";
+            url.search = "";
+            url.hash = "";
+            return url.toString();
+        } catch {
+            return null;
+        }
+    }
+
+    function getRememberedWsUrl(protocol: string): string | null {
+        try {
+            const remembered = localStorage.getItem(WS_LAST_URL_STORAGE_KEY);
+            if (!remembered) return null;
+
+            const url = new URL(remembered);
+            url.protocol = protocol;
+            if (!url.port) {
+                url.port = WS_DEFAULT_PORT;
+            }
+            url.pathname = "/";
+            url.search = "";
+            url.hash = "";
+            return url.toString();
+        } catch {
+            return null;
+        }
+    }
+
+    function rememberWsUrl(url: string): void {
+        try {
+            localStorage.setItem(WS_LAST_URL_STORAGE_KEY, url);
+        } catch {
+            // Ignore storage access issues (private browsing / restricted contexts).
+        }
+    }
+
+    function getWsCandidateUrls(): string[] {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        return `${protocol}//${window.location.hostname}:81/`;
+        const urls: string[] = [];
+        const currentLocation = new URL(window.location.href);
+
+        const addCandidate = (candidate: string | null) => {
+            if (!candidate || urls.includes(candidate)) return;
+            urls.push(candidate);
+        };
+
+        addCandidate(getRememberedWsUrl(protocol));
+        addCandidate(buildWsUrl(protocol, currentLocation.hostname, WS_DEFAULT_PORT));
+
+        if (currentLocation.port && currentLocation.port !== "80" && currentLocation.port !== "443") {
+            addCandidate(buildWsUrl(protocol, currentLocation.hostname, currentLocation.port));
+        }
+
+        // Fallbacks for captive portal / mobile network edge cases.
+        addCandidate(buildWsUrl(protocol, "goalfinder.local", WS_DEFAULT_PORT));
+        addCandidate(buildWsUrl(protocol, "192.168.4.1", WS_DEFAULT_PORT));
+
+        return urls;
+    }
+
+    function tryConnectCandidate(epoch: number): void {
+        if (epoch !== connectionEpoch || manualDisconnect) return;
+
+        if (candidateIndex >= candidateUrls.length) {
+            ws = null;
+            scheduleReconnect();
+            return;
+        }
+
+        const wsUrl = candidateUrls[candidateIndex];
+        let opened = false;
+
+        console.log(`[WS] Connecting (${candidateIndex + 1}/${candidateUrls.length}): ${wsUrl}`);
+
+        try {
+            ws = new WebSocket(wsUrl);
+        } catch (error) {
+            console.error(`[WS] Failed to create socket for ${wsUrl}:`, error);
+            candidateIndex++;
+            tryConnectCandidate(epoch);
+            return;
+        }
+
+        clearConnectTimeout();
+        connectTimeoutTimer = setTimeout(() => {
+            if (epoch !== connectionEpoch || manualDisconnect) return;
+            if (ws && ws.readyState === WebSocket.CONNECTING) {
+                console.warn(`[WS] Connection timeout: ${wsUrl}`);
+                ws.close();
+            }
+        }, WS_CONNECT_TIMEOUT_MS);
+
+        ws.onopen = () => {
+            if (epoch !== connectionEpoch || manualDisconnect) return;
+
+            opened = true;
+            clearConnectTimeout();
+            isConnected.value = true;
+            reconnectAttempts = 0;
+            rememberWsUrl(wsUrl);
+
+            console.log(`[WS] Connected: ${wsUrl}`);
+            send({ type: "is_auth" });
+        };
+
+        ws.onclose = () => {
+            if (epoch !== connectionEpoch) return;
+
+            clearConnectTimeout();
+            const wasConnected = opened || isConnected.value;
+            isConnected.value = false;
+            ws = null;
+
+            console.log(`[WS] Disconnected: ${wsUrl}`);
+
+            if (manualDisconnect) {
+                return;
+            }
+
+            if (!wasConnected && candidateIndex + 1 < candidateUrls.length) {
+                candidateIndex++;
+                tryConnectCandidate(epoch);
+                return;
+            }
+
+            scheduleReconnect();
+        };
+
+        ws.onerror = (error) => {
+            if (epoch !== connectionEpoch) return;
+            console.error(`[WS] Error on ${wsUrl}:`, error);
+        };
+
+        ws.onmessage = (event: MessageEvent) => {
+            if (epoch !== connectionEpoch) return;
+            handleMessage(event.data);
+        };
     }
 
     function connect(): void {
+        manualDisconnect = false;
+
         if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
             return;
         }
 
-        try {
-            ws = new WebSocket(getWsUrl());
-
-            ws.onopen = () => {
-                isConnected.value = true;
-                reconnectAttempts = 0;
-                console.log("[WS] Connected");
-                send({ type: "is_auth" });
-            };
-
-            ws.onclose = () => {
-                isConnected.value = false;
-                console.log("[WS] Disconnected");
-                scheduleReconnect();
-            };
-
-            ws.onerror = (error) => {
-                console.error("[WS] Error:", error);
-            };
-
-            ws.onmessage = (event: MessageEvent) => {
-                handleMessage(event.data);
-            };
-        } catch (error) {
-            console.error("[WS] Connection failed:", error);
+        candidateUrls = getWsCandidateUrls();
+        if (candidateUrls.length === 0) {
+            console.error("[WS] No valid WebSocket endpoints available");
             scheduleReconnect();
+            return;
         }
+
+        candidateIndex = 0;
+        connectionEpoch++;
+        tryConnectCandidate(connectionEpoch);
     }
 
     function disconnect(): void {
+        manualDisconnect = true;
+        connectionEpoch++;
+
         if (reconnectTimer) {
             clearTimeout(reconnectTimer);
             reconnectTimer = null;
         }
+
+        clearConnectTimeout();
+
         if (ws) {
             ws.onclose = null;
+            ws.onerror = null;
+            ws.onmessage = null;
             ws.close();
             ws = null;
         }
+
         isConnected.value = false;
     }
 
     function scheduleReconnect(): void {
+        if (manualDisconnect) return;
         if (reconnectTimer) return;
+
         const delay = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
         reconnectAttempts++;
+
         reconnectTimer = setTimeout(() => {
             reconnectTimer = null;
             connect();
@@ -217,7 +373,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
                 return;
             }
 
-            if (!ws || ws.readyState === WebSocket.CLOSED) {
+            if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
                 connect();
             }
 

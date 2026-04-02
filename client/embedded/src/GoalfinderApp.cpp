@@ -122,7 +122,7 @@ void GoalfinderApp::Init() {
         xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,           1, &TaskLoggerHandle,    1);
         xTaskCreatePinnedToCore(TaskWiFi,           "WiFi",      4096, this,           1, &TaskWiFiHandle,      0);
         xTaskCreatePinnedToCore(GFDNSServer::Task,  "DNS",       4096, &dnsServer,     1, &TaskDNSHandle,       0);
-        xTaskCreatePinnedToCore(TaskWebSocket,      "WS",        8192, &webSocket,     2, &TaskWebSocketHandle, 0);
+        xTaskCreatePinnedToCore(TaskWebSocket,      "WS",        8192, &webSocket,     3, &TaskWebSocketHandle, 0);
         xTaskCreatePinnedToCore(TaskHttp,           "HTTP",      8192, &httpServer,    3, &TaskHttpHandle,      0);
 
         Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
