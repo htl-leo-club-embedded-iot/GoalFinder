@@ -53,7 +53,10 @@ void GFWebSocket::Task(void* pvParameters) {
 void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED:
-            Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u connected", clientId);
+            {
+                IPAddress remoteIp = wsServer.remoteIP(clientId);
+                Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
+            }
             {
                 JsonDocument doc;
                 doc["type"] = "connected";
@@ -62,6 +65,13 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
             break;
         case WStype_DISCONNECTED:
             Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
+            break;
+        case WStype_ERROR:
+            if (payload && length > 0) {
+                Logger::log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
+            } else {
+                Logger::log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
+            }
             break;
         case WStype_TEXT:
             HandleMessage(clientId, payload, length);
