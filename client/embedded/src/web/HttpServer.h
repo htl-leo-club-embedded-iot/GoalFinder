@@ -25,6 +25,7 @@
 #include "util/Logger.h"
 
 extern volatile bool g_httpServingFile;
+extern volatile bool g_audioPlaybackActive;
 
 class HttpServer 
 {

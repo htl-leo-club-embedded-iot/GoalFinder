@@ -54,6 +54,7 @@ TaskHandle_t GoalfinderApp::TaskDNSHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskWebSocketHandle = nullptr;
 TaskHandle_t GoalfinderApp::TaskHttpHandle = nullptr;
 SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
+volatile bool g_audioPlaybackActive = false;
 
 // Constructor
 GoalfinderApp::GoalfinderApp() :
@@ -115,7 +116,7 @@ void GoalfinderApp::Init() {
         deviceIP.fromString(Settings::GetInstance()->GetDeviceIpAddress());
         dnsServer.Begin(deviceIP);
 
-        xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,           2, &TaskAudioHandle,     1);
+        xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,           3, &TaskAudioHandle,     1);
         xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,           2, &TaskDetectionHandle, 1);
         xTaskCreatePinnedToCore(TaskLed,            "LED",       8192, this,           2, &TaskLedHandle,       1);
         xTaskCreatePinnedToCore(TaskLogger,         "Logger",    4096, this,           1, &TaskLoggerHandle,    1);
@@ -145,21 +146,28 @@ void GoalfinderApp::UpdateSettings(bool force) {
 void GoalfinderApp::TaskAudio(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     while (app->loop) {
+        bool isPlaying = g_audioPlaybackActive;
+
         if (app->IsSoundEnabled()) {
-            if (g_httpServingFile) {
-                vTaskDelay(pdMS_TO_TICKS(20));
-                continue;
-            }
-            if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+            if (!g_httpServingFile && xSemaphoreTake(xMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
                 app->audioPlayer.Loop();
-                bool isPlaying = app->audioPlayer.IsPlaying();
+                isPlaying = app->audioPlayer.IsPlaying();
                 xSemaphoreGive(xMutex);
                 if (!isPlaying) {
                     app->TickMetronome();
                 }
             }
+        } else {
+            isPlaying = false;
         }
-        vTaskDelay(pdMS_TO_TICKS(5));
+
+        g_audioPlaybackActive = isPlaying;
+
+        if (g_httpServingFile || isPlaying) {
+            vTaskDelay(pdMS_TO_TICKS(1));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(5));
+        }
     }
 }
 
@@ -207,7 +215,7 @@ void GoalfinderApp::TaskWebSocket(void *pvParameters) {
 
 void GoalfinderApp::TaskHttp(void *pvParameters) {
     HttpServer* http = (HttpServer*)pvParameters;
-    while (true) {
+    while (true) {  
         http->Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }

@@ -274,8 +274,8 @@ void HttpServer::ServeFile(const String& path, const String& contentType, bool i
 {
     g_httpServingFile = true;
     File file = LittleFS.open(path, "r");
+    g_httpServingFile = false;
     if (!file) {
-        g_httpServingFile = false;
         Logger::log("HttpServer", Logger::LogLevel::ERROR, "Failed to open file: %s", path.c_str());
         server.send(500, "text/plain", "Internal server error");
         return;
@@ -287,9 +287,39 @@ void HttpServer::ServeFile(const String& path, const String& contentType, bool i
         server.sendHeader("Cache-Control", "max-age=604800");
     }
 
-    server.streamFile(file, contentType);
+    if (isCompressed && contentType != "application/gzip") {
+        server.sendHeader("Content-Encoding", "gzip");
+    }
+
+    server.setContentLength(file.size());
+    server.send(200, contentType, "");
+
+    if (server.method() == HTTP_HEAD) {
+        file.close();
+        return;
+    }
+
+    uint8_t buffer[1024];
+    while (file.available()) {
+        size_t chunkSize = g_audioPlaybackActive ? 384 : sizeof(buffer);
+
+        g_httpServingFile = true;
+        size_t bytesRead = file.read(buffer, chunkSize);
+        g_httpServingFile = false;
+
+        if (bytesRead == 0) {
+            break;
+        }
+
+        server.sendContent(reinterpret_cast<const char*>(buffer), bytesRead);
+        if (g_audioPlaybackActive) {
+            delay(1);
+        } else {
+            delay(0);
+        }
+    }
+
     file.close();
-    g_httpServingFile = false;
 }
 
 void HttpServer::Stop()
