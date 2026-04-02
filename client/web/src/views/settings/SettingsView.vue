@@ -20,6 +20,7 @@ import VolumeUpIcon from "@/components/icons/VolumeUpIcon.vue";
 import InfoCircleIcon from "@/components/icons/InfoCircleIcon.vue";
 import LightbulbIcon from "@/components/icons/LightbulbIcon.vue";
 import CrosshairIcon from "@/components/icons/CrosshairIcon.vue";
+import WifiIcon from "@/components/icons/WifiIcon.vue";
 import {onMounted} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 
@@ -36,6 +37,7 @@ onMounted(() => {
       <RouterLink class="settings-link" to="/settings/audio"><div><VolumeUpIcon/> {{ $t("settings.audio") }}</div></RouterLink>
       <RouterLink class="settings-link" to="/settings/devices"><div><LightbulbIcon/> LED </div></RouterLink>
       <RouterLink class="settings-link" to="/settings/detection"><div><CrosshairIcon/> {{ $t("settings.detection") }}</div></RouterLink>
+      <RouterLink class="settings-link" to="/settings/connection"><div><WifiIcon/> {{ $t("settings.connection_short") }}</div></RouterLink>
       <RouterLink class="settings-link" to="/settings/system"><div><InfoCircleIcon/> {{ $t("settings.system") }}</div></RouterLink>
     </div>
     <RouterView/>

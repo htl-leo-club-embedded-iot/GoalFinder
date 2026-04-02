@@ -75,6 +75,11 @@ const router = createRouter({
           component: () => import('@/views/settings/DetectionSettingsView.vue')
         },
         {
+          path: "connection",
+          name: "connection",
+          component: () => import('@/views/settings/ConnectionSettingsView.vue')
+        },
+        {
           path: "system",
           name: "system",
           component: () => import('@/views/settings/SystemSettingsView.vue')

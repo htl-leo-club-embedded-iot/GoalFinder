@@ -19,7 +19,6 @@ import SoftwareUpdateModal from "@/components/settings/SoftwareUpdateModal.vue";
 import Button from "@/components/Button.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
-import ConnectionSettingsView from "@/components/settings/ConnectionSettingsView.vue";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
 import {APP_VERSION} from "@/version";
 
@@ -35,9 +34,6 @@ const openUpdateDialog = () => {
 
 <template>
   <div class="container">
-    <h3>{{ $t("settings.connection") }}</h3>
-    <ConnectionSettingsView/>
-
     <h3 id="web-title">{{ $t("settings.web_app") }}</h3>
     <WebAppManager/>
     

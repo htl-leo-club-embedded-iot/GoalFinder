@@ -61,6 +61,8 @@ const i18n = createI18n({
             },
             settings: {
                 connection: "WiFi Connection",
+                connection_short: "Connection",
+                connection_general: "Name & Security",
                 settings: "Settings",
                 led: "LED",
                 sensors: "Sensors",
@@ -212,6 +214,8 @@ const i18n = createI18n({
             },
             settings: {
                 connection: "WiFi Verbindung",
+                connection_short: "Verbindung",
+                connection_general: "Name & Sicherheit",
                 settings: "Einstellungen",
                 general: "Allgemein",
                 wifi: "WiFi",
