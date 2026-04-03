@@ -24,7 +24,3 @@ import ConnectionSettingsForm from "@/components/settings/ConnectionSettingsView
     <ConnectionSettingsForm/>
   </div>
 </template>
-
-<style>
-
-</style>

@@ -80,7 +80,7 @@ onUnmounted(() => {
     <NavigationBar/>
   </header>
   <main>
-    <RouterView/>
+    <RouterView id="router"/>
   </main>
 
   <Modal ref="connectionModal" :title="$t('connection.warning_title')" centered hide-close-button>
@@ -96,6 +96,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+  #router {
+    margin: 0 1%;
+  }
+
   .dont-show-again {
     display: flex;
     align-items: center;
