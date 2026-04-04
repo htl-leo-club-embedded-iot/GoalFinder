@@ -60,6 +60,7 @@ export const useSettingsStore = defineStore("settings", () => {
     //System
     const macAddress = ref("");
     const version = ref("");
+    const advancedSettingsEnabled = ref(false);
 
     const refreshAvailableNetworks = () => {};
     const refreshAvailableBluetoothDevices = () => {};
@@ -81,6 +82,7 @@ export const useSettingsStore = defineStore("settings", () => {
             distanceOnlyHitDetection: distanceOnlyHitDetection.value,
             afterHitTimeout: afterHitTimeout.value,
             isSoundEnabled: isSoundEnabled.value,
+            advancedSettingsEnabled: advancedSettingsEnabled.value,
         };
     }
 
@@ -102,6 +104,7 @@ export const useSettingsStore = defineStore("settings", () => {
         ballHitDetectionDistance.value = json["ballHitDetectionDistance"] ?? ballHitDetectionDistance.value;
         distanceOnlyHitDetection.value = json["distanceOnlyHitDetection"] ?? false;
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
+        advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
 
         // Update LED mode string
         const ledModeMapping: { [key: number]: string } = {
@@ -281,6 +284,7 @@ export const useSettingsStore = defineStore("settings", () => {
         ledBrightness,
         isSoundEnabled,
         version,
-        updateFirmware
+        updateFirmware,
+        advancedSettingsEnabled
     };
 });

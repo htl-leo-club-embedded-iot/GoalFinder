@@ -4,9 +4,9 @@
     --background-color: #FFFFFF;
     --card-background-color: rgb(250, 250, 250);
     --header-line-color: #E0E0E0;
-    --border-color: rgba(0, 0, 0, 0.1);
-    --text-color: rgb(55, 55, 55);
-    --text-color-secondary: rgb(85, 85, 85);
+    --border-color: #0000001a;
+    --text-color: #373737;
+    --text-color-secondary: #555555;
     --accent-color: cornflowerblue;
     --corner-radius: 10px;
     --corner-radius-secondary: 6px;
@@ -17,12 +17,12 @@
     :root:not([data-theme="light"]) {
         color-scheme: dark;
         --background-color: #141414;
-        --card-background-color: rgb(23, 23, 23);
+        --card-background-color: #171717;
         --header-line-color: #21262d;
-        --border-color: rgba(255, 255, 255, 0.1);
-        --text-color: rgb(200, 200, 200);
-        --text-color-secondary: rgb(170, 170, 170);
-        --accent-color: cornflowerblue;
+        --border-color: #ffffff1a;
+        --text-color: #9b9b9b;
+        --text-color-secondary: #aaaaaa;
+        --accent-color: #6495ed;
         --corner-radius: 10px;
         --corner-radius-secondary: 6px;
         background-color: var(--background-color);
@@ -32,12 +32,12 @@
 :root[data-theme="dark"] {
     color-scheme: dark;
     --background-color: #141414;
-    --card-background-color: rgb(23, 23, 23);
+    --card-background-color: #171717;
     --header-line-color: #21262d;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --text-color: rgb(200, 200, 200);
-    --text-color-secondary: rgb(170, 170, 170);
-    --accent-color: cornflowerblue;
+    --border-color: #ffffff1a;
+    --text-color: #c8c8c8;
+    --text-color-secondary: #939393;
+    --accent-color: #6495ed;
     --corner-radius: 10px;
     --corner-radius-secondary: 6px;
     background-color: var(--background-color);

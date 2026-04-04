@@ -65,6 +65,15 @@ const openUpdateDialog = () => {
     <Button primary @click="openUpdateDialog">{{ $t("word.search_for_update") }}</Button>
     <SoftwareUpdateModal ref="updateDialog"/>
 
+    <h3>{{ $t("word.advanced") }}</h3>
+    <div ids="advanced-settings">
+      <label>
+        <input type="checkbox" v-model="settings.advancedSettingsEnabled" @change="settings.scheduleSave()" />
+        {{ $t("settings.advanced") }}
+      </label>
+    </div>
+    <p class="greyed">{{ $t("settings.advanced_desc") }}</p>
+
     <h3 id="visit">{{ $t("settings.info") }}</h3>
     <p id="visit-text">{{ $t("settings.more_info") }}<a href="https://goalfinder.github.io/user">{{ $t("settings.doc") }}</a></p>
   </div>
@@ -73,6 +82,11 @@ const openUpdateDialog = () => {
 <style scoped>
 h4 {
   margin: 0;
+}
+
+.greyed {
+  margin-top: -0.2rem;
+  color: var(--text-color-secondary);
 }
 
 #led {
@@ -132,5 +146,21 @@ h4 {
 
 #web-title {
   margin-top: 0;
+}
+
+#advanced-settings {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+#advanced-settings label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+#advanced-settings input[type="checkbox"] {
+  cursor: pointer;
 }
 </style>
