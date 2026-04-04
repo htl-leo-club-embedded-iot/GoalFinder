@@ -23,81 +23,140 @@
 class Settings : public Singleton<Settings>
 {
     public:
+        /** Destructor. */
         virtual ~Settings();
 
+        /** Returns true if settings have changed since the last save. */
         bool IsModified() const;
 
+        /** Clears the modified state for the current settings. */
         void ClearModifiedState();
 
-        /** Provides the MAC address of the WiFi interface. */
+        /** Returns the configured MAC address. */
         String GetMacAddress();
 
-        /** Provides the volume as a range from 0 to 100 percent. */
+        /** Returns the current system volume level. */
         int GetVolume();
-        /** Sets the volume. The range is clipped to 0 to 100 percent.*/
+        /** Sets the current system volume level. */
         void SetVolume(int volume);
 
+        /** Sets the selected metronome sound index. */
         void SetMetronomeSound(int metronomeSound);
+        /** Returns the selected metronome sound index. */
         int GetMetronomeSound();
 
+        /** Sets the selected hit sound index. */
         void SetHitSound(int hitSound);
+        /** Returns the selected hit sound index. */
         int GetHitSound();
 
+        /** Sets the selected miss sound index. */
         void SetMissSound(int missSound);
+        /** Returns the selected miss sound index. */
         int GetMissSound();
 
+        /** Sets the selected waiting sound index. */
+        void SetWaitingSound(int waitingSound);
+        /** Returns the selected waiting sound index. */
+        int GetWaitingSound();
+
+        /** Returns the configured device name. */
         String GetDeviceName();
+        /** Sets the device name. */
         void SetDeviceName(String deviceName);
 
+        /** Returns the configured device password. */
         String GetDevicePassword();
+        /** Sets the device password. */
         void SetDevicePassword(String devicePassword);
         
+        /** Returns the configured Wi-Fi password. */
         String GetWifiPassword();
+        /** Sets the Wi-Fi password. */
         void SetWifiPassword(String wifiPassword);
 
+        /** Returns the vibration sensor sensitivity value. */
         int GetVibrationSensorSensitivity();
+        /** Sets the vibration sensor sensitivity value. */
         void SetVibrationSensorSensitivity(int vibrationSensorSensitivity);
 
+        /** Returns the ball hit detection distance in millimeters. */
         int GetBallHitDetectionDistance();
+        /** Sets the ball hit detection distance in millimeters. */
         void SetBallHitDetectionDistance(int ballHitDetectionDistance);
 
+        /** Returns true when only distance-based hit detection is enabled. */
         bool GetDistanceOnlyHitDetection();
+        /** Enables or disables distance-only hit detection. */
         void SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection);
 
+        /** Returns the configured LED brightness. */
         int GetLedBrightness();
+        /** Sets the configured LED brightness. */
         void SetLedBrightness(int ledBrightness);
 
+        /** Returns the current LED mode. */
         LedMode GetLedMode();
+        /** Sets the current LED mode. */
         void SetLedMode(LedMode ledMode);
 
+        /** Returns true if this is the first run after reset. */
         bool IsFirstRun();
+        /** Sets the first-run flag. */
         void SetFirstRun(bool firstRun);
 
+        /** Resets all settings to their default values. */
         void ResetToDefaults();
 
+        /** Returns the configured after-hit timeout in seconds. */
         int GetAfterHitTimeout();
+        /** Sets the after-hit timeout in seconds. */
         void SetAfterHitTimeout(int timeout);
 
+        /** Returns whether the last update was successful. */
         bool GetUpdateSuccess();
+        /** Sets the update success flag. */
         void SetUpdateSuccess(bool success);
 
+        /** Returns whether extra logging is enabled. */
         bool GetExtraLog();
+        /** Enables or disables extra logging. */
         void SetExtraLog(bool enabled);
 
+        /** Returns whether external network mode is enabled. */
         bool GetUseExternalNW();
+        /** Enables or disables external network mode. */
         void SetUseExternalNW(bool enable);
 
+        /** Returns the external network SSID. */
         String GetExternalNW_SSID();
+        /** Sets the external network SSID. */
         void SetExternalNW_SSID(String ssid);
 
+        /** Returns the external network password. */
         String GetExternalNW_PWD();
+        /** Sets the external network password. */
         void SetExternalNW_PWD(String pwd);
 
+        /** Returns the configured device IP address. */
         String GetDeviceIpAddress();
+        /** Sets the configured device IP address. */
         void SetDeviceIpAddress(String ip);
 
+        /** Returns the configured subnet mask. */
         String GetSubnetMask();
+        /** Sets the configured subnet mask. */
         void SetSubnetMask(String mask);
+
+        /** Returns whether advanced settings are enabled. */
+        bool AdvancedSettingsEnabled();
+        /** Enables or disables advanced settings. */
+        void SetAdvancedSettingsEnabled(bool enable);
+
+        /** Returns whether DNS is enabled. */
+        bool DNSEnabled();
+        /** Enables or disables DNS. */
+        void SetDNSEnabled(bool enable);
 
     private:
 		friend class Singleton<Settings>;
@@ -113,6 +172,9 @@ class Settings : public Singleton<Settings>
 
         static const char* keyHitSound;
         static const int defaultHitSound;
+
+        static const char* keyWaitingSound;
+        static const int defaultWaitingSound;
 
         static const char* keyMissSound;
         static const int defaultMissSound;
@@ -167,6 +229,12 @@ class Settings : public Singleton<Settings>
 
         static const char* keySubnetMask;
         static const String defaultSubnetMask;
+
+        static const char* keyEnableAdvancedSettings;
+        static const bool defaultEnableAdvancedSettings;
+
+        static const char* keyEnableDNS;
+        static const bool defaultEnableDNS;
 
         System::Settings store;
         bool modified;

@@ -31,6 +31,9 @@ const int Settings::defaultHitSound = 0;
 const char* Settings::keyMissSound = "missSound";
 const int Settings::defaultMissSound = 0;
 
+const char* Settings::keyWaitingSound = "missSound";
+const int Settings::defaultWaitingSound = 0;
+
 const char* Settings::keyDeviceName = "deviceName";
 const String Settings::defaultDeviceName = "GoalFinder 01";
 
@@ -81,12 +84,17 @@ const String Settings::defaultDeviceIpAddress = "192.168.4.1";
 
 const char* Settings::keySubnetMask = "subnetMask";
 const String Settings::defaultSubnetMask = "255.255.255.0";
+
+const char* Settings::keyEnableAdvancedSettings = "enableAdvancedSettings";
+const bool Settings::defaultEnableAdvancedSettings = false;
+
+const char* Settings::keyEnableDNS = "enableDNS";
+const bool Settings::defaultEnableDNS = true;
 	
 Settings::Settings() :
     Singleton<Settings>(),
 	store(),
-	modified(false)
-	{
+	modified(false) {
     	store.Begin("app_prefs");
 	}
 
@@ -107,6 +115,7 @@ void Settings::SetVolume(int volume) {
 	SetModified();
 }
 
+// With user upload for sounds, clamping will have to be disabled
 void Settings::SetMetronomeSound(int metronomeSound) {
 	metronomeSound = max(min(metronomeSound, 2), 0);
 	store.PutInt(keyMetronomeSound, metronomeSound);
@@ -137,6 +146,15 @@ int Settings::GetMissSound() {
 	return store.GetInt(keyMissSound, defaultMissSound);
 }
 
+void Settings::SetWaitingSound(int waitingSound) {
+	waitingSound = max(min(waitingSound, 2), 0);
+	store.PutInt(keyWaitingSound, waitingSound);
+	SetModified();
+}
+
+int Settings::GetWaitingSound() {
+	return store.GetInt(keyWaitingSound, defaultWaitingSound);
+}
 
 bool Settings::IsModified() const {
 	return modified;
@@ -150,15 +168,12 @@ void Settings::ClearModifiedState() {
 	modified = false;
 }
 
-String Settings::GetDeviceName()
-{
+String Settings::GetDeviceName() {
 	return store.GetString(keyDeviceName, defaultDeviceName);
 }
 
-void Settings::SetDeviceName(String deviceName)
-{
-	if(deviceName.isEmpty())
-	{
+void Settings::SetDeviceName(String deviceName) {
+	if(deviceName.isEmpty()) {
 		deviceName = defaultDeviceName;
 	}
 	
@@ -166,37 +181,29 @@ void Settings::SetDeviceName(String deviceName)
 	SetModified(); 
 }
 
-String Settings::GetDevicePassword()
-{
+String Settings::GetDevicePassword() {
 	return store.IsKey(keyDevicePassword) ? store.GetString(keyDevicePassword, defaultDevicePassword) : defaultDevicePassword;
 }
 
-void Settings::SetDevicePassword(String devicePassword)
-{
-	if(devicePassword.isEmpty())
-	{
+void Settings::SetDevicePassword(String devicePassword) {
+	if(devicePassword.isEmpty()) {
 		if (store.IsKey(keyDevicePassword)) {
 			store.Remove(keyDevicePassword);
 		}
-	}
-	else 
-	{
+	} else {
 		store.PutString(keyDevicePassword, devicePassword);
 	}
 	SetModified();
 }
 
-String Settings::GetWifiPassword()
-{
+String Settings::GetWifiPassword() {
 	return store.IsKey(keyWifiPassword) ? store.GetString(keyWifiPassword, defaultWifiPassword) : defaultWifiPassword;
 }
 
-void Settings::SetWifiPassword(String wifiPassword)
-{
+void Settings::SetWifiPassword(String wifiPassword) {
 	wifiPassword.trim();
 
-	if(wifiPassword.isEmpty())
-	{
+	if(wifiPassword.isEmpty()) {
 		if (store.IsKey(keyWifiPassword)) {
 			store.Remove(keyWifiPassword);
 			SetModified();
@@ -209,110 +216,91 @@ void Settings::SetWifiPassword(String wifiPassword)
 	}
 }
 
-int Settings::GetVibrationSensorSensitivity()
-{
+int Settings::GetVibrationSensorSensitivity() {
 	return store.GetInt(keyVibrationSensorSensitivity, defaultVibrationSensorSensitivity);
 }
 
-void Settings::SetVibrationSensorSensitivity(int vibrationSensorSensitivity)
-{
+void Settings::SetVibrationSensorSensitivity(int vibrationSensorSensitivity) {
 	vibrationSensorSensitivity = max(min(vibrationSensorSensitivity, 100), 0);
 	store.PutInt(keyVibrationSensorSensitivity, vibrationSensorSensitivity);
 	SetModified();
 };
 
-int Settings::GetBallHitDetectionDistance() 
-{
+int Settings::GetBallHitDetectionDistance()  {
 	return store.GetInt(keyBallHitDetectionDistance, defaultBallHitDetectionDistance);
 }
 
-void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
-{
+void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance) {
 	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 600), 100);
 	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
 	SetModified();
 }
 
-bool Settings::GetDistanceOnlyHitDetection()
-{
+bool Settings::GetDistanceOnlyHitDetection() {
 	return (bool)store.GetInt(keyDistanceOnlyHitDetection, (int)defaultDistanceOnlyHitDetection);
 }
 
-void Settings::SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection)
-{
+void Settings::SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection) {
 	store.PutInt(keyDistanceOnlyHitDetection, (int)distanceOnlyHitDetection);
 	SetModified();
 }
 
-int Settings::GetLedBrightness()
-{
+int Settings::GetLedBrightness() {
 	return store.GetInt(keyLedBrightness, defaultLedBrightness);
 }
 
-void Settings::SetLedBrightness(int ledBrightness)
-{
+void Settings::SetLedBrightness(int ledBrightness) {
 	ledBrightness = max(min(ledBrightness, 100), 0);
 	store.PutInt(keyLedBrightness, ledBrightness);
 	SetModified();
 }
 
-LedMode Settings::GetLedMode()
-{
+LedMode Settings::GetLedMode() {
 	return (LedMode)store.GetInt(keyLedMode, (int)defaultLedMode);
 };
 
-void Settings::SetLedMode(LedMode ledMode)
-{
+void Settings::SetLedMode(LedMode ledMode) {
 	store.PutInt(keyLedMode, (int)ledMode);
 	SetModified();
 };
 
-bool Settings::IsFirstRun()
-{
+bool Settings::IsFirstRun() {
 	return (bool)store.GetInt(keyFirstRun, (int)defaultFirstRun);
 }
 
-void Settings::SetFirstRun(bool firstRun)
-{
+void Settings::SetFirstRun(bool firstRun) {
 	store.PutInt(keyFirstRun, (int)firstRun);
 	SetModified();
 }
   
-void Settings::ResetToDefaults()
-{
+void Settings::ResetToDefaults() {
 	store.Clear();
 	ESP.restart();
 }
 
-int Settings::GetAfterHitTimeout()
-{
+int Settings::GetAfterHitTimeout() {
 	return store.GetInt(keyAfterHitTimeout, defaultAfterHitTimeout);
 }
 
-void Settings::SetAfterHitTimeout(int timeout) 
-{
+void Settings::SetAfterHitTimeout(int timeout) {
 	timeout = max(min(timeout, 60), 0);
 	store.PutInt(keyAfterHitTimeout, timeout);
 	SetModified();
 }
 
-bool Settings::GetUpdateSuccess()
-{
+bool Settings::GetUpdateSuccess() {
 	return (bool)store.GetInt(keyUpdateSuccess, (int)defaultUpdateSuccess);
 }
 
-void Settings::SetUpdateSuccess(bool success)
-{
+void Settings::SetUpdateSuccess(bool success) {
 	store.PutInt(keyUpdateSuccess, (int)success);
 }
 
-bool Settings::GetExtraLog()
-{
+bool Settings::GetExtraLog() {
 	return (bool)store.GetInt(keyExtraLog, (int)defaultExtraLog);
 }
 
-void Settings::SetExtraLog(bool enabled)
-{
+void Settings::SetExtraLog(bool enabled) {
 	store.PutInt(keyExtraLog, (int)enabled);
 	SetModified();
 }
@@ -381,4 +369,22 @@ void Settings::SetSubnetMask(String mask) {
 		store.PutString(keySubnetMask, mask);
 		SetModified();
 	}
+}
+
+bool Settings::AdvancedSettingsEnabled() {
+	return store.IsKey(keyEnableAdvancedSettings) ? (bool)store.GetInt(keyEnableAdvancedSettings, defaultEnableAdvancedSettings) : defaultEnableAdvancedSettings;
+}
+
+void Settings::SetAdvancedSettingsEnabled(bool enable) {
+	store.PutInt(keyEnableAdvancedSettings, (int)enable);
+	SetModified();
+}
+
+bool Settings::DNSEnabled() {
+	return store.IsKey(keyEnableDNS) ? (bool)store.GetInt(keyEnableDNS, defaultEnableDNS) : defaultEnableDNS;
+}
+
+void Settings::SetDNSEnabled(bool enable) {
+	store.PutInt(keyEnableDNS, (int)enable);
+	SetModified();
 }

@@ -157,12 +157,15 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["metronomeSound"] = settings->GetMetronomeSound();
     data["hitSound"] = settings->GetHitSound();
     data["missSound"] = settings->GetMissSound();
+    data["waitingSound"] = settings->GetWaitingSound();
     data["ledMode"] = (int)settings->GetLedMode();
     data["ledBrightness"] = settings->GetLedBrightness();
     data["macAddress"] = settings->GetMacAddress();
     data["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
     data["version"] = FIRMWARE_VERSION;
     data["afterHitTimeout"] = settings->GetAfterHitTimeout();
+    data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
+    data["DNSEnabled"] = settings->DNSEnabled();
 
     SendJson(clientId, doc);
 }
@@ -207,6 +210,9 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "hitSound") == 0) {
         settings->SetHitSound(doc["value"].as<int>());
         response["value"] = settings->GetHitSound();
+    } else if (strcmp(key, "waitingSound") == 0) {
+        settings->SetWaitingSound(doc["value"].as<int>());
+        response["value"] = settings->GetWaitingSound();
     } else if (strcmp(key, "missSound") == 0) {
         settings->SetMissSound(doc["value"].as<int>());
         response["value"] = settings->GetMissSound();
@@ -219,6 +225,12 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "afterHitTimeout") == 0) {
         settings->SetAfterHitTimeout(doc["value"].as<int>());
         response["value"] = settings->GetAfterHitTimeout();
+    } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
+        settings->SetAdvancedSettingsEnabled(doc["value"].as<int>());
+        response["value"] = settings->AdvancedSettingsEnabled();
+    } else if (strcmp(key, "DNSEnabled") == 0) {
+        settings->SetDNSEnabled(doc["value"].as<int>());
+        response["value"] = settings->DNSEnabled();
     } else if (strcmp(key, "isSoundEnabled") == 0) {
         bool enabled = doc["value"].as<bool>();
         app->SetIsSoundEnabled(enabled);
