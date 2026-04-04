@@ -17,6 +17,8 @@
 #include "Settings.h"
 #include "WiFi.h"
 #include <math.h>
+#include "GoalfinderApp.h"
+#include "web/DNSServer.h"
 #include "util/Logger.h"
 
 const char* Settings::keyVolume = "volume";
@@ -386,5 +388,6 @@ bool Settings::DNSEnabled() {
 
 void Settings::SetDNSEnabled(bool enable) {
 	store.PutInt(keyEnableDNS, (int)enable);
+	GoalfinderApp::GetInstance()->SetDNSEnabled(enable);
 	SetModified();
 }

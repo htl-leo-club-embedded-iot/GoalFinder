@@ -335,3 +335,7 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
 void GoalfinderApp::Process() {
     delay(1);
 }
+
+void GoalfinderApp::SetDNSEnabled(bool enable) {
+    dnsServer.IsRunning = enable;
+}

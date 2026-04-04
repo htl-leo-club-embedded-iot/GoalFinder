@@ -89,6 +89,9 @@ public:
     static void TaskWebSocket(void *pvParameters);
     static void TaskHttp(void *pvParameters);
 
+    /** Enable or disable the DNS server. */
+    void SetDNSEnabled(bool enabled);
+
 private:
     friend class Singleton<GoalfinderApp>;
     /** Singleton constructor */
