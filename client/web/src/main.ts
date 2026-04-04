@@ -99,7 +99,8 @@ const i18n = createI18n({
                 restart_now: "Restart Now",
                 restart_later: "Restart Later",
                 advanced: "Advanced Settings",
-                advanced_desc: "This option gives you advanced and more granular settings option"
+                advanced_desc: "This option gives you advanced and more granular settings option",
+                dnsEnable: "Domain Name Service (DNS)"
             },
             about: {
                 about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of Vienna by students of the HTBLA Leonding",
@@ -251,7 +252,8 @@ const i18n = createI18n({
                 restart_now: "Jetzt Neustarten",
                 restart_later: "Später Neustarten",
                 advanced: "Erweiterte Einstellungen",
-                advanced_desc: "Erweiterte Einstellungen ermöglichen Ihnen erweiterte und genauere Einstellungsmöglichkeiten."
+                advanced_desc: "Erweiterte Einstellungen ermöglichen Ihnen erweiterte und genauere Einstellungsmöglichkeiten.",
+                dnsEnable: "Domain Name Service (DNS)"
             },
             about: {
                 about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",

@@ -231,10 +231,10 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         settings->SetAdvancedSettingsEnabled(doc["value"].as<int>());
         response["value"] = settings->AdvancedSettingsEnabled();
     } else if (strcmp(key, "extNWSSID") == 0) {
-        settings->SetExternalNW_SSID(doc["value"].as<int>());
+        settings->SetExternalNW_SSID(doc["value"].as<String>());
         response["value"] = settings->GetExternalNW_SSID();
     } else if (strcmp(key, "extNWPWD") == 0) {
-        settings->SetExternalNW_PWD(doc["value"].as<int>());
+        settings->SetExternalNW_PWD(doc["value"].as<String>());
         response["value"] = settings->GetExternalNW_PWD();
     } else if (strcmp(key, "DNSEnabled") == 0) {
         settings->SetDNSEnabled(doc["value"].as<int>());
