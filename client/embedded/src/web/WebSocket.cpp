@@ -32,6 +32,7 @@ GFWebSocket::~GFWebSocket() {}
 
 void GFWebSocket::Begin() {
     wsServer.begin();
+    wsServer.enableHeartbeat(15000, 3000, 2);
     wsServer.onEvent([this](uint8_t clientId, WStype_t type, uint8_t* payload, size_t length) {
         this->OnEvent(clientId, type, payload, length);
     });

@@ -29,52 +29,65 @@ static HttpServer* _instance = nullptr;
 volatile bool g_httpServingFile = false;
 
 namespace {
-String StripQueryAndFragment(const String& uri)
-{
-    int q = uri.indexOf('?');
-    int h = uri.indexOf('#');
-    int cut = -1;
+    String StripQueryAndFragment(const String& uri)
+    {
+        int q = uri.indexOf('?');
+        int h = uri.indexOf('#');
+        int cut = -1;
 
-    if (q >= 0 && h >= 0) {
-        cut = q < h ? q : h;
-    } else if (q >= 0) {
-        cut = q;
-    } else if (h >= 0) {
-        cut = h;
+        if (q >= 0 && h >= 0) {
+            cut = q < h ? q : h;
+        } else if (q >= 0) {
+            cut = q;
+        } else if (h >= 0) {
+            cut = h;
+        }
+
+        if (cut < 0) {
+            return uri;
+        }
+
+        return uri.substring(0, cut);
     }
 
-    if (cut < 0) {
-        return uri;
+    String StripPortFromHost(const String& host)
+    {
+        // Keep IPv6 literals (multiple ':') untouched; only strip host:port patterns.
+        int firstColon = host.indexOf(':');
+        int lastColon = host.lastIndexOf(':');
+        return firstColon > 0 && firstColon == lastColon ? host.substring(0, firstColon) : host;
     }
 
-    return uri.substring(0, cut);
-}
+    bool ShouldTryCompressedVariant(const String& filePath)
+    {
+        String lower = filePath;
+        lower.toLowerCase();
 
-String StripPortFromHost(const String& host)
-{
-    // Keep IPv6 literals (multiple ':') untouched; only strip host:port patterns.
-    int firstColon = host.indexOf(':');
-    int lastColon = host.lastIndexOf(':');
-    if (firstColon > 0 && firstColon == lastColon) {
-        return host.substring(0, firstColon);
+        // Skip speculative .gz probes for already-compressed/binary assets.
+        return lower.endsWith(".html") ||
+               lower.endsWith(".css")  ||
+               lower.endsWith(".js")   ||
+               lower.endsWith(".json") ||
+               lower.endsWith(".svg")  ||
+               lower.endsWith(".txt")  ||
+               lower.endsWith(".map");
     }
-    return host;
-}
 
-bool ShouldTryCompressedVariant(const String& filePath)
-{
-    String lower = filePath;
-    lower.toLowerCase();
+    String NormalizeHostForPortal(const String& hostHeader) {
+        String host = StripPortFromHost(hostHeader);
+        host.trim();
+        host.toLowerCase();
 
-    // Skip speculative .gz probes for already-compressed/binary assets.
-    return lower.endsWith(".html") ||
-           lower.endsWith(".css")  ||
-           lower.endsWith(".js")   ||
-           lower.endsWith(".json") ||
-           lower.endsWith(".svg")  ||
-           lower.endsWith(".txt")  ||
-           lower.endsWith(".map");
-}
+        while (host.endsWith(".")) {
+            host.remove(host.length() - 1);
+        }
+
+        return host;
+    }
+
+    bool IsAllowedPortalHost(const String& normalizedHost, const String& apIp) {
+        return normalizedHost.isEmpty() || normalizedHost == apIp || normalizedHost == "goalfinder.local" || normalizedHost.endsWith(".goalfinder.local");
+    }
 }
 
 String HttpServer::GetContentType(const String& fileName)
@@ -183,10 +196,10 @@ void HttpServer::Begin()
         }
 
         // Captive portal: redirect requests from non-AP hosts
-        String host = StripPortFromHost(server.hostHeader());
-        if ((WiFi.getMode() & WIFI_AP) && !host.isEmpty() && host != WiFi.softAPIP().toString()
-            && host != "goalfinder.local") {
-            String url = "http://" + WiFi.softAPIP().toString() + "/games";
+        String host = NormalizeHostForPortal(server.hostHeader());
+        String apIp = WiFi.softAPIP().toString();
+        if ((WiFi.getMode() & WIFI_AP) && !IsAllowedPortalHost(host, apIp)) {
+            String url = "http://" + apIp + "/games";
             server.sendHeader("Location", url, true);
             server.send(302, "text/plain", "");
             return;
