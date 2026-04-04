@@ -3,7 +3,7 @@ import InputForm from "@/components/InputForm.vue";
 import Modal from "@/components/Modal.vue";
 import Button from "@/components/Button.vue";
 import { useSettingsStore } from "@/stores/settings";
-import { ref, onMounted, useTemplateRef } from "vue";
+import { ref, onMounted, useTemplateRef, watch } from "vue";
 
 const settings = useSettingsStore();
 
@@ -11,6 +11,7 @@ const connectionModal = useTemplateRef<any>("connectionModal");
 const dontShowAgain = ref(false);
 const originalDeviceName = ref("");
 const originalWifiPassword = ref("");
+const hasUserEditedConnectionSettings = ref(false);
 
 onMounted(() => {
   originalDeviceName.value = settings.deviceName || "";
@@ -18,6 +19,21 @@ onMounted(() => {
   const stored = localStorage.getItem('connectionWarningDontShow');
   dontShowAgain.value = stored === 'true';
 });
+
+watch(
+  () => [settings.deviceName || "", settings.wifiPassword || ""],
+  ([deviceName, wifiPassword]) => {
+    if (!hasUserEditedConnectionSettings.value) {
+      originalDeviceName.value = deviceName;
+      originalWifiPassword.value = wifiPassword;
+    }
+  },
+  { immediate: true }
+);
+
+function markConnectionSettingsEdited() {
+  hasUserEditedConnectionSettings.value = true;
+}
 
 function openConnectionModal() {
   connectionModal.value?.openDialog();
@@ -30,6 +46,7 @@ function closeConnectionModal(restart: boolean) {
 
   originalDeviceName.value = settings.deviceName || "";
   originalWifiPassword.value = settings.wifiPassword || "";
+  hasUserEditedConnectionSettings.value = false;
   connectionModal.value?.closeDialog();
 
   if (restart) {
@@ -38,10 +55,17 @@ function closeConnectionModal(restart: boolean) {
 }
 
 function onPrimaryEnter() {
+  const currentDeviceName = settings.deviceName || "";
+  const currentWifiPassword = settings.wifiPassword || "";
+  const hasConnectionChanges =
+    currentDeviceName !== originalDeviceName.value ||
+    currentWifiPassword !== originalWifiPassword.value;
   if (dontShowAgain.value) {
     settings.restartDevice();
-  } else if ((settings.deviceName || "") !== originalDeviceName.value || (settings.wifiPassword || "") !== originalWifiPassword.value) {
+  } else if (hasConnectionChanges) {
     openConnectionModal();
+  } else {
+    hasUserEditedConnectionSettings.value = false;
   }
 }
 </script>
@@ -50,11 +74,11 @@ function onPrimaryEnter() {
   <form id="general-input" autocomplete="off">
     <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
            :placeholder="$t('description.device_name_description')" type="text"
-           name="deviceName" autocomplete="off" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
+        name="deviceName" autocomplete="off" @update:modelValue="markConnectionSettingsEdited" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
     <InputForm v-model="settings.wifiPassword" :label="$t('word.ssid_password')"
            :placeholder="$t('description.ssid_password_description')" type="password"
            :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"
-           name="wifiPassword" autocomplete="new-password" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
+        name="wifiPassword" autocomplete="new-password" @update:modelValue="markConnectionSettingsEdited" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
     <InputForm v-model="settings.devicePassword" :label="$t('word.device_password')"
                :placeholder="$t('description.device_password_description')" type="password"
                name="devicePassword" autocomplete="new-password"/>

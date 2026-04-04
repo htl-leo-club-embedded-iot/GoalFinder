@@ -98,8 +98,6 @@ onMounted(() => {
 
 <template>
   <div class="web-app-settings">
-
-    <!-- Theme -->
     <div class="setting-section">
       <h4>{{ $t("settings.theme") }}</h4>
       <div class="theme-options">
@@ -115,7 +113,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Language -->
     <div class="setting-section">
       <h4>{{ $t("settings.language") }}</h4>
       <div class="language-options">
@@ -131,7 +128,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Accent Color -->
     <div class="setting-section">
       <h4>{{ $t("settings.accent_color") }}</h4>
       <div class="color-options">

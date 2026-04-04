@@ -24,10 +24,10 @@ import WifiIcon from "@/components/icons/WifiIcon.vue";
 import {onMounted} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 
-const settingsStore = useSettingsStore();
+const settings = useSettingsStore();
 
 onMounted(() => {
-  settingsStore.getSettings();
+  settings.getSettings();
 });
 </script>
 
