@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import SoftwareUpdateModal from "@/components/settings/SoftwareUpdateModal.vue";
 import Button from "@/components/Button.vue";
+import Checkbox from "@/components/Checkbox.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
@@ -66,12 +67,7 @@ const openUpdateDialog = () => {
     <SoftwareUpdateModal ref="updateDialog"/>
 
     <h3>{{ $t("word.advanced") }}</h3>
-    <div ids="advanced-settings">
-      <label>
-        <input type="checkbox" v-model="settings.advancedSettingsEnabled" @change="settings.scheduleSave()" />
-        {{ $t("settings.advanced") }}
-      </label>
-    </div>
+    <Checkbox v-model="settings.advancedSettingsEnabled" label="settings.advanced" @change="settings.scheduleSave()" />
     <p class="greyed">{{ $t("settings.advanced_desc") }}</p>
 
     <h3 id="visit">{{ $t("settings.info") }}</h3>
@@ -148,19 +144,4 @@ h4 {
   margin-top: 0;
 }
 
-#advanced-settings {
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
-
-#advanced-settings label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-#advanced-settings input[type="checkbox"] {
-  cursor: pointer;
-}
 </style>

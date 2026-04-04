@@ -42,7 +42,12 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const eventListeners = new Map<string, Set<EventCallback>>();
 
     type MessageHandler = (msg: any) => void;
-    const pendingHandlers = new Map<string, MessageHandler[]>();
+    type MessageMatcher = (msg: any) => boolean;
+    type PendingHandler = {
+        handler: MessageHandler;
+        matcher?: MessageMatcher;
+    };
+    const pendingHandlers = new Map<string, PendingHandler[]>();
 
     function clearConnectTimeout(): void {
         if (connectTimeoutTimer) {
@@ -279,9 +284,12 @@ export const useWebSocketStore = defineStore("websocket", () => {
         // Dispatch to pending response handlers
         const handlers = pendingHandlers.get(type);
         if (handlers && handlers.length > 0) {
-            const handler = handlers.shift()!;
-            if (handlers.length === 0) pendingHandlers.delete(type);
-            handler(msg);
+            const matchedIndex = handlers.findIndex((entry) => !entry.matcher || entry.matcher(msg));
+            if (matchedIndex >= 0) {
+                const [entry] = handlers.splice(matchedIndex, 1);
+                if (handlers.length === 0) pendingHandlers.delete(type);
+                entry.handler(msg);
+            }
         }
 
         emit(type, msg);
@@ -309,29 +317,38 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }
     }
 
-    function sendAndWait(data: object, responseType: string, timeoutMs = 5000): Promise<any> {
+    function sendAndWait(data: object, responseType: string, timeoutMs = 5000, matcher?: MessageMatcher): Promise<any> {
         return new Promise((resolve, reject) => {
+            const pending: PendingHandler = {
+                matcher,
+                handler: (msg: any) => {
+                    clearTimeout(timer);
+                    resolve(msg);
+                },
+            };
+
             const timer = setTimeout(() => {
                 const handlers = pendingHandlers.get(responseType);
                 if (handlers) {
-                    const idx = handlers.indexOf(handler);
+                    const idx = handlers.indexOf(pending);
                     if (idx >= 0) handlers.splice(idx, 1);
+                    if (handlers.length === 0) pendingHandlers.delete(responseType);
                 }
                 reject(new Error(`Timeout waiting for ${responseType}`));
             }, timeoutMs);
 
-            const handler = (msg: any) => {
-                clearTimeout(timer);
-                resolve(msg);
-            };
-
             if (!pendingHandlers.has(responseType)) {
                 pendingHandlers.set(responseType, []);
             }
-            pendingHandlers.get(responseType)!.push(handler);
+            pendingHandlers.get(responseType)!.push(pending);
 
             send(data);
         });
+    }
+
+    function loadSettings(timeoutMs = 5000): Promise<Record<string, any>> {
+        return sendAndWait({ type: "get_settings" }, "settings", timeoutMs)
+            .then((msg: any) => msg?.data ?? {});
     }
 
     function sendStart(): void {
@@ -348,6 +365,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
     function sendSetSetting(key: string, value: any): void {
         send({ type: "set", key, value });
+    }
+
+    function setSettingAndWait(key: string, value: any, timeoutMs = 5000): Promise<any> {
+        return sendAndWait(
+            { type: "set", key, value },
+            "setting_ack",
+            timeoutMs,
+            (msg: any) => msg?.key === key,
+        );
     }
 
     function sendRestart(): void {
@@ -403,10 +429,12 @@ export const useWebSocketStore = defineStore("websocket", () => {
         off,
         send,
         sendAndWait,
+        loadSettings,
         sendStart,
         sendStop,
         sendGetSettings,
         sendSetSetting,
+        setSettingAndWait,
         sendRestart,
         sendFactoryReset,
         sendAuth,
