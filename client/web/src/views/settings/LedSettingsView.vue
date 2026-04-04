@@ -74,10 +74,6 @@ const ledModeKey = computed(() => {
 </template>
 
 <style scoped>
-h3 {
-  margin-top: 0.5rem;
-}
-
 #led {
   width: 100%;
 }

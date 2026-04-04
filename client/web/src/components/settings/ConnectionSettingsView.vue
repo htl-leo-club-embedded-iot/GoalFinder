@@ -80,7 +80,7 @@ function onPrimaryEnter() {
   gap: 1rem;
   width: 100%;
   max-width: 500px;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .dont-show-again {

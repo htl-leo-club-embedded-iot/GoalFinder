@@ -70,9 +70,9 @@ const openUpdateDialog = () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 h4 {
-  margin: 0.5rem 0;
+  margin: 0;
 }
 
 #led {
@@ -94,7 +94,7 @@ h4 {
   gap: 0.5rem;
   align-items: center;
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 #device-info {
@@ -105,7 +105,7 @@ h4 {
   gap: 0.5rem;
   width: 100%;
   max-width: 500px;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 #device-info > div {
@@ -118,7 +118,7 @@ h4 {
 }
 
 #visit {
-  margin-top: 2rem;
+  margin-top: 0;
 }
 
 #visit-text {
@@ -131,6 +131,6 @@ h4 {
 }
 
 #web-title {
-  margin-top: 1rem;
+  margin-top: 0;
 }
 </style>

@@ -29,13 +29,11 @@ const distance = useClampedValue(
 </script>
 
 <template>
-  <div class="container">
-    <div id="led">
-      <div class="label-container">
-        <label>{{ $t("word.measuring")}} {{ $t("word.distance") }}</label>
-        <div class="button-container">
-          <InputForm type="number" class="button" v-model="distance" inputmode="numeric" min="150" max="600" step="10"></InputForm>
-        </div>
+  <div id="led">
+    <div class="label-container">
+      <label>{{ $t("word.measuring")}} {{ $t("word.distance") }}</label>
+      <div class="button-container">
+        <InputForm type="number" class="button" v-model="distance" inputmode="numeric" min="150" max="600" step="10"></InputForm>
       </div>
     </div>
   </div>
