@@ -23,10 +23,17 @@
  * relying on actual non-volatile memory.
  */
 
+#if __has_include("util/Logger.h")
 #include "util/Logger.h"
+#else
+class Logger {
+    public:
+        enum class LogLevel { OK, DEBUG, INFO, WARN, ERROR };
+        static void log(const char *, LogLevel, const char *, ...) {}
+};
+#endif
+
 #include <system/Settings.h>
-#include <utils/Log.h>
-#include <utils/StringUtils.h>
 
 namespace System {
 

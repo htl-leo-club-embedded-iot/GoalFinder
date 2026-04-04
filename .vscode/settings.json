@@ -13,11 +13,15 @@
     "HTBLA",
     "ledc",
     "Leonding",
+    "Nacherkennung",
     "NWPWD",
     "NWSSID",
     "qclass",
     "sntp",
+    "ssid",
+    "Trefferkennung",
     "uploadfs",
     "wclk"
-  ]
+  ],
+  "cSpell.language": "en,de"
 }

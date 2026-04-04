@@ -18,7 +18,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import {useSettingsStore} from "@/stores/settings";
-import Button from "@/components/Button.vue";
 import InputForm from "@/components/InputForm.vue";
 import { useClampedValue } from "@/models/clampedValue";
 
@@ -71,8 +70,38 @@ onMounted(() => {
     </div>
   </div>
     
+  <div class="sound-select"> <!-- TODO -->
+    <h3>{{ $t("settings.hit_sound") }}</h3>
+    <div class="button-container">
+      <button
+        v-for="missSound in ([0, 1, 2] as const)"
+        :key="missSound"
+        type="button"
+        class="sound-btn"
+        :class="{ active: settings.missSound === missSound}"
+        @click="setMissSound(missSound)">
+        {{  $t("word.sound") }} {{ missSound + 1 }}
+      </button>
+    </div>
+  </div>
+
   <div class="sound-select">
     <h3>{{ $t("settings.miss_sound") }}</h3>
+    <div class="button-container">
+      <button
+        v-for="missSound in ([0, 1, 2] as const)"
+        :key="missSound"
+        type="button"
+        class="sound-btn"
+        :class="{ active: settings.missSound === missSound}"
+        @click="setMissSound(missSound)">
+        {{  $t("word.sound") }} {{ missSound + 1 }}
+      </button>
+    </div>
+  </div>
+
+  <div class="sound-select"> <!-- TODO Make this advanced settings ONLY  -->
+    <h3>{{ $t("settings.waiting_sound") }}</h3>
     <div class="button-container">
       <button
         v-for="missSound in ([0, 1, 2] as const)"

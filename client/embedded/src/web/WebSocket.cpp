@@ -166,6 +166,8 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["afterHitTimeout"] = settings->GetAfterHitTimeout();
     data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
     data["DNSEnabled"] = settings->DNSEnabled();
+    data["extNWSSID"] = settings->GetExternalNW_SSID();
+    data["extNWPWD"] = settings->GetExternalNW_PWD();
 
     SendJson(clientId, doc);
 }
@@ -228,6 +230,12 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
         settings->SetAdvancedSettingsEnabled(doc["value"].as<int>());
         response["value"] = settings->AdvancedSettingsEnabled();
+    } else if (strcmp(key, "extNWSSID") == 0) {
+        settings->SetExternalNW_SSID(doc["value"].as<int>());
+        response["value"] = settings->GetExternalNW_SSID();
+    } else if (strcmp(key, "extNWPWD") == 0) {
+        settings->SetExternalNW_PWD(doc["value"].as<int>());
+        response["value"] = settings->GetExternalNW_PWD();
     } else if (strcmp(key, "DNSEnabled") == 0) {
         settings->SetDNSEnabled(doc["value"].as<int>());
         response["value"] = settings->DNSEnabled();
