@@ -229,7 +229,7 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         settings->SetAfterHitTimeout(doc["value"].as<int>());
         response["value"] = settings->GetAfterHitTimeout();
     } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
-        settings->SetAdvancedSettingsEnabled(doc["value"].as<int>());
+        settings->SetAdvancedSettingsEnabled(doc["value"].as<bool>());
         response["value"] = settings->AdvancedSettingsEnabled();
     } else if (strcmp(key, "extNWSSID") == 0) {
         settings->SetExternalNW_SSID(doc["value"].as<String>());
@@ -238,7 +238,7 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         settings->SetExternalNW_PWD(doc["value"].as<String>());
         response["value"] = settings->GetExternalNW_PWD();
     } else if (strcmp(key, "DNSEnabled") == 0) {
-        settings->SetDNSEnabled(doc["value"].as<int>());
+        settings->SetDNSEnabled(doc["value"].as<bool>());
         response["value"] = settings->DNSEnabled();
     } else if (strcmp(key, "isSoundEnabled") == 0) {
         bool enabled = doc["value"].as<bool>();

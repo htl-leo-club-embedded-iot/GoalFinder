@@ -87,7 +87,7 @@ const String Settings::defaultDeviceIpAddress = "192.168.4.1";
 const char* Settings::keySubnetMask = "subnetMask";
 const String Settings::defaultSubnetMask = "255.255.255.0";
 
-const char* Settings::keyEnableAdvancedSettings = "enableAdvancedSettings";
+const char* Settings::keyEnableAdvancedSettings = "advSettingsEn";
 const bool Settings::defaultEnableAdvancedSettings = false;
 
 const char* Settings::keyEnableDNS = "enableDNS";

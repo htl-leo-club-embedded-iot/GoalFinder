@@ -242,7 +242,7 @@ const i18n = createI18n({
                 metronome_sound: "Metronome Ton",
                 miss_sound: "Fehlschuss Ton",
                 hit_sound: "Treffer Ton",
-                waiting_sound: "Warte Ton",
+                waiting_sound: "Warteton",
                 info: "Informationen",
                 more_info: "Besuchen Sie für mehr Informationen die ",
                 doc: "GoalFinder Benutzerdokumentation",

@@ -22,7 +22,7 @@
 
 class GFDNSServer {
 public:
-    bool IsRunning = true;
+    volatile bool IsRunning = true;
 
     GFDNSServer();
     ~GFDNSServer();

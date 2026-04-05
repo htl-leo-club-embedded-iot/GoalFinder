@@ -96,6 +96,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+  p {
+    color: var(--text);
+  }
+
   #router {
     margin: 0 1%;
   }

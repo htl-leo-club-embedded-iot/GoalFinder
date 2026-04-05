@@ -25,12 +25,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
     let connectTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
     let reconnectAttempts = 0;
     let connectionEpoch = 0;
+    let connectAttemptId = 0;
     let manualDisconnect = false;
     let candidateUrls: string[] = [];
     let candidateIndex = 0;
 
     const WS_DEFAULT_PORT = "81";
-    const WS_CONNECT_TIMEOUT_MS = 2500;
+    const WS_CONNECT_TIMEOUT_MS = 2000;
+    const WS_CONNECT_TIMEOUT_LOCAL_HOST_MS = 900;
+    const WS_CONNECT_TIMEOUT_IP_MS = 1400;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
 
     const MAX_RECONNECT_DELAY = 5000;
@@ -54,6 +57,25 @@ export const useWebSocketStore = defineStore("websocket", () => {
             clearTimeout(connectTimeoutTimer);
             connectTimeoutTimer = null;
         }
+    }
+
+    function isIpHostname(hostname: string): boolean {
+        const ipv4Pattern = /^\d{1,3}(\.\d{1,3}){3}$/;
+        return ipv4Pattern.test(hostname) || hostname.includes(":");
+    }
+
+    function getConnectTimeoutMs(wsUrl: string): number {
+        try {
+            const hostname = new URL(wsUrl).hostname.toLowerCase();
+            if (hostname.endsWith(".local")) {
+                return WS_CONNECT_TIMEOUT_LOCAL_HOST_MS;
+            }
+            if (isIpHostname(hostname)) {
+                return WS_CONNECT_TIMEOUT_IP_MS;
+            }
+        } catch {}
+
+        return WS_CONNECT_TIMEOUT_MS;
     }
 
     function buildWsUrl(protocol: string, hostname: string, port: string): string | null {
@@ -104,20 +126,25 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const urls: string[] = [];
         const currentLocation = new URL(window.location.href);
+        const currentHost = currentLocation.hostname.toLowerCase();
+        const isLocalAliasHost = currentHost === "goalfinder.local" || currentHost.endsWith(".goalfinder.local");
 
         const addCandidate = (candidate: string | null) => {
             if (!candidate || urls.includes(candidate)) return;
             urls.push(candidate);
         };
 
-        addCandidate(getRememberedWsUrl(protocol));
         addCandidate(buildWsUrl(protocol, currentLocation.hostname, WS_DEFAULT_PORT));
 
         if (currentLocation.port && currentLocation.port !== "80" && currentLocation.port !== "443") {
             addCandidate(buildWsUrl(protocol, currentLocation.hostname, currentLocation.port));
         }
 
-        // Fallbacks for captive portal / mobile network edge cases.
+        if (isLocalAliasHost) {
+            addCandidate(buildWsUrl(protocol, "192.168.4.1", WS_DEFAULT_PORT));
+        }
+
+        addCandidate(getRememberedWsUrl(protocol));
         addCandidate(buildWsUrl(protocol, "goalfinder.local", WS_DEFAULT_PORT));
         addCandidate(buildWsUrl(protocol, "192.168.4.1", WS_DEFAULT_PORT));
 
@@ -134,12 +161,16 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }
 
         const wsUrl = candidateUrls[candidateIndex];
+        const timeoutMs = getConnectTimeoutMs(wsUrl);
+        const attemptId = ++connectAttemptId;
         let opened = false;
+        let socket: WebSocket;
 
         console.log(`[WS] Connecting (${candidateIndex + 1}/${candidateUrls.length}): ${wsUrl}`);
 
         try {
-            ws = new WebSocket(wsUrl);
+            socket = new WebSocket(wsUrl);
+            ws = socket;
         } catch (error) {
             console.error(`[WS] Failed to create socket for ${wsUrl}:`, error);
             candidateIndex++;
@@ -147,35 +178,55 @@ export const useWebSocketStore = defineStore("websocket", () => {
             return;
         }
 
+        const isCurrentAttempt = () =>
+            epoch === connectionEpoch && !manualDisconnect && attemptId === connectAttemptId;
+
         clearConnectTimeout();
         connectTimeoutTimer = setTimeout(() => {
-            if (epoch !== connectionEpoch || manualDisconnect) return;
-            if (ws && ws.readyState === WebSocket.CONNECTING) {
-                console.warn(`[WS] Connection timeout: ${wsUrl}`);
-                ws.close();
-            }
-        }, WS_CONNECT_TIMEOUT_MS);
+            if (!isCurrentAttempt()) return;
 
-        ws.onopen = () => {
-            if (epoch !== connectionEpoch || manualDisconnect) return;
+            if (socket.readyState === WebSocket.CONNECTING) {
+                console.warn(`[WS] Connection timeout (${timeoutMs}ms): ${wsUrl}`);
+                connectAttemptId++;
+                socket.onopen = null;
+                socket.onclose = null;
+                socket.onerror = null;
+                socket.onmessage = null;
+                try {
+                    socket.close();
+                } catch {}
+
+                candidateIndex++;
+                tryConnectCandidate(epoch);
+            }
+        }, timeoutMs);
+
+        socket.onopen = () => {
+            if (!isCurrentAttempt()) {
+                socket.close();
+                return;
+            }
 
             opened = true;
             clearConnectTimeout();
             isConnected.value = true;
             reconnectAttempts = 0;
             rememberWsUrl(wsUrl);
+            ws = socket;
 
             console.log(`[WS] Connected: ${wsUrl}`);
             send({ type: "is_auth" });
         };
 
-        ws.onclose = () => {
-            if (epoch !== connectionEpoch) return;
+        socket.onclose = () => {
+            if (epoch !== connectionEpoch || attemptId !== connectAttemptId) return;
 
             clearConnectTimeout();
             const wasConnected = opened || isConnected.value;
             isConnected.value = false;
-            ws = null;
+            if (ws === socket) {
+                ws = null;
+            }
 
             console.log(`[WS] Disconnected: ${wsUrl}`);
 
@@ -192,13 +243,13 @@ export const useWebSocketStore = defineStore("websocket", () => {
             scheduleReconnect();
         };
 
-        ws.onerror = (error) => {
-            if (epoch !== connectionEpoch) return;
+        socket.onerror = (error) => {
+            if (!isCurrentAttempt()) return;
             console.error(`[WS] Error on ${wsUrl}:`, error);
         };
 
-        ws.onmessage = (event: MessageEvent) => {
-            if (epoch !== connectionEpoch) return;
+        socket.onmessage = (event: MessageEvent) => {
+            if (!isCurrentAttempt()) return;
             handleMessage(event.data);
         };
     }
@@ -225,6 +276,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
     function disconnect(): void {
         manualDisconnect = true;
         connectionEpoch++;
+        connectAttemptId++;
 
         if (reconnectTimer) {
             clearTimeout(reconnectTimer);

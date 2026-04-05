@@ -115,6 +115,7 @@ void GoalfinderApp::Init() {
         IPAddress deviceIP;
         deviceIP.fromString(Settings::GetInstance()->GetDeviceIpAddress());
         dnsServer.Begin(deviceIP);
+        dnsServer.IsRunning = Settings::GetInstance()->DNSEnabled();
 
         xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,           3, &TaskAudioHandle,     1);
         xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,           2, &TaskDetectionHandle, 1);
@@ -324,7 +325,7 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsig
 
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
-        Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Starting playback '%s'", soundFileName);
+        Logger::log("GoalfinderApp", Logger::LogLevel::DEBUG, "Starting playback '%s'", soundFileName);
         if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
             audioPlayer.PlayMP3(soundFileName);
             xSemaphoreGive(xMutex);

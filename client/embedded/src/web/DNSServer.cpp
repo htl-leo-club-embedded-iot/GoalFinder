@@ -98,9 +98,13 @@ void GFDNSServer::Loop() {
 
 void GFDNSServer::Task(void* pvParameters) {
     GFDNSServer* dns = static_cast<GFDNSServer*>(pvParameters);
-    while (dns->IsRunning) {
-        dns->Loop();
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+    while (true) {
+        if (dns->IsRunning) {
+            dns->Loop();
+            vTaskDelay(1 / portTICK_PERIOD_MS);
+        } else {
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+        }
     }
 }
 
