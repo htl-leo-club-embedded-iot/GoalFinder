@@ -34,6 +34,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const WS_CONNECT_TIMEOUT_MS = 2000;
     const WS_CONNECT_TIMEOUT_LOCAL_HOST_MS = 900;
     const WS_CONNECT_TIMEOUT_IP_MS = 1400;
+    const WS_DNS_FALLBACK_MS = 550;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
 
     const MAX_RECONNECT_DELAY = 5000;
@@ -49,6 +50,8 @@ export const useWebSocketStore = defineStore("websocket", () => {
     type PendingHandler = {
         handler: MessageHandler;
         matcher?: MessageMatcher;
+        reject?: (error: Error) => void;
+        timeoutId?: ReturnType<typeof setTimeout> | null;
     };
     const pendingHandlers = new Map<string, PendingHandler[]>();
 
@@ -59,21 +62,48 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }
     }
 
+    function clearPendingHandlers(reason: string): void {
+        if (pendingHandlers.size === 0) return;
+
+        pendingHandlers.forEach((handlers) => {
+            handlers.forEach((entry) => {
+                if (entry.timeoutId) {
+                    clearTimeout(entry.timeoutId);
+                    entry.timeoutId = null;
+                }
+
+                if (entry.reject) {
+                    entry.reject(new Error(reason));
+                    entry.reject = undefined;
+                }
+            });
+        });
+
+        pendingHandlers.clear();
+    }
+
     function isIpHostname(hostname: string): boolean {
         const ipv4Pattern = /^\d{1,3}(\.\d{1,3}){3}$/;
         return ipv4Pattern.test(hostname) || hostname.includes(":");
     }
 
-    function getConnectTimeoutMs(wsUrl: string): number {
+    function getHostnameFromUrl(url: string): string {
         try {
-            const hostname = new URL(wsUrl).hostname.toLowerCase();
-            if (hostname.endsWith(".local")) {
-                return WS_CONNECT_TIMEOUT_LOCAL_HOST_MS;
-            }
-            if (isIpHostname(hostname)) {
-                return WS_CONNECT_TIMEOUT_IP_MS;
-            }
-        } catch {}
+            return new URL(url).hostname.toLowerCase();
+        } catch (error) {
+            console.warn(error);
+            return "";
+        }
+    }
+
+    function getConnectTimeoutMs(wsUrl: string): number {
+        const hostname = getHostnameFromUrl(wsUrl);
+        if (hostname.endsWith(".local")) {
+            return WS_CONNECT_TIMEOUT_LOCAL_HOST_MS;
+        }
+        if (isIpHostname(hostname)) {
+            return WS_CONNECT_TIMEOUT_IP_MS;
+        }
 
         return WS_CONNECT_TIMEOUT_MS;
     }
@@ -163,7 +193,12 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const wsUrl = candidateUrls[candidateIndex];
         const timeoutMs = getConnectTimeoutMs(wsUrl);
         const attemptId = ++connectAttemptId;
+        const currentHostname = getHostnameFromUrl(wsUrl);
+        const nextCandidate = candidateIndex + 1 < candidateUrls.length ? candidateUrls[candidateIndex + 1] : null;
+        const nextHostname = nextCandidate ? getHostnameFromUrl(nextCandidate) : "";
+        const shouldApplyDnsFallback = currentHostname.endsWith(".local") && isIpHostname(nextHostname);
         let opened = false;
+        let dnsFallbackTimer: ReturnType<typeof setTimeout> | null = null;
         let socket: WebSocket;
 
         console.log(`[WS] Connecting (${candidateIndex + 1}/${candidateUrls.length}): ${wsUrl}`);
@@ -181,25 +216,50 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const isCurrentAttempt = () =>
             epoch === connectionEpoch && !manualDisconnect && attemptId === connectAttemptId;
 
-        clearConnectTimeout();
-        connectTimeoutTimer = setTimeout(() => {
-            if (!isCurrentAttempt()) return;
+        const clearDnsFallbackTimer = () => {
+            if (dnsFallbackTimer) {
+                clearTimeout(dnsFallbackTimer);
+                dnsFallbackTimer = null;
+            }
+        };
 
-            if (socket.readyState === WebSocket.CONNECTING) {
-                console.warn(`[WS] Connection timeout (${timeoutMs}ms): ${wsUrl}`);
+        const advanceToNextCandidate = (reason: string) => {
+            if (isCurrentAttempt()) {
+                console.warn(`[WS] ${reason}: ${wsUrl}`);
                 connectAttemptId++;
+                clearConnectTimeout();
+                clearDnsFallbackTimer();
+
                 socket.onopen = null;
                 socket.onclose = null;
                 socket.onerror = null;
                 socket.onmessage = null;
+
                 try {
                     socket.close();
-                } catch {}
+                } catch (e) {
+                    console.warn(e);
+                }
 
                 candidateIndex++;
                 tryConnectCandidate(epoch);
             }
+        };
+
+        clearConnectTimeout();
+        connectTimeoutTimer = setTimeout(() => {
+            if (isCurrentAttempt() && socket.readyState === WebSocket.CONNECTING) {   
+                advanceToNextCandidate(`Connection timeout (${timeoutMs}ms)`);
+            }
         }, timeoutMs);
+
+        if (shouldApplyDnsFallback) {
+            dnsFallbackTimer = setTimeout(() => {
+                if (isCurrentAttempt() && socket.readyState === WebSocket.CONNECTING) {
+                    advanceToNextCandidate(`DNS fallback (${WS_DNS_FALLBACK_MS}ms)`);
+                }
+            }, WS_DNS_FALLBACK_MS);
+        }
 
         socket.onopen = () => {
             if (!isCurrentAttempt()) {
@@ -209,6 +269,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
             opened = true;
             clearConnectTimeout();
+            clearDnsFallbackTimer();
             isConnected.value = true;
             reconnectAttempts = 0;
             rememberWsUrl(wsUrl);
@@ -222,6 +283,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
             if (epoch !== connectionEpoch || attemptId !== connectAttemptId) return;
 
             clearConnectTimeout();
+            clearDnsFallbackTimer();
             const wasConnected = opened || isConnected.value;
             isConnected.value = false;
             if (ws === socket) {
@@ -231,8 +293,11 @@ export const useWebSocketStore = defineStore("websocket", () => {
             console.log(`[WS] Disconnected: ${wsUrl}`);
 
             if (manualDisconnect) {
+                clearPendingHandlers("WebSocket disconnected");
                 return;
             }
+
+            clearPendingHandlers("WebSocket connection lost");
 
             if (!wasConnected && candidateIndex + 1 < candidateUrls.length) {
                 candidateIndex++;
@@ -277,6 +342,8 @@ export const useWebSocketStore = defineStore("websocket", () => {
         manualDisconnect = true;
         connectionEpoch++;
         connectAttemptId++;
+        candidateUrls = [];
+        candidateIndex = 0;
 
         if (reconnectTimer) {
             clearTimeout(reconnectTimer);
@@ -284,16 +351,57 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }
 
         clearConnectTimeout();
+        clearPendingHandlers("WebSocket disconnected");
 
         if (ws) {
-            ws.onclose = null;
-            ws.onerror = null;
-            ws.onmessage = null;
-            ws.close();
+            const socket = ws;
             ws = null;
+
+            socket.onopen = null;
+            socket.onclose = null;
+            socket.onerror = null;
+            socket.onmessage = null;
+
+            try {
+                socket.close(1000, "manual disconnect");
+            } catch {
+                socket.close();
+            }
         }
 
         isConnected.value = false;
+    }
+
+    function waitForConnection(timeoutMs: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (ws?.readyState === WebSocket.OPEN || isConnected.value) {
+                resolve();
+            } else {
+                if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+                    connect();
+                }
+
+                let finished = false;
+                let timer: ReturnType<typeof setTimeout> | null = null;
+
+                const stopWatch = watch(isConnected, (connected) => {
+                    if (!connected || finished) return;
+                    finished = true;
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+                    stopWatch();
+                    resolve();
+                });
+
+                timer = setTimeout(() => {
+                    if (finished) return;
+                    finished = true;
+                    stopWatch();
+                    reject(new Error("Timeout waiting for WebSocket connection"));
+                }, timeoutMs);
+            }
+        });
     }
 
     function scheduleReconnect(): void {
@@ -369,14 +477,21 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }
     }
 
-    function sendAndWait(data: object, responseType: string, timeoutMs = 5000, matcher?: MessageMatcher): Promise<any> {
+    async function sendAndWait(data: object, responseType: string, timeoutMs = 5000, matcher?: MessageMatcher): Promise<any> {
+        await waitForConnection(timeoutMs);
+
         return new Promise((resolve, reject) => {
             const pending: PendingHandler = {
                 matcher,
                 handler: (msg: any) => {
-                    clearTimeout(timer);
+                    if (pending.timeoutId) {
+                        clearTimeout(pending.timeoutId);
+                        pending.timeoutId = null;
+                    }
+                    pending.reject = undefined;
                     resolve(msg);
                 },
+                reject,
             };
 
             const timer = setTimeout(() => {
@@ -386,8 +501,11 @@ export const useWebSocketStore = defineStore("websocket", () => {
                     if (idx >= 0) handlers.splice(idx, 1);
                     if (handlers.length === 0) pendingHandlers.delete(responseType);
                 }
+                pending.reject = undefined;
                 reject(new Error(`Timeout waiting for ${responseType}`));
             }, timeoutMs);
+
+            pending.timeoutId = timer;
 
             if (!pendingHandlers.has(responseType)) {
                 pendingHandlers.set(responseType, []);

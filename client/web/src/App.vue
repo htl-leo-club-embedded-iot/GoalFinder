@@ -104,6 +104,10 @@ onUnmounted(() => {
     margin: 0 1%;
   }
 
+  .greyed {
+    color: var(--text-secondary);
+  }
+
   .dont-show-again {
     display: flex;
     align-items: center;
