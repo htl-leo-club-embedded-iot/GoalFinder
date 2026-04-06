@@ -112,7 +112,7 @@ void LedController::RenderFadeStep() {
 }
 
 void LedController::RenderFlashStep() {
-    const unsigned long stepDurationsMs[] = { 500, 100 };
+    const unsigned long stepDurationsMs[] = { static_cast<unsigned long>(Settings::GetInstance()->GetMetronomeTiming()) / 2, static_cast<unsigned long>(Settings::GetInstance()->GetMetronomeTiming()) / 5 };
     const uint16_t dutyCycles[] = { 0, maxPwmDuty };
     static unsigned char phaseIdx = 0;
 
@@ -131,8 +131,8 @@ void LedController::RenderFlashStep() {
 }
 
 void LedController::RenderTurboStep() {
-    const unsigned long stepInactiveDurationMs = 750;
-    const unsigned long stepActiveDurationMs = 100;
+    const unsigned long stepInactiveDurationMs = Settings::GetInstance()->GetMetronomeTiming() / 3;
+    const unsigned long stepActiveDurationMs = Settings::GetInstance()->GetMetronomeTiming() / 12;
     const uint32_t flashAmount = 10; // the number of flashes per period
     static uint32_t flashPhaseCount = 0; // counts on AND off phase
     static bool activePhase = true;
