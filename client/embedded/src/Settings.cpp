@@ -20,6 +20,7 @@
 #include "GoalfinderApp.h"
 #include "web/DNSServer.h"
 #include "util/Logger.h"
+#include "Config.h"
 
 const char* Settings::keyVolume = "volume";
 const int Settings::defaultVolume = 25;
@@ -120,9 +121,8 @@ void Settings::SetVolume(int volume) {
 	SetModified();
 }
 
-// With user upload for sounds, clamping will have to be disabled
 void Settings::SetMetronomeSound(int metronomeSound) {
-	metronomeSound = max(min(metronomeSound, 2), 0);
+	metronomeSound = max(min(metronomeSound, nHitSounds), 0);
 	store.PutInt(keyMetronomeSound, metronomeSound);
 	SetModified();
 }
@@ -131,30 +131,30 @@ int Settings::GetMetronomeSound() {
 	return store.GetInt(keyMetronomeSound, defaultMetronomeSound);
 }
 
-int Settings::GetHitSound() {
-	return store.GetInt(keyHitSound, defaultHitSound);
-}
-
 void Settings::SetHitSound(int hitSound) {
-	hitSound = max(min(hitSound, 2), 0);
+	hitSound = max(min(hitSound, nMissSounds), 0);
 	store.PutInt(keyHitSound, hitSound);
 	SetModified();
 }
 
+int Settings::GetHitSound() {
+	return store.GetInt(keyHitSound, defaultHitSound);
+}
+
 void Settings::SetMissSound(int missSound) {
-	missSound = max(min(missSound, 2), 0);
+	missSound = max(min(missSound, nTickSounds), 0);
 	store.PutInt(keyMissSound, missSound);
+	SetModified();
+}
+
+void Settings::SetWaitingSound(int waitingSound) {
+	waitingSound = max(min(waitingSound, nWaitingSounds), 0);
+	store.PutInt(keyWaitingSound, waitingSound);
 	SetModified();
 }
 
 int Settings::GetMissSound() {
 	return store.GetInt(keyMissSound, defaultMissSound);
-}
-
-void Settings::SetWaitingSound(int waitingSound) {
-	waitingSound = max(min(waitingSound, 2), 0);
-	store.PutInt(keyWaitingSound, waitingSound);
-	SetModified();
 }
 
 int Settings::GetWaitingSound() {
