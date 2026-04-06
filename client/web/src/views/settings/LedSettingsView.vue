@@ -16,9 +16,7 @@
 
 <script setup lang="ts">
 import {useSettingsStore} from "@/stores/settings";
-import Button from "@/components/Button.vue";
 import InputForm from "@/components/InputForm.vue";
-import {computed} from "vue";
 import {useClampedValue} from "@/models/clampedValue";
 
 const settings = useSettingsStore();
@@ -48,12 +46,7 @@ function getLedBrightnessKey(mode: number): string {
   }
 }
 
-function getSimplifiedBrightnessLevel(actualBrightness: number): number {
-  if (actualBrightness <= 37.5) return 1;
-  if (actualBrightness <= 62.5) return 2;
-  if (actualBrightness <= 87.5) return 3;
-  return 4;
-}
+const getSimplifiedBrightnessLevel = (actualBrightness: number): number => actualBrightness <= 25 ? 1 : (actualBrightness <= 50 ? 2 : (actualBrightness <= 75 ? 3 : 4));
 
 function setLedBrightness(simplifiedLevel: number) {
   switch(simplifiedLevel) {
@@ -93,17 +86,15 @@ const ledBrightness = useClampedValue(
       <div class="label-container">
         <h3>{{ $t("word.brightness") }}</h3>
         <div class="button-container">
-          <div class="button-container">
-            <button
-              v-for="ledBrightness in ([1, 2, 3, 4] as const)"
-              :key="ledBrightness"
-              type="button"
-              class="btn"
-              :class="{ active: getSimplifiedBrightnessLevel(settings.ledBrightness) === ledBrightness }"
-              @click="setLedBrightness(ledBrightness)">
-              {{ $t(getLedBrightnessKey(ledBrightness)) }}
-            </button>
-          </div>
+          <button
+            v-for="ledBrightness in ([1, 2, 3, 4] as const)"
+            :key="ledBrightness"
+            type="button"
+            class="btn"
+            :class="{ active: getSimplifiedBrightnessLevel(settings.ledBrightness) === ledBrightness }"
+            @click="setLedBrightness(ledBrightness)">
+            {{ $t(getLedBrightnessKey(ledBrightness)) }}
+          </button>
         </div>
       </div>
     </div>

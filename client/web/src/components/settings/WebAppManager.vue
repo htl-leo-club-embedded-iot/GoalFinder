@@ -185,7 +185,7 @@ h4 {
 .theme-btn,
 .lang-btn {
   padding: 0.45rem 1.1rem;
-  border-radius: var(--corner-radius-secondary);
+  border-radius: var(--corner-radius);
   border: 2px solid var(--border-color);
   background: var(--card-background-color);
   color: var(--text-color);
