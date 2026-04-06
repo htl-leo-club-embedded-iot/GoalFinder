@@ -156,7 +156,11 @@ const i18n = createI18n({
                 website: "website",
                 brightness: "Brightness",
                 advanced: "Advanced",
-                timing: "Timing"
+                timing: "Timing",
+                low: "Low",
+                medium: "Medium",
+                high: "High",
+                max: "Max"
             },
             update: {
                 upload: "Upload Update",
@@ -311,7 +315,11 @@ const i18n = createI18n({
                 website: "Webseite",
                 brightness: "Helligkeit",
                 advanced: "Erweitert",
-                timing: "Timing"
+                timing: "Timing",
+                low: "Niedrig",
+                medium: "Mittel",
+                high: "Hoch",
+                max: "Maximum"
             },
             update: {
                 upload: "Update hochladen",
@@ -327,7 +335,7 @@ const i18n = createI18n({
             },
             bin_warning: {
                 title: "Update Warnung",
-                message: "Sie sind gerade, eine .bin-Datei anstelle eines .gfpkg-Pakets hochzuladen. Bitte beachten Sie, dass ein Zurücksetzen auf eine Version älter als v0.4.0 nicht empfohlen wird. Dies wird dazu führen, dass das Gerät nicht mehr über die Web App aktualizierbar sein wird. Fahren Sie nur fort, wenn Sie die potenziellen Risiken verstehen.",
+                message: "Sie sind gerade, eine .bin-Datei anstelle eines .gfpkg-Pakets hochzuladen. Bitte beachten Sie, dass ein Zurücksetzen auf eine Version älter als v0.4.0 nicht empfohlen wird. Dies wird dazu führen, dass das Gerät nicht mehr über die Web App aktualisierbar sein wird. Fahren Sie nur fort, wenn Sie die potenziellen Risiken verstehen.",
                 ok: "OK",
                 dont_show_again: "Nicht mehr anzeigen"
             },
