@@ -42,7 +42,7 @@ void VL53L0X::Init(int sclPin, int sdaPin) {
     wireConfig.begin(sdaPin, sclPin);
 
     if (!sensor.begin(41U, false, &wireConfig)) {
-        Logger::log("VL53L0X", Logger::LogLevel::ERROR, "Failed to boot VL53L0X");
+        Logger::Log("VL53L0X", Logger::LogLevel::ERROR, "Failed to boot VL53L0X");
     }
 }
 

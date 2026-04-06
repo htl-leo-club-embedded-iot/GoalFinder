@@ -22,8 +22,7 @@
 Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
 QueueHandle_t Logger::logQueue = nullptr;
 
-void Logger::begin(unsigned long baudRate)
-{
+void Logger::Begin(unsigned long baudRate) {
     Serial.begin(baudRate);
     while (!Serial) { }
 
@@ -33,10 +32,8 @@ void Logger::begin(unsigned long baudRate)
     }
 }
 
-const char* Logger::levelToString(Logger::LogLevel level)
-{
-    switch (level)
-    {
+const char* Logger::LevelToString(Logger::LogLevel level) {
+    switch (level) {
         case Logger::LogLevel::OK:     return "OK";
         case Logger::LogLevel::DEBUG:  return "DEBUG";
         case Logger::LogLevel::INFO:   return "INFO";
@@ -46,71 +43,63 @@ const char* Logger::levelToString(Logger::LogLevel level)
     }
 }
 
-void Logger::printFormatted(const String &message, const String &file, Logger::LogLevel level)
-{
-    enqueue(message, file, level);
+void Logger::PrintFormatted(const String &message, const String &file, Logger::LogLevel level) {
+    Enqueue(message, file, level);
 }
 
-void Logger::log(const String &message)
-{
-    printFormatted(message, "unknown", Logger::LogLevel::INFO);
+void Logger::Log(const String &message) {
+    PrintFormatted(message, "unknown", Logger::LogLevel::INFO);
 }
 
-void Logger::log(const String &message, Logger::LogLevel level)
-{
-    printFormatted(message, "unknown", level);
+void Logger::Log(const String &message, Logger::LogLevel level) {
+    PrintFormatted(message, "unknown", level);
 }
 
-void Logger::log(const String &message, const String &file, Logger::LogLevel level)
-{
-    printFormatted(message, file, level);
+void Logger::Log(const String &message, const String &file, Logger::LogLevel level) {
+    PrintFormatted(message, file, level);
 }
 
-void Logger::logExtra(const String &message, const String &file, Logger::LogLevel level)
-{
+void Logger::LogExtra(const String &message, const String &file, Logger::LogLevel level) {
     if (Settings::GetInstance()->GetExtraLog()) {
-        printFormatted(message, file, level);
+        PrintFormatted(message, file, level);
     }
 }
 
-void Logger::log(const char *file, Logger::LogLevel level, const char *fmt, ...)
-{
+void Logger::Log(const char *file, Logger::LogLevel level, const char *fmt, ...) {
     char buf[256];
     va_list args;
     va_start(args, fmt);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
-    printFormatted(String(buf), String(file), level);
+    PrintFormatted(String(buf), String(file), level);
 }
 
-void Logger::logExtra(const char *file, Logger::LogLevel level, const char *fmt, ...)
-{
+void Logger::LogExtra(const char *file, Logger::LogLevel level, const char *fmt, ...) {
     if (Settings::GetInstance()->GetExtraLog()) {
         char buf[256];
         va_list args;
         va_start(args, fmt);
         vsnprintf(buf, sizeof(buf), fmt, args);
         va_end(args);
-        printFormatted(String(buf), String(file), level);
+        PrintFormatted(String(buf), String(file), level);
     }
 }
 
-void Logger::Loop()
-{
-    if (logQueue == nullptr) {
-        return;
-    }
-
-    LogEntry *entryPtr = nullptr;
-    if (xQueueReceive(logQueue, &entryPtr, 0) == pdTRUE && entryPtr != nullptr) {
-        printNow(*entryPtr);
-        delete entryPtr;
+void Logger::Loop() {
+    if (logQueue != nullptr) {
+        LogEntry *entryPtr = nullptr;
+        while (xQueueReceive(logQueue, &entryPtr, 0) == pdTRUE) {
+            if (entryPtr != nullptr) {
+                PrintNow(*entryPtr);
+                delete entryPtr;
+                entryPtr = nullptr;
+            }
+        }
     }
 }
 
-void Logger::printNow(const LogEntry &entry)
-{
-    String out = String("[") + levelToString(entry.level) + "]";
+void Logger::PrintNow(const LogEntry &entry) {
+    String out = String("[") + LevelToString(entry.level) + "]";
     if (!entry.file.isEmpty()) {
         out += String("[") + entry.file + "]";
     }
@@ -118,17 +107,14 @@ void Logger::printNow(const LogEntry &entry)
     Serial.println(out);
 }
 
-void Logger::enqueue(const String &message, const String &file, Logger::LogLevel level)
-{
+void Logger::Enqueue(const String &message, const String &file, Logger::LogLevel level) {
     if (logQueue == nullptr) {
-        printNow({message, file, level});
-        return;
-    }
-
-    LogEntry *entryPtr = new LogEntry{message, file, level};
-    if (xQueueSend(logQueue, &entryPtr, 0) != pdTRUE) {
-        // queue full or failed — fallback to immediate print and free
-        printNow(*entryPtr);
-        delete entryPtr;
+        PrintNow({message, file, level});
+    } else {   
+        LogEntry *entryPtr = new LogEntry{message, file, level};
+        if (xQueueSend(logQueue, &entryPtr, 0) != pdTRUE) {
+            PrintNow(*entryPtr);
+            delete entryPtr;
+        }
     }
 }

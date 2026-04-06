@@ -68,7 +68,7 @@ const time = useClampedValue(
     <h3>{{ $t("settings.metronome_sound") }}</h3>
     <div class="button-container">
       <button
-        v-for="metronomeSound in ([0, 1, 2] as const)"
+        v-for="metronomeSound in ([0, 1, 2, 3] as const)"
         :key="metronomeSound"
         type="button"
         class="sound-btn"

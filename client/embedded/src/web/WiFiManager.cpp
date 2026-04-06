@@ -73,7 +73,7 @@ void WiFiManager::SetupAccessPoint() {
     WiFi.setSleep(false);
 
     dnsServer.start(53, "*", WiFi.softAPIP());
-    Logger::log("WiFiManager", Logger::LogLevel::INFO, "AP started - SSID: %s, IP: %s",
+    Logger::Log("WiFiManager", Logger::LogLevel::INFO, "AP started - SSID: %s, IP: %s",
         ssid.c_str(), WiFi.softAPIP().toString().c_str());
 }
 
@@ -83,7 +83,7 @@ void WiFiManager::SetupExternalNetwork() {
     String pwd = settings->GetExternalNW_PWD();
 
     if (ssid.isEmpty()) {
-        Logger::log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
             "External SSID is empty, falling back to AP mode");
         useExternalNW = false;
         SetupAccessPoint();
@@ -99,7 +99,7 @@ void WiFiManager::SetupExternalNetwork() {
         WiFi.begin(ssid.c_str(), pwd.c_str());
     }
 
-    Logger::log("WiFiManager", Logger::LogLevel::INFO,
+    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
         "Connecting to external network '%s'...", ssid.c_str());
 
     // Wait for initial connection with timeout
@@ -111,12 +111,12 @@ void WiFiManager::SetupExternalNetwork() {
 
     if (WiFi.status() == WL_CONNECTED) {
         connected = true;
-        Logger::log("WiFiManager", Logger::LogLevel::OK,
+        Logger::Log("WiFiManager", Logger::LogLevel::OK,
             "Connected to '%s', IP: %s",
             ssid.c_str(), WiFi.localIP().toString().c_str());
     } else {
         connected = false;
-        Logger::log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
             "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
         WiFi.disconnect();
         useExternalNW = false;
@@ -128,7 +128,7 @@ void WiFiManager::MonitorConnection() {
     if (WiFi.status() == WL_CONNECTED) {
         if (!connected) {
             connected = true;
-            Logger::log("WiFiManager", Logger::LogLevel::OK,
+            Logger::Log("WiFiManager", Logger::LogLevel::OK,
                 "Reconnected, IP: %s", WiFi.localIP().toString().c_str());
         }
         return;
@@ -138,7 +138,7 @@ void WiFiManager::MonitorConnection() {
     unsigned long now = millis();
     if ((now - lastReconnectAttemptMs) >= reconnectIntervalMs) {
         lastReconnectAttemptMs = now;
-        Logger::log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
             "WiFi disconnected, attempting reconnect...");
         WiFi.reconnect();
     }
@@ -152,7 +152,7 @@ void WiFiManager::ApplyDeviceNameByScan() {
     delay(100);
 
     int n = WiFi.scanNetworks();
-    Logger::log("WiFiManager", Logger::LogLevel::INFO, "First run found %d networks", n);
+    Logger::Log("WiFiManager", Logger::LogLevel::INFO, "First run found %d networks", n);
 
     bool usedNumbers[100] = { false };
 
@@ -163,7 +163,7 @@ void WiFiManager::ApplyDeviceNameByScan() {
             int num = numStr.toInt();
             if (num > 0 && num < 100) {
                 usedNumbers[num] = true;
-                Logger::log("WiFiManager", Logger::LogLevel::INFO,
+                Logger::Log("WiFiManager", Logger::LogLevel::INFO,
                     "Found existing device: %s (number %d)", ssid.c_str(), num);
             }
         }
@@ -184,6 +184,6 @@ void WiFiManager::ApplyDeviceNameByScan() {
 
     settings->SetDeviceName(deviceName);
     settings->SetFirstRun(false);
-    Logger::log("WiFiManager", Logger::LogLevel::OK,
+    Logger::Log("WiFiManager", Logger::LogLevel::OK,
         "First run assigned device name '%s'", deviceName.c_str());
 }

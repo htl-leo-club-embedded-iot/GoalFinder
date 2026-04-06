@@ -44,7 +44,7 @@ void LedController::SetMode(LedMode mode)
         this->mode = mode;
         lastStepTimeMs = 0;
         lastAppliedDuty = 0xFFFF;
-        Logger::log("LedController", Logger::LogLevel::INFO, "%4.3f: LED mode set to '%d'", millis() / 1000.0, this->mode);
+        Logger::Log("LedController", Logger::LogLevel::INFO, "%4.3f: LED mode set to '%d'", millis() / 1000.0, this->mode);
     }
 }
 
@@ -145,7 +145,7 @@ void LedController::RenderTurboStep() {
         lastStepTimeMs = now - stepActiveDurationMs;
     }
 
-    Logger::logExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo step %s '%lu'", millis() / 1000.0, activePhase ? "flash" : "dark", (unsigned long)flashPhaseCount);
+    Logger::LogExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo step %s '%lu'", millis() / 1000.0, activePhase ? "flash" : "dark", (unsigned long)flashPhaseCount);
     
     if (!activePhase && now - lastStepTimeMs >= stepInactiveDurationMs) {
         activePhase = true;
@@ -157,7 +157,7 @@ void LedController::RenderTurboStep() {
         lastStepTimeMs += stepActiveDurationMs;
         uint16_t dutyCycle = flashPhaseCount % 2 == 0 ? maxPwmDuty : 0;
 
-        Logger::logExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo duty cycle '%u'", millis() / 1000.0, (unsigned int)dutyCycle);
+        Logger::LogExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo duty cycle '%u'", millis() / 1000.0, (unsigned int)dutyCycle);
         
         ledcWrite(channel, ScaleBrightness(dutyCycle));
         flashPhaseCount++;

@@ -96,6 +96,13 @@ const bool Settings::defaultEnableAdvancedSettings = false;
 
 const char* Settings::keyEnableDNS = "enableDNS";
 const bool Settings::defaultEnableDNS = true;
+
+namespace {
+int ClampSoundIndex(int value, int soundCount) {
+	int maxIndex = max(soundCount - 1, 0);
+	return max(min(value, maxIndex), 0);
+}
+}
 	
 Settings::Settings() :
     Singleton<Settings>(),
@@ -122,43 +129,43 @@ void Settings::SetVolume(int volume) {
 }
 
 void Settings::SetMetronomeSound(int metronomeSound) {
-	metronomeSound = max(min(metronomeSound, nHitSounds), 0);
+	metronomeSound = ClampSoundIndex(metronomeSound, nTickSounds);
 	store.PutInt(keyMetronomeSound, metronomeSound);
 	SetModified();
 }
 
 int Settings::GetMetronomeSound() {
-	return store.GetInt(keyMetronomeSound, defaultMetronomeSound);
+	return ClampSoundIndex(store.GetInt(keyMetronomeSound, defaultMetronomeSound), nTickSounds);
 }
 
 void Settings::SetHitSound(int hitSound) {
-	hitSound = max(min(hitSound, nMissSounds), 0);
+	hitSound = ClampSoundIndex(hitSound, nHitSounds);
 	store.PutInt(keyHitSound, hitSound);
 	SetModified();
 }
 
 int Settings::GetHitSound() {
-	return store.GetInt(keyHitSound, defaultHitSound);
+	return ClampSoundIndex(store.GetInt(keyHitSound, defaultHitSound), nHitSounds);
 }
 
 void Settings::SetMissSound(int missSound) {
-	missSound = max(min(missSound, nTickSounds), 0);
+	missSound = ClampSoundIndex(missSound, nMissSounds);
 	store.PutInt(keyMissSound, missSound);
 	SetModified();
 }
 
 void Settings::SetWaitingSound(int waitingSound) {
-	waitingSound = max(min(waitingSound, nWaitingSounds), 0);
+	waitingSound = ClampSoundIndex(waitingSound, nWaitingSounds);
 	store.PutInt(keyWaitingSound, waitingSound);
 	SetModified();
 }
 
 int Settings::GetMissSound() {
-	return store.GetInt(keyMissSound, defaultMissSound);
+	return ClampSoundIndex(store.GetInt(keyMissSound, defaultMissSound), nMissSounds);
 }
 
 int Settings::GetWaitingSound() {
-	return store.GetInt(keyWaitingSound, defaultWaitingSound);
+	return ClampSoundIndex(store.GetInt(keyWaitingSound, defaultWaitingSound), nWaitingSounds);
 }
 
 void Settings::SetMetronomeTiming(int delayMS) {
@@ -226,7 +233,7 @@ void Settings::SetWifiPassword(String wifiPassword) {
 		store.PutString(keyWifiPassword, wifiPassword);
 		SetModified();		
 	} else {
-		Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
 	}
 }
 
@@ -357,7 +364,7 @@ void Settings::SetExternalNW_PWD(String pwd) {
 		store.PutString(keyExternalNW_PWD, pwd);
 		SetModified();
 	} else {
-		Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
 	}
 }
 

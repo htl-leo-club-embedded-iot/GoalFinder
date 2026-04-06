@@ -33,16 +33,10 @@ const int GoalfinderApp::ledPwmChannel = 0;
 const int GoalfinderApp::shotVibrationThreshold = 2000;
 const int GoalfinderApp::maxShotDurationMs = 5000;
 
-const char* GoalfinderApp::waitingClip = "/waiting.mp3";
-
 const char* GoalfinderApp::hitClips[] = { "/hit-1.mp3", "/hit-2.mp3", "/hit-3.mp3" };
-const int   GoalfinderApp::hitClipsCnt = sizeof(GoalfinderApp::hitClips) / sizeof(GoalfinderApp::hitClips[0]);
-
-const char* GoalfinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3" };
-const int   GoalfinderApp::tickClipsCnt = sizeof(GoalfinderApp::tickClips) / sizeof(GoalfinderApp::tickClips[0]);
-
+const char* GoalfinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3", "/tick-4.mp3" };
 const char* GoalfinderApp::missClips[] = { "/miss-1.mp3", "/miss-2.mp3", "/miss-3.mp3" };
-const int   GoalfinderApp::missClipsCnt = sizeof(GoalfinderApp::missClips) / sizeof(GoalfinderApp::missClips[0]);
+const char* GoalfinderApp::waitingClips[] = { "/waiting-1.mp3", "/waiting-2.mp3", "/waiting-3.mp3" };
 
 // FreeRTOS Handles
 TaskHandle_t GoalfinderApp::TaskAudioHandle = nullptr;
@@ -92,7 +86,7 @@ bool GoalfinderApp::IsSoundEnabled() {
 void GoalfinderApp::Init() {
     delay(100);
     Serial.begin(115200);
-    Logger::begin(115200);
+    Logger::Begin(115200);
 
     randomSeed(analogRead(pinRandomSeed));
 
@@ -125,9 +119,9 @@ void GoalfinderApp::Init() {
         xTaskCreatePinnedToCore(TaskWebSocket,      "WS",        8192, &webSocket,     3, &TaskWebSocketHandle, 0);
         xTaskCreatePinnedToCore(TaskHttp,           "HTTP",      8192, &httpServer,    3, &TaskHttpHandle,      0);
 
-        Logger::log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
+        Logger::Log("GoalfinderApp", Logger::LogLevel::OK, "All tasks started");
     } else {
-        Logger::log("GoalfinderApp", Logger::LogLevel::ERROR, "FS initialization failed");
+        Logger::Log("GoalfinderApp", Logger::LogLevel::ERROR, "FS initialization failed");
     }
 }
 
@@ -226,7 +220,17 @@ void GoalfinderApp::TickMetronome() {
     unsigned long currentTime = millis();
     if ((currentTime - lastMetronomeTickTime) > Settings::GetInstance()->GetMetronomeTiming()) {
         lastMetronomeTickTime = currentTime;
-        const char* clipName = (lastShockTime > 0) ? waitingClip : tickClips[Settings::GetInstance()->GetMetronomeSound()];
+
+        int waitingSoundIndex = Settings::GetInstance()->GetWaitingSound();
+        int metronomeSoundIndex = Settings::GetInstance()->GetMetronomeSound();
+        int waitingClipCount = sizeof(waitingClips) / sizeof(waitingClips[0]);
+        int tickClipCount = sizeof(tickClips) / sizeof(tickClips[0]);
+
+        waitingSoundIndex = max(min(waitingSoundIndex, waitingClipCount - 1), 0);
+        metronomeSoundIndex = max(min(metronomeSoundIndex, tickClipCount - 1), 0);
+
+        bool useWaitingSound = (lastShockTime > 0);
+        const char* clipName = useWaitingSound ? waitingClips[waitingSoundIndex] : tickClips[metronomeSoundIndex];
         PlaySound(clipName);
     }
 }
@@ -253,7 +257,7 @@ void GoalfinderApp::DetectShot() {
                     long vibration = sw420Sensor.Vibration(10000);
                     if (vibration > shotVibrationThreshold) {
                         lastShockTime = millis();
-                        Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
+                        Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
                     }
                 }
             }
@@ -286,10 +290,20 @@ void GoalfinderApp::ProcessAnnouncement() {
             break;
         case Announcement::Hit:
             // play hit sound and set a short timeout
-            AnnounceEvent("hit", hitClips[Settings::GetInstance()->GetHitSound()], 2500UL);
+            {
+                int hitSoundIndex = Settings::GetInstance()->GetHitSound();
+                int hitClipCount = sizeof(hitClips) / sizeof(hitClips[0]);
+                hitSoundIndex = max(min(hitSoundIndex, hitClipCount - 1), 0);
+                AnnounceEvent("hit", hitClips[hitSoundIndex], 2500UL);
+            }
             break;
         case Announcement::Miss:
-            AnnounceEvent("miss", missClips[Settings::GetInstance()->GetHitSound()], 3500UL);
+            {
+                int missSoundIndex = Settings::GetInstance()->GetMissSound();
+                int missClipCount = sizeof(missClips) / sizeof(missClips[0]);
+                missSoundIndex = max(min(missSoundIndex, missClipCount - 1), 0);
+                AnnounceEvent("miss", missClips[missSoundIndex], 3500UL);
+            }
             break;
         default:
             break;
@@ -300,17 +314,17 @@ void GoalfinderApp::ProcessAnnouncement() {
 void GoalfinderApp::AnnounceHit() {
     announcement = Announcement::Hit;
     webSocket.SendHitEvent();
-    Logger::log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected");
+    Logger::Log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected");
 }
 
 void GoalfinderApp::AnnounceMiss() {
     announcement = Announcement::Miss;
     webSocket.SendMissEvent();
-    Logger::log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected");
+    Logger::Log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected");
 }
 
 void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {
-    Logger::log("GoalfinderApp", Logger::LogLevel::INFO, "Announcing event '%s'", traceMsg);
+    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Announcing event '%s'", traceMsg);
     if (sound) {
         announcing = true;
         if (timeoutMs > 0) {
@@ -324,10 +338,26 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsig
 
 void GoalfinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
-        Logger::log("GoalfinderApp", Logger::LogLevel::DEBUG, "Starting playback '%s'", soundFileName);
+        Logger::LogExtra("GoalfinderApp", Logger::LogLevel::INFO, "Starting playback '%s'", soundFileName);
+
+        if (xMutex == nullptr) {
+            Logger::Log("GoalfinderApp", Logger::LogLevel::WARN,
+                        "Cannot play '%s': audio mutex is null", soundFileName);
+            return;
+        }
+
         if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
             audioPlayer.PlayMP3(soundFileName);
+
+            if (!audioPlayer.IsPlaying()) {
+                Logger::Log("GoalfinderApp", Logger::LogLevel::WARN,
+                            "Playback did not start for '%s'", soundFileName);
+            }
+
             xSemaphoreGive(xMutex);
+        } else {
+            Logger::Log("GoalfinderApp", Logger::LogLevel::WARN,
+                        "Audio mutex timeout while starting '%s'", soundFileName);
         }
     }
 }

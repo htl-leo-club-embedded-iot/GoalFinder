@@ -36,7 +36,7 @@ void GFWebSocket::Begin() {
     wsServer.onEvent([this](uint8_t clientId, WStype_t type, uint8_t* payload, size_t length) {
         this->OnEvent(clientId, type, payload, length);
     });
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "WebSocket server started");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "WebSocket server started");
 }
 
 void GFWebSocket::Loop() {
@@ -56,7 +56,7 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
         case WStype_CONNECTED:
             {
                 IPAddress remoteIp = wsServer.remoteIP(clientId);
-                Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
+                Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
             }
             {
                 JsonDocument doc;
@@ -65,13 +65,13 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
             }
             break;
         case WStype_DISCONNECTED:
-            Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
+            Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
             break;
         case WStype_ERROR:
             if (payload && length > 0) {
-                Logger::log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
+                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
             } else {
-                Logger::log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
+                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
             }
             break;
         case WStype_TEXT:
@@ -86,7 +86,7 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
     JsonDocument doc;
     DeserializationError err = deserializeJson(doc, payload, length);
     if (err) {
-        Logger::log("WebSocket", Logger::LogLevel::WARN, "JSON parse error: %s", err.c_str());
+        Logger::Log("WebSocket", Logger::LogLevel::WARN, "JSON parse error: %s", err.c_str());
         return;
     }
 
@@ -112,7 +112,7 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
     } else if (strcmp(type, "ping") == 0) {
         HandlePing(clientId);
     } else {
-        Logger::log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
+        Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
     }
 }
 
@@ -249,11 +249,11 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         app->SetIsSoundEnabled(enabled);
         response["value"] = enabled;
     } else {
-        Logger::log("WebSocket", Logger::LogLevel::WARN, "Unknown setting key: %s", key);
+        Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown setting key: %s", key);
         return;
     }
 
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "Setting '%s' updated", key);
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Setting '%s' updated", key);
     SendJson(clientId, response);
 }
 
@@ -262,7 +262,7 @@ void GFWebSocket::HandleStart(uint8_t clientId) {
     JsonDocument doc;
     doc["type"] = "started";
     SendJson(clientId, doc);
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "Detection started");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Detection started");
 }
 
 void GFWebSocket::HandleStop(uint8_t clientId) {
@@ -270,7 +270,7 @@ void GFWebSocket::HandleStop(uint8_t clientId) {
     JsonDocument doc;
     doc["type"] = "stopped";
     SendJson(clientId, doc);
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "Detection stopped");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Detection stopped");
 }
 
 void GFWebSocket::HandleRestart(uint8_t clientId) {

@@ -87,7 +87,7 @@ GFDNSServer::~GFDNSServer() {}
 void GFDNSServer::Begin(const IPAddress& resolvedIP) {
     _resolvedIP = resolvedIP;
     _udp.begin(DNS_PORT);
-    Logger::log("DNSServer", Logger::LogLevel::INFO, "DNS Server started");
+    Logger::Log("DNSServer", Logger::LogLevel::INFO, "DNS Server started");
 }
 
 void GFDNSServer::Loop() {
@@ -171,7 +171,7 @@ void GFDNSServer::HandlePacket() {
                             _udp.write(rsp, rLen);
                             _udp.endPacket();
 
-                            Logger::log("DNSServer", Logger::LogLevel::INFO, "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(), _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
+                            Logger::Log("DNSServer", Logger::LogLevel::INFO, "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(), _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
                         } else {
                             // Return NOERROR/NODATA for non-A queries (e.g. AAAA/HTTPS)
                             // so mobile resolvers quickly continue with A lookups.

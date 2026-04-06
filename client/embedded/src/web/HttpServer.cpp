@@ -129,7 +129,7 @@ HttpServer::~HttpServer() {}
 
 void HttpServer::Init()
 {
-    Logger::log("HttpServer", Logger::LogLevel::OK, "HTTP server initialized");
+    Logger::Log("HttpServer", Logger::LogLevel::OK, "HTTP server initialized");
 }
 
 void HttpServer::Begin()
@@ -275,7 +275,7 @@ void HttpServer::Begin()
     server.onNotFound(webFallbackHandler);
 
     server.begin();
-    Logger::log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
+    Logger::Log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
 } 
 
 void HttpServer::Loop()
@@ -289,7 +289,7 @@ void HttpServer::ServeFile(const String& path, const String& contentType, bool i
     File file = LittleFS.open(path, "r");
     g_httpServingFile = false;
     if (!file) {
-        Logger::log("HttpServer", Logger::LogLevel::ERROR, "Failed to open file: %s", path.c_str());
+        Logger::Log("HttpServer", Logger::LogLevel::ERROR, "Failed to open file: %s", path.c_str());
         server.send(500, "text/plain", "Internal server error");
         return;
     }

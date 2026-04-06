@@ -75,7 +75,7 @@ void AudioPlayer::SetVolume(uint8_t percent) {
         // calculate the gain for the player
         float gain = (gainPc / base) - epsilon;
 
-        Logger::log("AudioPlayer", Logger::LogLevel::INFO, "%4.3f: setting audio gain to '%.3f'", millis() / 1000.0,
+        Logger::Log("AudioPlayer", Logger::LogLevel::INFO, "%4.3f: setting audio gain to '%.3f'", millis() / 1000.0,
                     gain);
         audioOutput->SetGain(gain);
     }

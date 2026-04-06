@@ -15,13 +15,12 @@
  */
 
 #pragma once
-#include <cstdint.h>
 
 /** Number of hit sounds */
-unit8_t nHitSounds = 3;
+int nHitSounds = 3;
 /** Number of miss sounds */
-unit8_t nMissSounds = 3;
+int nMissSounds = 3;
 /** Number of ticks sounds */
-unit8_t nTickSounds = 4;
+int nTickSounds = 4;
 /** Number of waiting sounds */
-unit8_t nWaitingSounds = 3;
+int nWaitingSounds = 3;
