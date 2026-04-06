@@ -123,7 +123,6 @@ private:
     unsigned long announcingUntilMs;
     bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
-    unsigned long metronomeIntervalMs;
     unsigned long lastShockTime;
     unsigned long lastHitTime;
     unsigned long afterHitTimeoutMs;

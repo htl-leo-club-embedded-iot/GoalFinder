@@ -276,7 +276,7 @@ void HttpServer::Begin()
 
     server.begin();
     Logger::log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
-}
+} 
 
 void HttpServer::Loop()
 {

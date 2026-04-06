@@ -41,10 +41,19 @@ const setMissSound = (value: number) => {
   settings.missSound = value;
 };
 
+const setWaitingSound = (value: number) => {
+  settings.waitingSound = value;
+};
+
 onMounted(() => {
   settings.getSettings();
 });
 
+const time = useClampedValue(
+  () => settings.metronomeSoundDelay,
+  (v) => settings.metronomeSoundDelay = v,
+  500, 3000
+);
 </script>
 
 <template>
@@ -70,17 +79,17 @@ onMounted(() => {
     </div>
   </div>
     
-  <div class="sound-select"> <!-- TODO -->
+  <div class="sound-select"> 
     <h3>{{ $t("settings.hit_sound") }}</h3>
     <div class="button-container">
       <button
-        v-for="missSound in ([0, 1, 2] as const)"
-        :key="missSound"
+        v-for="hitSound in ([0, 1, 2] as const)"
+        :key="hitSound"
         type="button"
         class="sound-btn"
-        :class="{ active: settings.missSound === missSound}"
-        @click="setMissSound(missSound)">
-        {{  $t("word.sound") }} {{ missSound + 1 }}
+        :class="{ active: settings.hitSound === hitSound}"
+        @click="setHitSound(hitSound)">
+        {{  $t("word.sound") }} {{ hitSound + 1 }}
       </button>
     </div>
   </div>
@@ -100,21 +109,29 @@ onMounted(() => {
     </div>
   </div>
 
-  <div class="sound-select"> <!-- TODO Make this advanced settings ONLY  -->
+  <div class="sound-select" v-show="settings.advancedSettingsEnabled">
     <h3>{{ $t("settings.waiting_sound") }}</h3>
     <div class="button-container">
       <button
-        v-for="missSound in ([0, 1, 2] as const)"
-        :key="missSound"
+        v-for="waitingSound in ([0, 1, 2] as const)"
+        :key="waitingSound"
         type="button"
         class="sound-btn"
-        :class="{ active: settings.missSound === missSound}"
-        @click="setMissSound(missSound)">
-        {{  $t("word.sound") }} {{ missSound + 1 }}
+        :class="{ active: settings.waitingSound === waitingSound}"
+        @click="setWaitingSound(waitingSound)">
+        {{  $t("word.sound") }} {{ waitingSound + 1 }}
       </button>
     </div>
   </div>
-  </template>
+
+  <div class="timing" v-show="settings.advancedSettingsEnabled">
+    <h3>{{ $t("word.timing") }}</h3>
+    <label>{{ $t("settings.between_sound")}} (ms)</label>
+    <div class="button-container">
+      <InputForm type="number" class="button" v-model="time" inputmode="numeric" min="150" max="600" step="10"></InputForm>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .sound-btn {
@@ -136,5 +153,13 @@ onMounted(() => {
   border-color: var(--accent-color);
   background-color: var(--accent-color);
   color: #fff;
+}
+
+.timing {
+  margin-top: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 </style>

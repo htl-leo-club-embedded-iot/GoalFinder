@@ -57,6 +57,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const hitSound = ref(0);
     const missSound = ref(0);
     const waitingSound = ref(0);
+    const metronomeSoundDelay = ref(1500);
 
     //System
     const macAddress = ref("");
@@ -80,6 +81,7 @@ export const useSettingsStore = defineStore("settings", () => {
             hitSound: hitSound.value,
             missSound: missSound.value,
             waitingSound: waitingSound.value,
+            metSoundDelay: metronomeSoundDelay.value,
             ledMode: ledMode.value,
             ledBrightness: ledBrightness.value,
             vibrationSensorSensitivity: vibrationSensorSensitivity.value,
@@ -104,6 +106,7 @@ export const useSettingsStore = defineStore("settings", () => {
         hitSound.value = json["hitSound"] ?? hitSound.value;
         missSound.value = json["missSound"] ?? missSound.value;
         waitingSound.value = json["waitingSound"] ?? waitingSound.value;
+        metronomeSoundDelay.value = json["metSoundDelay"] ?? metronomeSoundDelay.value;
         ledMode.value = json["ledMode"] ?? ledMode.value;
         ledBrightness.value = json["ledBrightness"] ?? ledBrightness.value;
         macAddress.value = json["macAddress"] ?? macAddress.value;
@@ -278,6 +281,7 @@ export const useSettingsStore = defineStore("settings", () => {
         availableNetworks,
         volume,
         metronomeSound,
+        metronomeSoundDelay,
         hitSound,
         missSound,
         waitingSound,

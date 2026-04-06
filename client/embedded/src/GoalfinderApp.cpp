@@ -69,7 +69,6 @@ GoalfinderApp::GoalfinderApp() :
     ledController(pinLedPwm, ledPwmChannel),
     announcing(false),
     announcingUntilMs(0),
-    metronomeIntervalMs(2000),
     lastMetronomeTickTime(0),
     announcement(Announcement::None),
     lastShockTime(0),
@@ -225,7 +224,7 @@ void GoalfinderApp::TaskHttp(void *pvParameters) {
 // Play metronome sound
 void GoalfinderApp::TickMetronome() {
     unsigned long currentTime = millis();
-    if ((currentTime - lastMetronomeTickTime) > metronomeIntervalMs) {
+    if ((currentTime - lastMetronomeTickTime) > Settings::GetInstance()->GetMetronomeTiming()) {
         lastMetronomeTickTime = currentTime;
         const char* clipName = (lastShockTime > 0) ? waitingClip : tickClips[Settings::GetInstance()->GetMetronomeSound()];
         PlaySound(clipName);

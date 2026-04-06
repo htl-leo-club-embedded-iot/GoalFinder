@@ -159,6 +159,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["hitSound"] = settings->GetHitSound();
     data["missSound"] = settings->GetMissSound();
     data["waitingSound"] = settings->GetWaitingSound();
+    data["metSoundDelay"] = settings->GetMetronomeTiming();
     data["ledMode"] = (int)settings->GetLedMode();
     data["ledBrightness"] = settings->GetLedBrightness();
     data["macAddress"] = settings->GetMacAddress();
@@ -219,6 +220,9 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "missSound") == 0) {
         settings->SetMissSound(doc["value"].as<int>());
         response["value"] = settings->GetMissSound();
+    } else if (strcmp(key, "metSoundDelay") == 0) {
+        settings->SetMetronomeTiming(doc["value"].as<int>());
+        response["value"] = settings->GetMetronomeTiming();
     } else if (strcmp(key, "ledMode") == 0) {
         settings->SetLedMode((LedMode)doc["value"].as<int>());
         response["value"] = (int)settings->GetLedMode();

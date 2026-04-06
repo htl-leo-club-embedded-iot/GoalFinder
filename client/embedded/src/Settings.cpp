@@ -36,6 +36,9 @@ const int Settings::defaultMissSound = 0;
 const char* Settings::keyWaitingSound = "missSound";
 const int Settings::defaultWaitingSound = 0;
 
+const char* Settings::keyMetronomeTiming = "metSoundDelay";
+const int Settings::defaultMetronomeTiming = 1500;
+
 const char* Settings::keyDeviceName = "deviceName";
 const String Settings::defaultDeviceName = "GoalFinder 01";
 
@@ -156,6 +159,15 @@ void Settings::SetWaitingSound(int waitingSound) {
 
 int Settings::GetWaitingSound() {
 	return store.GetInt(keyWaitingSound, defaultWaitingSound);
+}
+
+void Settings::SetMetronomeTiming(int delayMS) {
+	store.PutInt(keyMetronomeTiming, delayMS);
+	SetModified();
+}
+
+int Settings::GetMetronomeTiming() {
+	return store.GetInt(keyMetronomeTiming, defaultMetronomeTiming);
 }
 
 bool Settings::IsModified() const {

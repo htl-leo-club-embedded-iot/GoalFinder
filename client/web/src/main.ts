@@ -100,7 +100,8 @@ const i18n = createI18n({
                 restart_later: "Restart Later",
                 advanced: "Advanced Settings",
                 advanced_desc: "This option gives you advanced and more granular settings option",
-                dnsEnable: "Domain Name Service (DNS)"
+                dnsEnable: "Domain Name Service (DNS)",
+                between_sound: "Time between metronome ticks"
             },
             about: {
                 about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of Vienna by students of the HTBLA Leonding",
@@ -154,7 +155,8 @@ const i18n = createI18n({
                 sound: "Sound",
                 website: "website",
                 brightness: "Brightness",
-                advanced: "Advanced"
+                advanced: "Advanced",
+                timing: "Timing"
             },
             update: {
                 upload: "Upload Update",
@@ -253,7 +255,8 @@ const i18n = createI18n({
                 restart_later: "Später Neustarten",
                 advanced: "Erweiterte Einstellungen",
                 advanced_desc: "Erweiterte Einstellungen ermöglichen Ihnen erweiterte und genauere Einstellungsmöglichkeiten.",
-                dnsEnable: "Domain Name Service (DNS)"
+                dnsEnable: "Domain Name Service (DNS)",
+                between_sound: "Zeitabstand zwischen Metronome Tönen"
             },
             about: {
                 about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",
@@ -289,7 +292,7 @@ const i18n = createI18n({
                 hits: "Treffer",
                 misses: "Fehlschüsse",
                 led_mode:"LED Modus",
-                standard: "Standart",
+                standard: "Standard",
                 flash: "Blitzartig",
                 turbo: "Turbo",
                 off: "Aus",
@@ -307,7 +310,8 @@ const i18n = createI18n({
                 sound: "Ton",
                 website: "Webseite",
                 brightness: "Helligkeit",
-                advanced: "Erweitert"
+                advanced: "Erweitert",
+                timing: "Timing"
             },
             update: {
                 upload: "Update hochladen",

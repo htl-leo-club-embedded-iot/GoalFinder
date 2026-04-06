@@ -60,6 +60,11 @@ class Settings : public Singleton<Settings>
         /** Returns the selected waiting sound index. */
         int GetWaitingSound();
 
+        /** Sets the time between metronome ticks (in ms) */
+        void SetMetronomeTiming(int delayMS);
+        /** Returns the time between metronome ticks (in ms) */
+        int GetMetronomeTiming();
+
         /** Returns the configured device name. */
         String GetDeviceName();
         /** Sets the device name. */
@@ -178,6 +183,9 @@ class Settings : public Singleton<Settings>
 
         static const char* keyMissSound;
         static const int defaultMissSound;
+
+        static const char* keyMetronomeTiming;
+        static const int defaultMetronomeTiming;
 
         static const char* keyDeviceName;
         static const String defaultDeviceName;
