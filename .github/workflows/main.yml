@@ -73,9 +73,6 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio gcovr
 
-      - name: Run Host Unit Tests
-        # run: pio test -e native
-
       - name: Generate Function Coverage Report
         run: |
           gcovr \
