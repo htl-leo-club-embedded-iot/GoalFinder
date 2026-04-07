@@ -160,7 +160,10 @@ const i18n = createI18n({
                 low: "Low",
                 medium: "Medium",
                 high: "High",
-                max: "Max"
+                max: "Max",
+                small: "Small",
+                middle: "Medium",
+                normal: "Normal"
             },
             update: {
                 upload: "Upload Update",
@@ -319,7 +322,10 @@ const i18n = createI18n({
                 low: "Niedrig",
                 medium: "Mittel",
                 high: "Hoch",
-                max: "Maximum"
+                max: "Maximum",
+                small: "Klein",
+                middle: "Mittel",
+                normal: "Normal"
             },
             update: {
                 upload: "Update hochladen",

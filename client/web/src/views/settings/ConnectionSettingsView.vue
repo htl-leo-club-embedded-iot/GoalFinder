@@ -27,7 +27,15 @@ const settings = useSettingsStore();
     <h3>{{ $t("settings.connection_general") }}</h3>
     <ConnectionSettingsView/>
 
-    <h3 v-show="settings.advancedSettingsEnabled" class="advanced">{{ $t("word.advanced") }}</h3>
-    <Checkbox v-model="settings.dnsEnabled" v-show="settings.advancedSettingsEnabled" label="settings.dnsEnable" @change="settings.scheduleSave()" class="advanced"/>
+    <div class="container" v-show="settings.advancedSettingsEnabled">  
+      <h3 class="advanced">{{ $t("word.advanced") }}</h3>
+      <Checkbox v-model="settings.dnsEnabled" label="settings.dnsEnable" @change="settings.scheduleSave()" class="advanced"/>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.advanced {
+  text-align: center;
+}
+</style>

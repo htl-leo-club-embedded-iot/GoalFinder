@@ -79,7 +79,7 @@ function onPrimaryEnter() {
            :placeholder="$t('description.ssid_password_description')" type="password"
            :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"
         name="wifiPassword" autocomplete="new-password" @update:modelValue="markConnectionSettingsEdited" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
-    <InputForm v-model="settings.devicePassword" :label="$t('word.device_password')"
+    <InputForm v-show="settings.advancedSettingsEnabled" v-model="settings.devicePassword" :label="$t('word.device_password')"
                :placeholder="$t('description.device_password_description')" type="password"
                name="devicePassword" autocomplete="new-password"/>
   </form>
