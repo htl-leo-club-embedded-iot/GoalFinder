@@ -71,19 +71,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install PlatformIO Core
-        run: pip install --upgrade platformio gcovr
-
-      - name: Generate Function Coverage Report
-        run: |
-          gcovr \
-            --root . \
-            --object-directory .pio/build/native \
-            --filter src \
-            --filter lib \
-            --exclude 'test/.*' \
-            --txt coverage-functions.txt \
-            --txt-metric function \
-            --json-summary coverage-summary.json
+        run: pip install --upgrade platformio
 
       - name: Publish Coverage Summary
         run: |
