@@ -2,7 +2,6 @@ name: Firmware
 run-name: Build Firmware Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "v*.*.*"
