@@ -20,14 +20,18 @@
 #include <math.h>
 #include "util/Logger.h"
 
-// TODO Transform to constants
-#define DEFAULT_FREQUENCY 5000
-#define DEFAULT_RESOLUTION 8
+namespace {
+constexpr uint32_t defaultFrequency = 5000;
+constexpr uint8_t defaultResolution = 12;
+constexpr uint16_t maxPwmDuty = (1U << defaultResolution) - 1U;
+constexpr unsigned long fadeCycleDurationMs = 1600;
+constexpr float tau = 6.28318530718f;
+}
 
 LedController::LedController(int ledPin, int ledChannel) 
-    : mode(LedMode::Standard), channel(ledChannel), lastStepTimeMs(0)
+    : mode(LedMode::Standard), channel(ledChannel), lastStepTimeMs(0), lastAppliedDuty(0)
 {
-    ledcSetup(channel, DEFAULT_FREQUENCY, DEFAULT_RESOLUTION);
+    ledcSetup(channel, defaultFrequency, defaultResolution);
     ledcAttachPin(ledPin, channel);
     ledcWrite(channel, 0);
 }
@@ -39,7 +43,8 @@ void LedController::SetMode(LedMode mode)
     if (this->mode != mode) {
         this->mode = mode;
         lastStepTimeMs = 0;
-        Logger::log("LedController", Logger::LogLevel::INFO, "%4.3f: LED mode set to '%d'", millis() / 1000.0, this->mode);
+        lastAppliedDuty = 0xFFFF;
+        Logger::Log("LedController", Logger::LogLevel::INFO, "%4.3f: LED mode set to '%d'", millis() / 1000.0, this->mode);
     }
 }
 
@@ -52,7 +57,7 @@ void LedController::Loop()
 {
     if(mode == LedMode::Standard)
     {
-        RenderPermanentStep(255);
+        RenderPermanentStep(maxPwmDuty);
     }
     else if(mode == LedMode::Fade)
     {
@@ -72,45 +77,43 @@ void LedController::Loop()
     }
 }
 
-uint8_t LedController::ScaleBrightness(uint8_t value) {
+uint16_t LedController::ScaleBrightness(uint16_t value) {
     if (value == 0) return 0;
     int ledBrightness = Settings::GetInstance()->GetLedBrightness();
-    return (uint8_t)round(value * ledBrightness / 100.0f);
+    ledBrightness = max(min(ledBrightness, 100), 0);
+    return (uint16_t)roundf(value * ledBrightness / 100.0f);
 }
 
-void LedController::RenderPermanentStep(uint8_t brightness) {
-    static uint8_t prevBrightness = 0;
-    uint8_t scaled = ScaleBrightness(brightness);
-    if (scaled != prevBrightness) {
-        prevBrightness = scaled;
-        ledcWrite(channel, prevBrightness);
+void LedController::RenderPermanentStep(uint16_t brightness) {
+    uint16_t scaled = ScaleBrightness(brightness);
+    if (scaled != lastAppliedDuty) {
+        lastAppliedDuty = scaled;
+        ledcWrite(channel, lastAppliedDuty);
     }
 }
 
 void LedController::RenderFadeStep() {
-    const unsigned long stepDurationMs = 3;
-    static uint32_t dutyCycle = 1;
-    static bool fadeUp = true; // fade direction
-
     unsigned long now = millis();
     if (lastStepTimeMs == 0) {
-        dutyCycle = 1;
-        lastStepTimeMs = now - stepDurationMs;
+        lastStepTimeMs = now;
     }
 
-    if (lastStepTimeMs + stepDurationMs <= now) {
-        lastStepTimeMs += stepDurationMs;
-        if (dutyCycle <= 0 || dutyCycle >= 255) {
-            fadeUp = !fadeUp;
-        }
-        dutyCycle += (fadeUp ? 1 : -1);
-        ledcWrite(channel, ScaleBrightness(dutyCycle));
+    const unsigned long elapsedMs = now - lastStepTimeMs;
+    const unsigned long phaseMs = elapsedMs % fadeCycleDurationMs;
+    const float phase = (tau * phaseMs) / fadeCycleDurationMs;
+    const float normalized = 0.5f - 0.5f * cosf(phase);
+    const uint16_t dutyCycle = (uint16_t)roundf(normalized * maxPwmDuty);
+    const uint16_t scaledDuty = ScaleBrightness(dutyCycle);
+
+    if (scaledDuty != lastAppliedDuty) {
+        lastAppliedDuty = scaledDuty;
+        ledcWrite(channel, lastAppliedDuty);
     }
 }
 
 void LedController::RenderFlashStep() {
-    const unsigned long stepDurationsMs[] = { 500, 100 };
-    const unsigned long dutyCycles[] = { 0, 255 };
+    const unsigned long stepDurationsMs[] = { static_cast<unsigned long>(Settings::GetInstance()->GetMetronomeTiming()) / 2, static_cast<unsigned long>(Settings::GetInstance()->GetMetronomeTiming()) / 5 };
+    const uint16_t dutyCycles[] = { 0, maxPwmDuty };
     static unsigned char phaseIdx = 0;
 
     unsigned long now = millis();
@@ -119,7 +122,7 @@ void LedController::RenderFlashStep() {
         lastStepTimeMs = now - stepDurationsMs[phaseIdx];
     }
 
-    if (lastStepTimeMs + stepDurationsMs[phaseIdx] <= now) {
+    while (now - lastStepTimeMs >= stepDurationsMs[phaseIdx]) {
         // switch phase
         lastStepTimeMs += stepDurationsMs[phaseIdx];
         phaseIdx = (phaseIdx + 1) % 2;
@@ -128,8 +131,8 @@ void LedController::RenderFlashStep() {
 }
 
 void LedController::RenderTurboStep() {
-    const unsigned long stepInactiveDurationMs = 750;
-    const unsigned long stepActiveDurationMs = 100;
+    const unsigned long stepInactiveDurationMs = Settings::GetInstance()->GetMetronomeTiming() / 3;
+    const unsigned long stepActiveDurationMs = Settings::GetInstance()->GetMetronomeTiming() / 12;
     const uint32_t flashAmount = 10; // the number of flashes per period
     static uint32_t flashPhaseCount = 0; // counts on AND off phase
     static bool activePhase = true;
@@ -142,19 +145,19 @@ void LedController::RenderTurboStep() {
         lastStepTimeMs = now - stepActiveDurationMs;
     }
 
-    Logger::logExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo step %s '%d'", millis() / 1000.0, activePhase ? "flash" : "dark", flashPhaseCount);
+    Logger::LogExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo step %s '%lu'", millis() / 1000.0, activePhase ? "flash" : "dark", (unsigned long)flashPhaseCount);
     
-    if (!activePhase && lastStepTimeMs + stepInactiveDurationMs <= now) {
+    if (!activePhase && now - lastStepTimeMs >= stepInactiveDurationMs) {
         activePhase = true;
         flashPhaseCount = 0;
         lastStepTimeMs += (stepInactiveDurationMs - stepActiveDurationMs);
     }
     
-    if (activePhase && lastStepTimeMs + stepActiveDurationMs <= now) {
+    if (activePhase && now - lastStepTimeMs >= stepActiveDurationMs) {
         lastStepTimeMs += stepActiveDurationMs;
-        int dutyCycle = flashPhaseCount % 2 == 0 ? 255 : 0;
+        uint16_t dutyCycle = flashPhaseCount % 2 == 0 ? maxPwmDuty : 0;
 
-        Logger::logExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo duty cycle '%d'", millis() / 1000.0, dutyCycle);
+        Logger::LogExtra("LedController", Logger::LogLevel::INFO, "%4.3f: LED turbo duty cycle '%u'", millis() / 1000.0, (unsigned int)dutyCycle);
         
         ledcWrite(channel, ScaleBrightness(dutyCycle));
         flashPhaseCount++;

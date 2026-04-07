@@ -23,15 +23,16 @@
 class LedController
 {
     private:    
-        void RenderPermanentStep(uint8_t brightness);
+        void RenderPermanentStep(uint16_t brightness);
         void RenderFadeStep();
         void RenderFlashStep();
         void RenderTurboStep();
-        uint8_t ScaleBrightness(uint8_t value);
+        uint16_t ScaleBrightness(uint16_t value);
 
         int channel;
         LedMode mode;
-        uint64_t lastStepTimeMs;
+        unsigned long lastStepTimeMs;
+        uint16_t lastAppliedDuty;
 
     public:
         LedController(int ledPin, int ledChannel);

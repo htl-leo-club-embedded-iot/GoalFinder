@@ -61,6 +61,8 @@ const i18n = createI18n({
             },
             settings: {
                 connection: "WiFi Connection",
+                connection_short: "Connection",
+                connection_general: "Name & Security",
                 settings: "Settings",
                 led: "LED",
                 sensors: "Sensors",
@@ -85,9 +87,9 @@ const i18n = createI18n({
                 theme_auto: "Auto",
                 language: "Language",
                 metronome_sound: "Metronome Sound",
-                current_metronome_sound: "Current Metronome Sound: ",
                 miss_sound: "Miss Sound",
-                current_miss_sound: "Current Miss Sound: ",
+                hit_sound: "Hit Sound",
+                waiting_sound: "Waiting Sound",
                 info: "Information",
                 more_info: "For more information visit the ",
                 doc: "GoalFinder User Documentation",
@@ -95,10 +97,14 @@ const i18n = createI18n({
                 restart_desc: "A device restart is necessary to apply this setting change.",
                 restart_always: "Automatically restart device when this setting is changed and don't show again.",
                 restart_now: "Restart Now",
-                restart_later: "Restart Later"
+                restart_later: "Restart Later",
+                advanced: "Advanced Settings",
+                advanced_desc: "This option gives you advanced and more granular settings option",
+                dnsEnable: "Domain Name Service (DNS)",
+                between_sound: "Time between metronome ticks"
             },
             about: {
-                about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of vienna by students of the HTBLA Leonding",
+                about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of Vienna by students of the HTBLA Leonding",
                 developers: "Developed by:",
                 visit_page: "Also visit our"
             },
@@ -148,7 +154,16 @@ const i18n = createI18n({
                 leaderboard: "Leaderboard",
                 sound: "Sound",
                 website: "website",
-                brightness: "Brightness"
+                brightness: "Brightness",
+                advanced: "Advanced",
+                timing: "Timing",
+                low: "Low",
+                medium: "Medium",
+                high: "High",
+                max: "Max",
+                small: "Small",
+                middle: "Medium",
+                normal: "Normal"
             },
             update: {
                 upload: "Upload Update",
@@ -198,7 +213,7 @@ const i18n = createI18n({
                 timed_shots_challenge: "Zeitspiel-Challenge",
                 timed_shots_challenge_desc: "Hier zählt jede Sekunde! In einem festen Zeitlimit heißt es: So viele Treffer wie möglich landen. Wie viele Körbe schaffst du, bevor der Countdown endet?",
                 free_play: "Freies Spiel",
-                free_play_desc: "Möchten Sie einfach spielen, ohne den Aufwand, Spieler einzurichten? Dann suchen Sie nicht weiter: Starten Sie einfach den Spielmodus „Freies Spiel“ und kehren Sie zu den Grundlagen zurück – mit reiner Treffererkennung."
+                free_play_desc: "Möchten Sie einfach spielen, ohne den Aufwand, Spieler einzurichten? Freies spiel lässt sie einfach ohne Zwischenschritte spielen. Mit nur reiner Treffererkennung"
             },
             description: {
                 settings_description: "Einstellungen für das Gerät vornehmen",
@@ -212,6 +227,8 @@ const i18n = createI18n({
             },
             settings: {
                 connection: "WiFi Verbindung",
+                connection_short: "Verbindung",
+                connection_general: "Name & Sicherheit",
                 settings: "Einstellungen",
                 general: "Allgemein",
                 wifi: "WiFi",
@@ -219,9 +236,9 @@ const i18n = createI18n({
                 audio: "Audio",
                 system: "System",
                 detection: "Erkennung",
-                hit_detection: "Trefferkennung",
-                distance_only_hit_detection: "Nur Distanz-Trefferkennung",
-                distance_only_hit_detection_desc: "Wenn aktiviert, wird nur der Laser-Distanzsensor zur Trefferkennung verwendet. Der Vibrationssensor wird ignoriert.",
+                hit_detection: "Treffererkennung",
+                distance_only_hit_detection: "Nur Distanz-Treffererkennung",
+                distance_only_hit_detection_desc: "Wenn aktiviert, wird nur der Laser-Distanzsensor zur Treffererkennung verwendet. Der Vibrationssensor wird ignoriert.",
                 after_hit_timeout: "Nacherkennung-Timeout",
                 after_hit_timeout_desc: "Zeit in Sekunden, die das Gerät nach einem Treffer wartet, bevor der nächste erkannt wird.",
                 web_app: "Web App",
@@ -232,9 +249,9 @@ const i18n = createI18n({
                 theme_auto: "Automatisch",
                 language: "Sprache",
                 metronome_sound: "Metronome Ton",
-                current_metronome_sound: "Aktueller Metronome Ton: ",
                 miss_sound: "Fehlschuss Ton",
-                current_miss_sound: "Aktueller Fehlschuss Ton: ",
+                hit_sound: "Treffer Ton",
+                waiting_sound: "Warteton",
                 info: "Informationen",
                 more_info: "Besuchen Sie für mehr Informationen die ",
                 doc: "GoalFinder Benutzerdokumentation",
@@ -242,7 +259,11 @@ const i18n = createI18n({
                 restart_desc: "Ein Neustart des Gerätes ist nötig um die Änderung zu übernehmen.",
                 restart_always: "Automatisch das Gerät neustarten wenn diese Einstellung geändert wurde and nicht mehr anzeigen.",
                 restart_now: "Jetzt Neustarten",
-                restart_later: "Später Neustarten"
+                restart_later: "Später Neustarten",
+                advanced: "Erweiterte Einstellungen",
+                advanced_desc: "Erweiterte Einstellungen ermöglichen Ihnen erweiterte und genauere Einstellungsmöglichkeiten.",
+                dnsEnable: "Domain Name Service (DNS)",
+                between_sound: "Zeitabstand zwischen Metronome Tönen"
             },
             about: {
                 about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",
@@ -278,7 +299,7 @@ const i18n = createI18n({
                 hits: "Treffer",
                 misses: "Fehlschüsse",
                 led_mode:"LED Modus",
-                standard: "Standart",
+                standard: "Standard",
                 flash: "Blitzartig",
                 turbo: "Turbo",
                 off: "Aus",
@@ -295,7 +316,16 @@ const i18n = createI18n({
                 bluetooth: "Bluetooth",
                 sound: "Ton",
                 website: "Webseite",
-                brightness: "Helligkeit"
+                brightness: "Helligkeit",
+                advanced: "Erweitert",
+                timing: "Timing",
+                low: "Niedrig",
+                medium: "Mittel",
+                high: "Hoch",
+                max: "Maximum",
+                small: "Klein",
+                middle: "Mittel",
+                normal: "Normal"
             },
             update: {
                 upload: "Update hochladen",
@@ -311,7 +341,7 @@ const i18n = createI18n({
             },
             bin_warning: {
                 title: "Update Warnung",
-                message: "Sie sind gerade, eine .bin-Datei anstelle eines .gfpkg-Pakets hochzuladen. Bitte beachten Sie, dass ein Zurücksetzen auf eine Version älter als v0.4.0 nicht empfohlen wird. Dies wird dazu führen, dass das Gerät nicht mehr über die Web App aktualizierbar sein wird. Fahren Sie nur fort, wenn Sie die potenziellen Risiken verstehen.",
+                message: "Sie sind gerade, eine .bin-Datei anstelle eines .gfpkg-Pakets hochzuladen. Bitte beachten Sie, dass ein Zurücksetzen auf eine Version älter als v0.4.0 nicht empfohlen wird. Dies wird dazu führen, dass das Gerät nicht mehr über die Web App aktualisierbar sein wird. Fahren Sie nur fort, wenn Sie die potenziellen Risiken verstehen.",
                 ok: "OK",
                 dont_show_again: "Nicht mehr anzeigen"
             },

@@ -4,6 +4,7 @@ from os.path import join, realpath
 halmap = {
 	"espressif32" : "esp32",
 	"espressif8266" : "esp8266",
+	"native" : "dummy",
 }
 
 pioPlatform = env.get("PIOPLATFORM")

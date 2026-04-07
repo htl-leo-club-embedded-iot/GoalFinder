@@ -1,13 +1,28 @@
 {
   "cSpell.words": [
+    "Adafruit",
+    "bblanchon",
+    "bclk",
+    "Deutsch",
     "dont",
+    "espressif",
+    "GFDNS",
     "GFPK",
     "gfpkg",
     "Goalfinder",
     "HTBLA",
     "ledc",
     "Leonding",
+    "Nacherkennung",
+    "NWPWD",
+    "NWSSID",
+    "qclass",
     "sntp",
-    "uploadfs"
-  ]
+    "ssid",
+    "Treffererkennung",
+    "uploadfs",
+    "wclk",
+    "wifi"
+  ],
+  "cSpell.language": "en,de"
 }

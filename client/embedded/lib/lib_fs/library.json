@@ -1,0 +1,13 @@
+{
+    "name": "filesystem",
+    "version": "1.0.0",
+    "description": "Library for the file system",
+    "license": "MIT",
+    "keywords": [
+      "filesystem",
+      "files",
+      "fs"
+    ],
+    "dependencies": {}
+  }
+  

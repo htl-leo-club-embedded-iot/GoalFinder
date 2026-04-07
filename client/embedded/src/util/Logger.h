@@ -38,15 +38,15 @@ public:
         LogLevel level;
     };
 
-    static void begin(unsigned long baudRate = 115200);
+    static void Begin(unsigned long baudRate = 115200);
 
-    static void log(const String &message);
-    static void log(const String &message, LogLevel level);
-    static void log(const String &message, const String &file, LogLevel level);
-    static void logExtra(const String &message, const String &file, LogLevel level);
+    static void Log(const String &message);
+    static void Log(const String &message, LogLevel level);
+    static void Log(const String &message, const String &file, LogLevel level);
+    static void LogExtra(const String &message, const String &file, LogLevel level);
 
-    static void log(const char *file, LogLevel level, const char *fmt, ...);
-    static void logExtra(const char *file, LogLevel level, const char *fmt, ...);
+    static void Log(const char *file, LogLevel level, const char *fmt, ...);
+    static void LogExtra(const char *file, LogLevel level, const char *fmt, ...);
 
     static void Loop();
 
@@ -54,14 +54,14 @@ private:
     static LogLevel currentLevel;
     static QueueHandle_t logQueue;
 
-    static const char* levelToString(LogLevel level);
-    static void printNow(const LogEntry &entry);
+    static const char* LevelToString(LogLevel level);
+    static void PrintNow(const LogEntry &entry);
 
-    static void printFormatted(const String &message,
+    static void PrintFormatted(const String &message,
                                const String &file,
                                LogLevel level);
 
-    static void enqueue(const String &message,
+    static void Enqueue(const String &message,
                         const String &file,
                         LogLevel level);
 };

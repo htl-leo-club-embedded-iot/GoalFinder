@@ -24,6 +24,7 @@ import {Player} from "@/models/player";
 import ToggleButton from "@/components/ToggleButton.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
 import {useSettingsStore} from "@/stores/settings";
+import {useWebSocketStore} from "@/stores/websocket";
 import IconButton from "@/components/IconButton.vue";
 import {useI18n} from "vue-i18n";
 
@@ -36,6 +37,7 @@ const game = reactive(new ShotChallengeGame());
 const showLeaderboard = ref(false);
 const playerName = ref("");
 const settings = useSettingsStore();
+const wsStore = useWebSocketStore();
 
 const addPlayerForm = useTemplateRef<HTMLFormElement>("add-player-form");
 
@@ -76,7 +78,7 @@ function onGameStartBtnClick() {
     settings.isSoundEnabled = false;
   }
   else {
-    game.start();
+    game.start(wsStore);
   }
 }
 

@@ -17,9 +17,9 @@
 <script setup lang="ts">
 import SoftwareUpdateModal from "@/components/settings/SoftwareUpdateModal.vue";
 import Button from "@/components/Button.vue";
+import Checkbox from "@/components/Checkbox.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
-import ConnectionSettingsView from "@/components/settings/ConnectionSettingsView.vue";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
 import {APP_VERSION} from "@/version";
 
@@ -35,9 +35,6 @@ const openUpdateDialog = () => {
 
 <template>
   <div class="container">
-    <h3>{{ $t("settings.connection") }}</h3>
-    <ConnectionSettingsView/>
-
     <h3 id="web-title">{{ $t("settings.web_app") }}</h3>
     <WebAppManager/>
     
@@ -69,14 +66,23 @@ const openUpdateDialog = () => {
     <Button primary @click="openUpdateDialog">{{ $t("word.search_for_update") }}</Button>
     <SoftwareUpdateModal ref="updateDialog"/>
 
+    <h3>{{ $t("word.advanced") }}</h3>
+    <Checkbox v-model="settings.advancedSettingsEnabled" label="settings.advanced" @change="settings.scheduleSave()" />
+    <p class="greyed">{{ $t("settings.advanced_desc") }}</p>
+
     <h3 id="visit">{{ $t("settings.info") }}</h3>
     <p id="visit-text">{{ $t("settings.more_info") }}<a href="https://goalfinder.github.io/user">{{ $t("settings.doc") }}</a></p>
   </div>
 </template>
 
-<style>
+<style scoped>
 h4 {
-  margin: 0.5rem 0;
+  margin: 0;
+}
+
+.greyed {
+  margin-top: -0.2rem;
+  color: var(--text-color-secondary);
 }
 
 #led {
@@ -98,7 +104,7 @@ h4 {
   gap: 0.5rem;
   align-items: center;
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 #device-info {
@@ -109,7 +115,7 @@ h4 {
   gap: 0.5rem;
   width: 100%;
   max-width: 500px;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 #device-info > div {
@@ -122,7 +128,7 @@ h4 {
 }
 
 #visit {
-  margin-top: 2rem;
+  margin-top: 0;
 }
 
 #visit-text {
@@ -135,6 +141,7 @@ h4 {
 }
 
 #web-title {
-  margin-top: 1rem;
+  margin-top: 0;
 }
+
 </style>
