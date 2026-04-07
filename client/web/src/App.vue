@@ -20,10 +20,12 @@ import NavigationBar from "@/components/NavigationBar.vue";
 import Modal from "@/components/Modal.vue";
 import Button from "@/components/Button.vue";
 import {useSettingsStore} from "@/stores/settings";
-import {onMounted, ref, computed} from "vue";
+import {useWebSocketStore} from "@/stores/websocket";
+import {onMounted, onUnmounted, ref, computed, watch} from "vue";
 import {useRouter, useRoute} from "vue-router";
 
 const settingsStore = useSettingsStore();
+const wsStore = useWebSocketStore();
 const connectionModal = ref<InstanceType<typeof Modal> | null>(null);
 const router = useRouter();
 const route = useRoute();
@@ -48,37 +50,27 @@ function closeConnectionModal() {
   connectionModal.value?.closeDialog();
 }
 
-async function checkDeviceConnection() {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const response = await fetch('/api/connection', { signal: controller.signal });
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      showConnectionModal();
-      return;
-    }
-
-    const data = await response.json();
-    if (!data.success) {
-      showConnectionModal();
-    }
-  } catch {
+// Watch WebSocket connection state to show/hide modal
+const stopWatcher = watch(() => wsStore.isConnected, (connected) => {
+  if (!connected && !isAuthPage.value) {
     showConnectionModal();
   }
-}
+});
 
 onMounted(() => {
+  wsStore.connect();
   settingsStore.getSettings();
-  checkDeviceConnection();
 
-  router.afterEach((to) => {
-    if (to.name !== 'auth') {
-      checkDeviceConnection();
+  setTimeout(() => {
+    if (!wsStore.isConnected && !isAuthPage.value) {
+      showConnectionModal();
     }
-  });
+  }, 3000);
+});
+
+onUnmounted(() => {
+  stopWatcher();
+  wsStore.disconnect();
 });
 
 </script>
@@ -88,7 +80,7 @@ onMounted(() => {
     <NavigationBar/>
   </header>
   <main>
-    <RouterView/>
+    <RouterView id="router"/>
   </main>
 
   <Modal ref="connectionModal" :title="$t('connection.warning_title')" centered hide-close-button>
@@ -104,6 +96,18 @@ onMounted(() => {
 </template>
 
 <style scoped>
+  p {
+    color: var(--text);
+  }
+
+  #router {
+    margin: 0 1%;
+  }
+
+  .greyed {
+    color: var(--text-secondary);
+  }
+
   .dont-show-again {
     display: flex;
     align-items: center;

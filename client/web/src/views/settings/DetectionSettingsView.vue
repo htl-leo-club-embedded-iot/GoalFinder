@@ -39,7 +39,7 @@ const settings = useSettingsStore();
       <p class="description-text">{{ $t("settings.distance_only_hit_detection_desc") }}</p>
     </div>
 
-    <div class="label-container">
+    <div class="label-container" v-show="settings.advancedSettingsEnabled">
       <label for="after-hit-timeout-input">{{ $t("settings.after_hit_timeout") }}</label>
       <InputForm
         id="after-hit-timeout-input"

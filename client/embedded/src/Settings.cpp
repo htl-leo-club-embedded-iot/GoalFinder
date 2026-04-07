@@ -17,7 +17,10 @@
 #include "Settings.h"
 #include "WiFi.h"
 #include <math.h>
+#include "GoalfinderApp.h"
+#include "web/DNSServer.h"
 #include "util/Logger.h"
+#include "Config.h"
 
 const char* Settings::keyVolume = "volume";
 const int Settings::defaultVolume = 25;
@@ -30,6 +33,12 @@ const int Settings::defaultHitSound = 0;
 
 const char* Settings::keyMissSound = "missSound";
 const int Settings::defaultMissSound = 0;
+
+const char* Settings::keyWaitingSound = "missSound";
+const int Settings::defaultWaitingSound = 0;
+
+const char* Settings::keyMetronomeTiming = "metSoundDelay";
+const int Settings::defaultMetronomeTiming = 1500;
 
 const char* Settings::keyDeviceName = "deviceName";
 const String Settings::defaultDeviceName = "GoalFinder 01";
@@ -66,17 +75,44 @@ const bool Settings::defaultUpdateSuccess = false;
 
 const char* Settings::keyExtraLog = "extraLog";
 const bool Settings::defaultExtraLog = false;
+
+const char* Settings::keyUseExternalNW = "extNW";
+const bool Settings::defaultUseExternalNW = false;
+
+const char* Settings::keyExternalNW_SSID = "extNWSSID";
+const String Settings::defaultExternalNW_SSID = emptyString;
+
+const char* Settings::keyExternalNW_PWD = "extNWPWD";
+const String Settings::defaultExternalNW_PWD = emptyString;
+
+const char* Settings::keyDeviceIpAddress = "deviceIP";
+const String Settings::defaultDeviceIpAddress = "192.168.4.1";
+
+const char* Settings::keySubnetMask = "subnetMask";
+const String Settings::defaultSubnetMask = "255.255.255.0";
+
+const char* Settings::keyEnableAdvancedSettings = "advSettingsEn";
+const bool Settings::defaultEnableAdvancedSettings = false;
+
+const char* Settings::keyEnableDNS = "enableDNS";
+const bool Settings::defaultEnableDNS = true;
+
+namespace {
+int ClampSoundIndex(int value, int soundCount) {
+	int maxIndex = max(soundCount - 1, 0);
+	return max(min(value, maxIndex), 0);
+}
+}
 	
 Settings::Settings() :
     Singleton<Settings>(),
 	store(),
-	modified(false)
-{
-    store.Begin("app_prefs");
-}
+	modified(false) {
+    	store.Begin("app_prefs");
+	}
 
- Settings::~Settings() {
- }
+	Settings::~Settings() {
+}
 
 String Settings::GetMacAddress() {
 	return String(WiFi.macAddress());
@@ -93,35 +129,53 @@ void Settings::SetVolume(int volume) {
 }
 
 void Settings::SetMetronomeSound(int metronomeSound) {
-	metronomeSound = max(min(metronomeSound, 2), 0);
+	metronomeSound = ClampSoundIndex(metronomeSound, nTickSounds);
 	store.PutInt(keyMetronomeSound, metronomeSound);
 	SetModified();
 }
 
 int Settings::GetMetronomeSound() {
-	return store.GetInt(keyMetronomeSound, defaultMetronomeSound);
-}
-
-int Settings::GetHitSound() {
-	return store.GetInt(keyHitSound, defaultHitSound);
+	return ClampSoundIndex(store.GetInt(keyMetronomeSound, defaultMetronomeSound), nTickSounds);
 }
 
 void Settings::SetHitSound(int hitSound) {
-	hitSound = max(min(hitSound, 2), 0);
+	hitSound = ClampSoundIndex(hitSound, nHitSounds);
 	store.PutInt(keyHitSound, hitSound);
 	SetModified();
 }
 
+int Settings::GetHitSound() {
+	return ClampSoundIndex(store.GetInt(keyHitSound, defaultHitSound), nHitSounds);
+}
+
 void Settings::SetMissSound(int missSound) {
-	missSound = max(min(missSound, 2), 0);
+	missSound = ClampSoundIndex(missSound, nMissSounds);
 	store.PutInt(keyMissSound, missSound);
 	SetModified();
 }
 
-int Settings::GetMissSound() {
-	return store.GetInt(keyMissSound, defaultMissSound);
+void Settings::SetWaitingSound(int waitingSound) {
+	waitingSound = ClampSoundIndex(waitingSound, nWaitingSounds);
+	store.PutInt(keyWaitingSound, waitingSound);
+	SetModified();
 }
 
+int Settings::GetMissSound() {
+	return ClampSoundIndex(store.GetInt(keyMissSound, defaultMissSound), nMissSounds);
+}
+
+int Settings::GetWaitingSound() {
+	return ClampSoundIndex(store.GetInt(keyWaitingSound, defaultWaitingSound), nWaitingSounds);
+}
+
+void Settings::SetMetronomeTiming(int delayMS) {
+	store.PutInt(keyMetronomeTiming, delayMS);
+	SetModified();
+}
+
+int Settings::GetMetronomeTiming() {
+	return store.GetInt(keyMetronomeTiming, defaultMetronomeTiming);
+}
 
 bool Settings::IsModified() const {
 	return modified;
@@ -135,174 +189,224 @@ void Settings::ClearModifiedState() {
 	modified = false;
 }
 
-
-String Settings::GetDeviceName()
-{
+String Settings::GetDeviceName() {
 	return store.GetString(keyDeviceName, defaultDeviceName);
-};
+}
 
-void Settings::SetDeviceName(String deviceName)
-{
-	if(deviceName.isEmpty())
-	{
+void Settings::SetDeviceName(String deviceName) {
+	if(deviceName.isEmpty()) {
 		deviceName = defaultDeviceName;
 	}
 	
 	store.PutString(keyDeviceName, deviceName);
 	SetModified(); 
-};
+}
 
-String Settings::GetDevicePassword()
-{
+String Settings::GetDevicePassword() {
 	return store.IsKey(keyDevicePassword) ? store.GetString(keyDevicePassword, defaultDevicePassword) : defaultDevicePassword;
-};
+}
 
-void Settings::SetDevicePassword(String devicePassword)
-{
-	if(devicePassword.isEmpty())
-	{
+void Settings::SetDevicePassword(String devicePassword) {
+	if(devicePassword.isEmpty()) {
 		if (store.IsKey(keyDevicePassword)) {
 			store.Remove(keyDevicePassword);
 		}
-	}
-	else 
-	{
+	} else {
 		store.PutString(keyDevicePassword, devicePassword);
 	}
 	SetModified();
-};
+}
 
-String Settings::GetWifiPassword()
-{
+String Settings::GetWifiPassword() {
 	return store.IsKey(keyWifiPassword) ? store.GetString(keyWifiPassword, defaultWifiPassword) : defaultWifiPassword;
-};
+}
 
-void Settings::SetWifiPassword(String wifiPassword)
-{
+void Settings::SetWifiPassword(String wifiPassword) {
 	wifiPassword.trim();
 
-	if(wifiPassword.isEmpty())
-	{
+	if(wifiPassword.isEmpty()) {
 		if (store.IsKey(keyWifiPassword)) {
 			store.Remove(keyWifiPassword);
+			SetModified();
 		}
-	} else {
-		if (wifiPassword.length() < 8 || wifiPassword.length() > 63)
-		{
-			Logger::log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
-			return;
-		}
-
+	} else if (wifiPassword.length() >= 8 && wifiPassword.length() < 63) {
 		store.PutString(keyWifiPassword, wifiPassword);
+		SetModified();		
+	} else {
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
 	}
+}
 
-	SetModified();
-};
-
-int Settings::GetVibrationSensorSensitivity()
-{
+int Settings::GetVibrationSensorSensitivity() {
 	return store.GetInt(keyVibrationSensorSensitivity, defaultVibrationSensorSensitivity);
 }
 
-void Settings::SetVibrationSensorSensitivity(int vibrationSensorSensitivity)
-{
+void Settings::SetVibrationSensorSensitivity(int vibrationSensorSensitivity) {
 	vibrationSensorSensitivity = max(min(vibrationSensorSensitivity, 100), 0);
 	store.PutInt(keyVibrationSensorSensitivity, vibrationSensorSensitivity);
 	SetModified();
 };
 
-int Settings::GetBallHitDetectionDistance() 
-{
+int Settings::GetBallHitDetectionDistance()  {
 	return store.GetInt(keyBallHitDetectionDistance, defaultBallHitDetectionDistance);
 }
 
-void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance)
-{
+void Settings::SetBallHitDetectionDistance(int ballHitDetectionDistance) {
 	ballHitDetectionDistance = max(min(ballHitDetectionDistance, 600), 100);
 	store.PutInt(keyBallHitDetectionDistance, ballHitDetectionDistance);
 	SetModified();
 }
 
-bool Settings::GetDistanceOnlyHitDetection()
-{
+bool Settings::GetDistanceOnlyHitDetection() {
 	return (bool)store.GetInt(keyDistanceOnlyHitDetection, (int)defaultDistanceOnlyHitDetection);
 }
 
-void Settings::SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection)
-{
+void Settings::SetDistanceOnlyHitDetection(bool distanceOnlyHitDetection) {
 	store.PutInt(keyDistanceOnlyHitDetection, (int)distanceOnlyHitDetection);
 	SetModified();
 }
 
-int Settings::GetLedBrightness()
-{
+int Settings::GetLedBrightness() {
 	return store.GetInt(keyLedBrightness, defaultLedBrightness);
 }
 
-void Settings::SetLedBrightness(int ledBrightness)
-{
+void Settings::SetLedBrightness(int ledBrightness) {
 	ledBrightness = max(min(ledBrightness, 100), 0);
 	store.PutInt(keyLedBrightness, ledBrightness);
 	SetModified();
 }
 
-LedMode Settings::GetLedMode()
-{
+LedMode Settings::GetLedMode() {
 	return (LedMode)store.GetInt(keyLedMode, (int)defaultLedMode);
 };
 
-void Settings::SetLedMode(LedMode ledMode)
-{
+void Settings::SetLedMode(LedMode ledMode) {
 	store.PutInt(keyLedMode, (int)ledMode);
 	SetModified();
 };
 
-bool Settings::IsFirstRun()
-{
+bool Settings::IsFirstRun() {
 	return (bool)store.GetInt(keyFirstRun, (int)defaultFirstRun);
 }
 
-void Settings::SetFirstRun(bool firstRun)
-{
+void Settings::SetFirstRun(bool firstRun) {
 	store.PutInt(keyFirstRun, (int)firstRun);
 	SetModified();
 }
   
-void Settings::ResetToDefaults()
-{
+void Settings::ResetToDefaults() {
 	store.Clear();
 	ESP.restart();
 }
 
-int Settings::GetAfterHitTimeout()
-{
+int Settings::GetAfterHitTimeout() {
 	return store.GetInt(keyAfterHitTimeout, defaultAfterHitTimeout);
 }
 
-void Settings::SetAfterHitTimeout(int timeout) 
-{
+void Settings::SetAfterHitTimeout(int timeout) {
 	timeout = max(min(timeout, 60), 0);
 	store.PutInt(keyAfterHitTimeout, timeout);
 	SetModified();
 }
 
-bool Settings::GetUpdateSuccess()
-{
+bool Settings::GetUpdateSuccess() {
 	return (bool)store.GetInt(keyUpdateSuccess, (int)defaultUpdateSuccess);
 }
 
-void Settings::SetUpdateSuccess(bool success)
-{
+void Settings::SetUpdateSuccess(bool success) {
 	store.PutInt(keyUpdateSuccess, (int)success);
 }
 
-bool Settings::GetExtraLog()
-{
+bool Settings::GetExtraLog() {
 	return (bool)store.GetInt(keyExtraLog, (int)defaultExtraLog);
 }
 
-void Settings::SetExtraLog(bool enabled)
-{
+void Settings::SetExtraLog(bool enabled) {
 	store.PutInt(keyExtraLog, (int)enabled);
+	SetModified();
+}
+
+bool Settings::GetUseExternalNW() {
+	return (bool)store.GetInt(keyUseExternalNW, (int)defaultUseExternalNW);
+}
+
+
+void Settings::SetUseExternalNW(bool enable) {
+	store.PutInt(keyUseExternalNW, (int)enable);
+	SetModified();
+}
+
+String Settings::GetExternalNW_SSID() {
+	return store.IsKey(keyExternalNW_SSID) ? store.GetString(keyExternalNW_SSID, defaultExternalNW_SSID) : defaultExternalNW_SSID;
+}
+
+
+void Settings::SetExternalNW_SSID(String ssid) {
+	ssid.trim();
+	store.PutString(keyExternalNW_SSID, ssid);
+	SetModified();
+}
+
+String Settings::GetExternalNW_PWD() {
+	return store.IsKey(keyExternalNW_PWD) ? store.GetString(keyExternalNW_PWD, defaultExternalNW_PWD) : defaultExternalNW_PWD;
+}
+
+void Settings::SetExternalNW_PWD(String pwd) {
+	pwd.trim();
+
+	if(pwd.isEmpty())
+	{
+		if (store.IsKey(keyExternalNW_PWD)) {
+			store.Remove(keyExternalNW_PWD);
+			SetModified();
+		}
+	} else if (pwd.length() >= 8 && pwd.length() < 64) {
+		store.PutString(keyExternalNW_PWD, pwd);
+		SetModified();
+	} else {
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid WiFi password length. Expected 8-63 characters.");
+	}
+}
+
+String Settings::GetDeviceIpAddress() {
+	return store.GetString(keyDeviceIpAddress, defaultDeviceIpAddress);
+}
+
+void Settings::SetDeviceIpAddress(String ip) {
+	ip.trim();
+	if (!ip.isEmpty()) {
+		store.PutString(keyDeviceIpAddress, ip);
+		SetModified();
+	}
+}
+
+String Settings::GetSubnetMask() {
+	return store.GetString(keySubnetMask, defaultSubnetMask);
+}
+
+void Settings::SetSubnetMask(String mask) {
+	mask.trim();
+	if (!mask.isEmpty()) {
+		store.PutString(keySubnetMask, mask);
+		SetModified();
+	}
+}
+
+bool Settings::AdvancedSettingsEnabled() {
+	return store.IsKey(keyEnableAdvancedSettings) ? (bool)store.GetInt(keyEnableAdvancedSettings, defaultEnableAdvancedSettings) : defaultEnableAdvancedSettings;
+}
+
+void Settings::SetAdvancedSettingsEnabled(bool enable) {
+	store.PutInt(keyEnableAdvancedSettings, (int)enable);
+	SetModified();
+}
+
+bool Settings::DNSEnabled() {
+	return store.IsKey(keyEnableDNS) ? (bool)store.GetInt(keyEnableDNS, defaultEnableDNS) : defaultEnableDNS;
+}
+
+void Settings::SetDNSEnabled(bool enable) {
+	store.PutInt(keyEnableDNS, (int)enable);
+	GoalfinderApp::GetInstance()->SetDNSEnabled(enable);
 	SetModified();
 }

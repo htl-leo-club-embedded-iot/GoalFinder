@@ -17,12 +17,14 @@
 
 
 import type {Player} from "@/models/player";
-
-const API_URL = "/api"
+import type {WebSocketStore, EventCallback} from "@/stores/websocket";
 
 abstract class Game {
     protected readonly _players: Player[];
     private _isRunning: boolean = false;
+    protected wsStore: WebSocketStore | null = null;
+    protected hitHandler: EventCallback | null = null;
+    protected missHandler: EventCallback | null = null;
 
     constructor() {
         this._players = [];
@@ -56,19 +58,31 @@ abstract class Game {
 
     public addHitToPlayer(playerIndex: number): void {
         this._players[playerIndex].addHit();
-
     }
 
     public addMissToPlayer(playerIndex: number): void {
         this._players[playerIndex].addMiss();
     }
 
-    public start(): void {
+    public start(wsStore: WebSocketStore): void {
+        this.wsStore = wsStore;
         this._isRunning = true;
+        wsStore.sendStart();
     }
 
     public pause(): void {
         this._isRunning = false;
+        if (this.wsStore) {
+            this.wsStore.sendStop();
+            if (this.hitHandler) {
+                this.wsStore.off("hit", this.hitHandler);
+                this.hitHandler = null;
+            }
+            if (this.missHandler) {
+                this.wsStore.off("miss", this.missHandler);
+                this.missHandler = null;
+            }
+        }
     }
 
     public abstract reset(): void;
@@ -97,42 +111,36 @@ export class ShotChallengeGame extends Game {
 
     public removePlayer(playerIndex: number): void {
         super.removePlayer(playerIndex);
-
         this.reset();
     }
 
-    public async start(): Promise<void> {
-        if(!this.isRunning) {
-            this.timerIntervalId = setInterval(async () => {
+    public start(wsStore: WebSocketStore): void {
+        if (!this.isRunning) {
+            this.hitHandler = () => {
+                if (this.hasEnded) return;
+                console.log("[ShotChallenge] hit detected");
+                this.getSelectedPlayer().addHit();
+                this.resetTimer();
+                this.selectNewPlayer();
+            };
+
+            this.missHandler = () => {
+                if (this.hasEnded) return;
+                console.log("[ShotChallenge] miss detected");
+                this.getSelectedPlayer().addMiss();
+                this.resetTimer();
+                this.selectNewPlayer();
+            };
+
+            wsStore.on("hit", this.hitHandler);
+            wsStore.on("miss", this.missHandler);
+
+            // Timer countdown only — no HTTP polling
+            this.timerIntervalId = setInterval(() => {
                 if (this.hasEnded) return;
                 this._timer--;
 
-                if (this.hasEnded) return;
-                const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
-                const newHits = parseInt(await newHitsData.text());
-
-                if (this.hasEnded) return;
-                const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
-                const newMisses = parseInt(await newMissesData.text());
-
-                if(this.hasEnded) return;
-                if(newHits > 0) {
-                    console.log("[ShotChallenge] hits detected:", newHits);
-                    for(let i = 0; i < newHits; i++) {
-                        this.getSelectedPlayer().addHit();
-                        this.resetTimer();
-                        this.selectNewPlayer();
-                    }
-                } else if(newMisses > 0) {
-                    console.log("[ShotChallenge] misses detected:", newMisses);
-                    for(let i = 0; i < newMisses; i++) {
-                        this.getSelectedPlayer().addMiss();
-                        this.resetTimer();
-                        this.selectNewPlayer();
-                    }
-                }
-
-                if(this._timer <= 0) {
+                if (this._timer <= 0) {
                     this.getSelectedPlayer().addMiss();
                     this.resetTimer();
                     this.selectNewPlayer();
@@ -140,12 +148,11 @@ export class ShotChallengeGame extends Game {
             }, 1000);
         }
 
-        super.start();
+        super.start(wsStore);
     }
 
     public pause(): void {
         clearInterval(this.timerIntervalId);
-
         super.pause();
     }
 
@@ -158,8 +165,7 @@ export class ShotChallengeGame extends Game {
 
     public selectNewPlayer(): void {
         this.selectedPlayerIndex++;
-
-        if(this.selectedPlayerIndex >= this._players.length) {
+        if (this.selectedPlayerIndex >= this._players.length) {
             this.selectedPlayerIndex = 0;
         }
     }
@@ -192,52 +198,43 @@ export class TimedShotsChallengeGame extends Game {
 
     public removePlayer(playerIndex: number): void {
         super.removePlayer(playerIndex);
-
         this.reset();
     }
 
-    public async start(): Promise<void> {
-        if(!this.isRunning) {
-            this.timerIntervalId = setInterval(async () => {
+    public start(wsStore: WebSocketStore): void {
+        if (!this.isRunning) {
+            this.hitHandler = () => {
+                if (this.hasEnded) return;
+                console.log("[TimedShots] hit detected");
+                this.getSelectedPlayer().addHit();
+            };
+
+            this.missHandler = () => {
+                if (this.hasEnded) return;
+                console.log("[TimedShots] miss detected");
+                this.getSelectedPlayer().addMiss();
+            };
+
+            wsStore.on("hit", this.hitHandler);
+            wsStore.on("miss", this.missHandler);
+
+            // Timer countdown only — no HTTP polling
+            this.timerIntervalId = setInterval(() => {
                 if (this.hasEnded) return;
                 this._timer--;
 
-                if (this.hasEnded) return;
-                const newHitsData = await fetch(`${API_URL}/hits`, {method: "GET"});
-                const newHits = parseInt(await newHitsData.text());
-
-                if (this.hasEnded) return;
-                const newMissesData = await fetch(`${API_URL}/misses`, {method: "GET"});
-                const newMisses = parseInt(await newMissesData.text());
-
-                if(this.hasEnded) return;
-                if(newHits > 0) {
-                    console.log("[TimedShots] hits detected:", newHits);
-                    for(let i = 0; i < newHits; i++) {
-                        this.getSelectedPlayer().addHit();
-                    }
-                }
-
-                if(newMisses > 0) {
-                    console.log("[TimedShots] misses detected:", newMisses);
-                    for(let i = 0; i < newMisses; i++) {
-                        this.getSelectedPlayer().addMiss();
-                    }
-                }
-
-                if(this._timer <= 0) {
+                if (this._timer <= 0) {
                     this.resetTimer();
                     this.selectNewPlayer();
                 }
             }, 1000);
         }
 
-        super.start();
+        super.start(wsStore);
     }
 
     public pause(): void {
         clearInterval(this.timerIntervalId);
-
         super.pause();
     }
 
@@ -250,8 +247,7 @@ export class TimedShotsChallengeGame extends Game {
 
     public selectNewPlayer(): void {
         this.selectedPlayerIndex++;
-
-        if(this.selectedPlayerIndex >= this._players.length) {
+        if (this.selectedPlayerIndex >= this._players.length) {
             this.selectedPlayerIndex = 0;
         }
     }
@@ -265,7 +261,9 @@ export class FreePlayGame {
     private _hits: number = 0;
     private _misses: number = 0;
     private _isRunning: boolean = false;
-    private pollingIntervalId: number = -1;
+    private wsStore: WebSocketStore | null = null;
+    private hitHandler: EventCallback | null = null;
+    private missHandler: EventCallback | null = null;
 
     public get hits(): number {
         return this._hits;
@@ -279,35 +277,41 @@ export class FreePlayGame {
         return this._isRunning;
     }
 
-    public async start(): Promise<void> {
+    public start(wsStore: WebSocketStore): void {
         if (!this._isRunning) {
-            this.pollingIntervalId = setInterval(async () => {
-                if (!this._isRunning) return;
+            this.wsStore = wsStore;
 
-                const newHitsData = await fetch(`${API_URL}/hits`, { method: "GET" });
-                const newHits = parseInt(await newHitsData.text());
+            this.hitHandler = () => {
+                console.log("[FreePlay] hit detected");
+                this._hits++;
+            };
 
-                const newMissesData = await fetch(`${API_URL}/misses`, { method: "GET" });
-                const newMisses = parseInt(await newMissesData.text());
+            this.missHandler = () => {
+                console.log("[FreePlay] miss detected");
+                this._misses++;
+            };
 
-                if (newHits > 0) {
-                    console.log("[FreePlay] hits detected:", newHits);
-                    this._hits += newHits;
-                }
-
-                if (newMisses > 0) {
-                    console.log("[FreePlay] misses detected:", newMisses);
-                    this._misses += newMisses;
-                }
-            }, 1000);
+            wsStore.on("hit", this.hitHandler);
+            wsStore.on("miss", this.missHandler);
+            wsStore.sendStart();
         }
 
         this._isRunning = true;
     }
 
     public pause(): void {
-        clearInterval(this.pollingIntervalId);
         this._isRunning = false;
+        if (this.wsStore) {
+            this.wsStore.sendStop();
+            if (this.hitHandler) {
+                this.wsStore.off("hit", this.hitHandler);
+                this.hitHandler = null;
+            }
+            if (this.missHandler) {
+                this.wsStore.off("miss", this.missHandler);
+                this.missHandler = null;
+            }
+        }
     }
 
     public reset(): void {

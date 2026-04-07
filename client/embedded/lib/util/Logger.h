@@ -9,37 +9,29 @@
  * Keep this in sync with src/util/Logger.h.
  */
 
-#include <WString.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include <WString.h>
 
-class Logger
-{
-public:
-	enum class LogLevel
-	{
-		OK,
-		DEBUG,
-		INFO,
-		WARN,
-		ERROR
-	};
+class Logger {
+  public:
+    enum class LogLevel { OK, DEBUG, INFO, WARN, ERROR };
 
-	struct LogEntry {
-		String message;
-		String file;
-		LogLevel level;
-	};
+    struct LogEntry {
+        String message;
+        String file;
+        LogLevel level;
+    };
 
-	static void begin(unsigned long baudRate = 115200);
+    static void Begin(unsigned long baudRate = 115200);
 
-	static void log(const String &message);
-	static void log(const String &message, LogLevel level);
-	static void log(const String &message, const String &file, LogLevel level);
-	static void logExtra(const String &message, const String &file, LogLevel level);
+    static void Log(const String &message);
+    static void Log(const String &message, LogLevel level);
+    static void Log(const String &message, const String &file, LogLevel level);
+    static void LogExtra(const String &message, const String &file, LogLevel level);
 
-	static void log(const char *file, LogLevel level, const char *fmt, ...);
-	static void logExtra(const char *file, LogLevel level, const char *fmt, ...);
+    static void Log(const char *file, LogLevel level, const char *fmt, ...);
+    static void LogExtra(const char *file, LogLevel level, const char *fmt, ...);
 
-	static void Loop();
+    static void Loop();
 };

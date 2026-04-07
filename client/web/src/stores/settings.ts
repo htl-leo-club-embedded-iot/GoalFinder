@@ -1,20 +1,31 @@
+/*
+ * ===============================================================================
+ * (c) HTBLA Leonding 2024 - 2026
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Licensed under MIT License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the license.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * All trademarks used in this document are property of their respective owners.
+ * ===============================================================================
+ */
+
 import {defineStore} from "pinia";
 import {ref} from "vue";
+import {useWebSocketStore} from "@/stores/websocket";
 
-const API_URL = "/api"
-const WIFI_PASSWORD_MIN_LENGTH = 4;
-const WIFI_PASSWORD_MAX_LENGTH = 63;
-
-function isWifiPasswordValid(password: string): boolean {
-    return password.length === 0 || (password.length >= WIFI_PASSWORD_MIN_LENGTH && password.length <= WIFI_PASSWORD_MAX_LENGTH);
-}
+const API_URL = "/api";
 
 export const useSettingsStore = defineStore("settings", () => {
-    let isValid = false;
     let isLoading = false;
     let saveTimeout: ReturnType<typeof setTimeout> | null = null;
     const enableDarkMode = ref(false);
     const isSoundEnabled = ref(false);
+    let serverSnapshot: Record<string, any> = {};
 
     //General
     const deviceName = ref("");
@@ -45,111 +56,135 @@ export const useSettingsStore = defineStore("settings", () => {
     const metronomeSound = ref(0);
     const hitSound = ref(0);
     const missSound = ref(0);
+    const waitingSound = ref(0);
+    const metronomeSoundDelay = ref(1500);
 
     //System
     const macAddress = ref("");
     const version = ref("");
+    const advancedSettingsEnabled = ref(false);
+    const dnsEnabled = ref(true);
+    const externalNetworkSsid = ref("");
+    const externalNetworkPassword = ref("");
 
-    const refreshAvailableNetworks = () => {
+    const refreshAvailableNetworks = () => {};
+    const refreshAvailableBluetoothDevices = () => {};
 
+    /** Maps setting keys to their reactive refs */
+    function getSettingsMap(): Record<string, any> {
+        return {
+            deviceName: deviceName.value,
+            devicePassword: devicePassword.value,
+            wifiPassword: wifiPassword.value,
+            volume: volume.value,
+            metronomeSound: metronomeSound.value,
+            hitSound: hitSound.value,
+            missSound: missSound.value,
+            waitingSound: waitingSound.value,
+            metSoundDelay: metronomeSoundDelay.value,
+            ledMode: ledMode.value,
+            ledBrightness: ledBrightness.value,
+            vibrationSensorSensitivity: vibrationSensorSensitivity.value,
+            ballHitDetectionDistance: ballHitDetectionDistance.value,
+            distanceOnlyHitDetection: distanceOnlyHitDetection.value,
+            afterHitTimeout: afterHitTimeout.value,
+            isSoundEnabled: isSoundEnabled.value,
+            advancedSettingsEnabled: advancedSettingsEnabled.value,
+            DNSEnabled: dnsEnabled.value,
+            extNWSSID: externalNetworkSsid.value,
+            extNWPWD: externalNetworkPassword.value,
+        };
     }
 
-    const refreshAvailableBluetoothDevices = () => {
+    /** Apply settings data from server response */
+    function applySettingsData(json: Record<string, any>): void {
+        deviceName.value = json["deviceName"] ?? deviceName.value;
+        devicePassword.value = json["devicePassword"] ?? devicePassword.value;
+        wifiPassword.value = json["wifiPassword"] ?? wifiPassword.value;
+        volume.value = json["volume"] ?? volume.value;
+        metronomeSound.value = json["metronomeSound"] ?? metronomeSound.value;
+        hitSound.value = json["hitSound"] ?? hitSound.value;
+        missSound.value = json["missSound"] ?? missSound.value;
+        waitingSound.value = json["waitingSound"] ?? waitingSound.value;
+        metronomeSoundDelay.value = json["metSoundDelay"] ?? metronomeSoundDelay.value;
+        ledMode.value = json["ledMode"] ?? ledMode.value;
+        ledBrightness.value = json["ledBrightness"] ?? ledBrightness.value;
+        macAddress.value = json["macAddress"] ?? macAddress.value;
+        isSoundEnabled.value = json["isSoundEnabled"] ?? isSoundEnabled.value;
+        version.value = json["version"] ?? version.value;
+        vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"] ?? vibrationSensorSensitivity.value;
+        ballHitDetectionDistance.value = json["ballHitDetectionDistance"] ?? ballHitDetectionDistance.value;
+        distanceOnlyHitDetection.value = json["distanceOnlyHitDetection"] ?? false;
+        afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
+        advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
+        dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
+        externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
+        externalNetworkPassword.value = json["extNWPWD"] ?? externalNetworkPassword.value;
 
+        // Update LED mode string
+        const ledModeMapping: { [key: number]: string } = {
+            1: "Ein", 2: "Fade", 3: "Blitzartig", 4: "Turbo", 5: "Aus"
+        };
+        ledModeStr.value = ledModeMapping[ledMode.value] || "Unknown";
+
+        // Take a snapshot of the server state
+        serverSnapshot = getSettingsMap();
     }
 
-    async function getSettings(): Promise<void> {
+    /**
+     * Request all settings from the device via WebSocket.
+     * Listens for the "settings" message type.
+     */
+    function getSettings(): void {
         isLoading = true;
-        try {
-            const response = await fetch(`${API_URL}/settings`, {method: "GET"});
+        const wsStore = useWebSocketStore();
 
-            if(response.ok) {
-                const json = await response.json();
-
-                deviceName.value = json["deviceName"];
-                devicePassword.value = json["devicePassword"];
-                wifiPassword.value = json["wifiPassword"];
-                volume.value = json["volume"];
-                metronomeSound.value = json["metronomeSound"];
-                hitSound.value = json["hitSound"];
-                missSound.value = json["missSound"];
-                ledMode.value = json["ledMode"];
-                ledBrightness.value = json["ledBrightness"]
-                macAddress.value = json["macAddress"];
-                isSoundEnabled.value = json["isSoundEnabled"];
-                version.value = json["version"];
-                vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"];
-                ballHitDetectionDistance.value = json["ballHitDetectionDistance"];
-                distanceOnlyHitDetection.value = json["distanceOnlyHitDetection"] ?? false;
-                afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
-
-                // Map ledMode to its corresponding string representation
-                const ledModeMapping: { [key: number]: string } = {
-                    1: "Ein",
-                    2: "Fade",
-                    3: "Blitzartig",
-                    4: "Turbo",
-                    5: "Aus"
-                };
-                ledModeStr.value = ledModeMapping[json["ledMode"] as number] || "Unknown";
-
-
-            }
-
-        } catch (error) {
-            console.error(error);
-        } finally {
-            isLoading = false;
-        }
-    }
-
-    async function saveSettings(): Promise<void> {
-        if (isLoading) return;
-        try {
-            const state = { ...useSettingsStore().$state };
-
-            if (wifiPassword.value.length > 0 && wifiPassword.value.length < WIFI_PASSWORD_MIN_LENGTH) {
-                delete (state as any).wifiPassword;
-            }
-
-            await fetch(`${API_URL}/settings`, {
-                method: "POST",
-                body: JSON.stringify(state),
+        wsStore.loadSettings(5000)
+            .then((data: Record<string, any>) => {
+                applySettingsData(data);
+            })
+            .catch((err: any) => {
+                console.error("[Settings] Failed to get settings:", err);
+            })
+            .finally(() => {
+                isLoading = false;
             });
+    }
 
-            if(isSoundEnabled.value) {
-                await fetch(`${API_URL}/start`, {
-                    method: "POST"
-                });
+    async function syncChangedSettings(): Promise<void> {
+        if (isLoading) return;
+
+        const wsStore = useWebSocketStore();
+        const currentSettings = getSettingsMap();
+
+        for (const key of Object.keys(currentSettings)) {
+            if (currentSettings[key] !== serverSnapshot[key]) {
+                try {
+                    const ack = await wsStore.setSettingAndWait(key, currentSettings[key], 5000);
+                    serverSnapshot[key] = ack?.value ?? currentSettings[key];
+                } catch (err: any) {
+                    console.error(`[Settings] Failed to set '${key}':`, err);
+                }
             }
-            else {
-                await fetch(`${API_URL}/stop`, {
-                    method: "POST"
-                })
-            }
-        } catch (error) {
-            console.error(error);
         }
     }
 
-    async function restartDevice() : Promise<void> {
-        try {
-            if (saveTimeout) clearTimeout(saveTimeout);
-            await saveSettings();
-            await fetch(`${API_URL}/restart`, {method: "POST"});
-        } catch (error) {
-            console.error(error);
-        }
+    async function restartDevice(): Promise<void> {
+        const wsStore = useWebSocketStore();
+        if (saveTimeout) clearTimeout(saveTimeout);
+        await syncChangedSettings();
+        wsStore.sendRestart();
     }
 
-    async function factoryResetDevice() : Promise<void> {
-        try {
-            await fetch(`${API_URL}/factory-reset`, {method: "POST"});
-        } catch (error) {
-            console.error(error);
-        }
+    function factoryResetDevice(): void {
+        const wsStore = useWebSocketStore();
+        wsStore.sendFactoryReset();
     }
 
+    /**
+     * Firmware update via HTTP (stays as HTTP POST since it needs
+     * streaming file upload which is better suited for HTTP).
+     */
     function updateFirmware(
         firmwareFile: File,
         onProgress?: (percent: number) => void,
@@ -201,7 +236,6 @@ export const useSettingsStore = defineStore("settings", () => {
                     });
             };
 
-            // Wait for the ESP to restart before polling
             setTimeout(poll, 5000);
         }
 
@@ -210,29 +244,23 @@ export const useSettingsStore = defineStore("settings", () => {
         });
 
         xhr.addEventListener('error', () => {
-            if (uploadComplete) {
-                pollUpdateStatus();
-            } else {
-                onError?.();
-            }
+            if (uploadComplete) pollUpdateStatus();
+            else onError?.();
         });
 
         xhr.addEventListener('abort', () => {
-            if (uploadComplete) {
-                pollUpdateStatus();
-            } else {
-                onError?.();
-            }
+            if (uploadComplete) pollUpdateStatus();
+            else onError?.();
         });
 
         xhr.send(data);
     }
-
+    
     function scheduleSave(): void {
         if (isLoading) return;
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            saveSettings();
+            void syncChangedSettings();
         }, 500);
     }
 
@@ -253,22 +281,27 @@ export const useSettingsStore = defineStore("settings", () => {
         availableNetworks,
         volume,
         metronomeSound,
+        metronomeSoundDelay,
         hitSound,
         missSound,
+        waitingSound,
         macAddress,
         refreshAvailableNetworks,
         refreshAvailableBluetoothDevices,
         getSettings,
-        saveSettings,
+        syncChangedSettings,
         scheduleSave,
         restartDevice,
         factoryResetDevice,
         ledMode,
         ledModeStr,
         ledBrightness,
-        isValid,
         isSoundEnabled,
         version,
-        updateFirmware
+        updateFirmware,
+        advancedSettingsEnabled,
+        dnsEnabled,
+        externalNetworkSsid,
+        externalNetworkPassword
     };
-})
+});

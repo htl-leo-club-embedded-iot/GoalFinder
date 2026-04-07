@@ -1,9 +1,9 @@
 BasedOnStyle: LLVM
-IndentWidth: 4
 UseTab: Never
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Attach
+IndentWidth: 4
+TabWidth: 4
 ColumnLimit: 120
-AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false

@@ -18,11 +18,8 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <DNSServer.h>
 #include <Singleton.h>
-#include <ToFSensor.h>
-#include <VibrationSensor.h>
-#include <web/WebServer.h>
+#include <VL53L0X.h>
 #include <web/SNTP.h>
 #include <FileSystem.h>
 #include <AudioPlayer.h>
@@ -31,18 +28,18 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include <SW420.h>
+#include <web/HttpServer.h>
+#include <web/WebSocket.h>
+#include "web/WiFiManager.h"
+#include "web/DNSServer.h"
+
 
 class GoalfinderApp : public Singleton<GoalfinderApp> {
 public:
     // Public functions
     void SetIsSoundEnabled(bool value);
     bool IsSoundEnabled();
-
-    int GetDetectedHits();
-	int GetDetectedMisses();
-
-	void ResetDetectedHits();
-	void ResetDetectedMisses();
 
     /** Destructor */
     virtual ~GoalfinderApp();
@@ -75,19 +72,22 @@ public:
     static const int shotVibrationThreshold;
     static const int maxShotDurationMs;
 
-    static const char* waitingClip;
     static const char* hitClips[];
-    static const int   hitClipsCnt;
     static const char* tickClips[];
-    static const int   tickClipsCnt;
     static const char* missClips[];
-    static const int   missClipsCnt;
+    static const char* waitingClips[];
 
     // FreeRTOS Tasks
     static void TaskAudio(void *pvParameters);
     static void TaskDetection(void *pvParameters);
     static void TaskLed(void *pvParameters);
-    static void TaskLogger(void *pvParameters);  
+    static void TaskWiFi(void *pvParameters);
+    static void TaskLogger(void *pvParameters);
+    static void TaskWebSocket(void *pvParameters);
+    static void TaskHttp(void *pvParameters);
+
+    /** Enable or disable the DNS server. */
+    void SetDNSEnabled(bool enabled);
 
 private:
     friend class Singleton<GoalfinderApp>;
@@ -106,11 +106,13 @@ private:
 
     // Internal objects
     FileSystem fileSystem;
-    WebServer webServer;
+    HttpServer httpServer;
+    GFWebSocket webSocket;
     SNTP sntp;
-    DNSServer dnsServer;
-    ToFSensor tofSensor;
-    VibrationSensor vibrationSensor;
+    WiFiManager wifiManager;
+    GFDNSServer dnsServer;
+    VL53L0X tofSensor;
+    SW420 sw420Sensor;
 
     // Internal Values
     bool isSoundEnabled;
@@ -118,7 +120,6 @@ private:
     unsigned long announcingUntilMs;
     bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
-    unsigned long metronomeIntervalMs;
     unsigned long lastShockTime;
     unsigned long lastHitTime;
     unsigned long afterHitTimeoutMs;
@@ -134,16 +135,15 @@ private:
     };
     Announcement::Enum announcement;
 
-    // Statistics
-    int detectedHits = 0;
-    int detectedMisses = 0;
-    
-
     // FreeRTOS Handles
     static TaskHandle_t TaskAudioHandle;
     static TaskHandle_t TaskDetectionHandle;
     static TaskHandle_t TaskLedHandle;
+    static TaskHandle_t TaskWiFiHandle;
     static TaskHandle_t TaskLoggerHandle;
+    static TaskHandle_t TaskDNSHandle;
+    static TaskHandle_t TaskWebSocketHandle;
+    static TaskHandle_t TaskHttpHandle;
     static SemaphoreHandle_t xMutex;
 
     /** Indicates wether or not to continue looping through tasks */
