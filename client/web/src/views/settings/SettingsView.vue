@@ -24,10 +24,10 @@ import WifiIcon from "@/components/icons/WifiIcon.vue";
 import {onMounted} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 
-const settingsStore = useSettingsStore();
+const settings = useSettingsStore();
 
 onMounted(() => {
-  settingsStore.getSettings();
+  settings.getSettings();
 });
 </script>
 
@@ -40,7 +40,9 @@ onMounted(() => {
       <RouterLink class="settings-link" to="/settings/connection"><div><WifiIcon/> {{ $t("settings.connection_short") }}</div></RouterLink>
       <RouterLink class="settings-link" to="/settings/system"><div><InfoCircleIcon/> {{ $t("settings.system") }}</div></RouterLink>
     </div>
-    <RouterView/>
+    <div id="settings-content">
+      <RouterView/>
+    </div>
   </Page>
 </template>
 
@@ -87,17 +89,22 @@ onMounted(() => {
 </style>
 
 <style>
-.container {
+#settings-content {
+  width: 100%;
+}
+
+#settings-content .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   padding: 1rem;
   margin: 0;
+  gap: 1rem;
   box-sizing: border-box;
 }
 
-.volume-slider-control {
+#settings-content .volume-slider-control {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,13 +112,13 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
-.volume-slider-control label {
+#settings-content .volume-slider-control label {
   text-align: center;
   font-weight: bold;
   display: block;
 }
 
-.button-container {
+#settings-content .button-container {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -119,7 +126,7 @@ onMounted(() => {
   width: 100%;
 }
 
-.button-container1 {
+#settings-content .button-container1 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -127,18 +134,18 @@ onMounted(() => {
   width: 100%;
 }
 
-.button {
+#settings-content .button {
   margin-left: 0;
 }
 
-.current-value {
+#settings-content .current-value {
   text-align: center;
-  margin-top: 0.5rem;
+  margin-top: 0;
   width: 100%;
 }
 
-.sound-select {
-  margin-top: 1.5rem;
+#settings-content .sound-select {
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -146,43 +153,42 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
-.sound-select label {
+#settings-content .sound-select label {
   text-align: center;
   font-weight: bold;
 }
 
-h3 {
+#settings-content h3 {
   margin: 0;
-  margin-bottom: 1rem;
   color: var(--accent-color);
   font-size: 1.2rem;
 }
 
-.label-container {
+#settings-content .label-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   width: 100%;
   gap: 0.5rem;
 }
 
-.label-container label {
+#settings-content .label-container label {
   text-align: center;
   font-weight: bold;
   display: block;
 }
 
-.current-mode {
+#settings-content .current-mode {
   text-align: center;
   width: 100%;
 }
 
-.current-mode span {
+#settings-content .current-mode span {
   font-weight: bold;
 }
 
-.property-title {
+#settings-content .property-title {
   min-width: 150px;
 }
 </style>

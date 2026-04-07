@@ -56,10 +56,16 @@ export const useSettingsStore = defineStore("settings", () => {
     const metronomeSound = ref(0);
     const hitSound = ref(0);
     const missSound = ref(0);
+    const waitingSound = ref(0);
+    const metronomeSoundDelay = ref(1500);
 
     //System
     const macAddress = ref("");
     const version = ref("");
+    const advancedSettingsEnabled = ref(false);
+    const dnsEnabled = ref(true);
+    const externalNetworkSsid = ref("");
+    const externalNetworkPassword = ref("");
 
     const refreshAvailableNetworks = () => {};
     const refreshAvailableBluetoothDevices = () => {};
@@ -74,6 +80,8 @@ export const useSettingsStore = defineStore("settings", () => {
             metronomeSound: metronomeSound.value,
             hitSound: hitSound.value,
             missSound: missSound.value,
+            waitingSound: waitingSound.value,
+            metSoundDelay: metronomeSoundDelay.value,
             ledMode: ledMode.value,
             ledBrightness: ledBrightness.value,
             vibrationSensorSensitivity: vibrationSensorSensitivity.value,
@@ -81,6 +89,10 @@ export const useSettingsStore = defineStore("settings", () => {
             distanceOnlyHitDetection: distanceOnlyHitDetection.value,
             afterHitTimeout: afterHitTimeout.value,
             isSoundEnabled: isSoundEnabled.value,
+            advancedSettingsEnabled: advancedSettingsEnabled.value,
+            DNSEnabled: dnsEnabled.value,
+            extNWSSID: externalNetworkSsid.value,
+            extNWPWD: externalNetworkPassword.value,
         };
     }
 
@@ -93,6 +105,8 @@ export const useSettingsStore = defineStore("settings", () => {
         metronomeSound.value = json["metronomeSound"] ?? metronomeSound.value;
         hitSound.value = json["hitSound"] ?? hitSound.value;
         missSound.value = json["missSound"] ?? missSound.value;
+        waitingSound.value = json["waitingSound"] ?? waitingSound.value;
+        metronomeSoundDelay.value = json["metSoundDelay"] ?? metronomeSoundDelay.value;
         ledMode.value = json["ledMode"] ?? ledMode.value;
         ledBrightness.value = json["ledBrightness"] ?? ledBrightness.value;
         macAddress.value = json["macAddress"] ?? macAddress.value;
@@ -102,6 +116,10 @@ export const useSettingsStore = defineStore("settings", () => {
         ballHitDetectionDistance.value = json["ballHitDetectionDistance"] ?? ballHitDetectionDistance.value;
         distanceOnlyHitDetection.value = json["distanceOnlyHitDetection"] ?? false;
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
+        advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
+        dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
+        externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
+        externalNetworkPassword.value = json["extNWPWD"] ?? externalNetworkPassword.value;
 
         // Update LED mode string
         const ledModeMapping: { [key: number]: string } = {
@@ -121,16 +139,9 @@ export const useSettingsStore = defineStore("settings", () => {
         isLoading = true;
         const wsStore = useWebSocketStore();
 
-        // Register a one-time handler for the settings response
-        const handler = () => {
-            // Handler registered via on/off pattern
-        };
-
-        wsStore.sendAndWait({ type: "get_settings" }, "settings", 5000)
-            .then((msg: any) => {
-                if (msg.data) {
-                    applySettingsData(msg.data);
-                }
+        wsStore.loadSettings(5000)
+            .then((data: Record<string, any>) => {
+                applySettingsData(data);
             })
             .catch((err: any) => {
                 console.error("[Settings] Failed to get settings:", err);
@@ -140,7 +151,7 @@ export const useSettingsStore = defineStore("settings", () => {
             });
     }
 
-    function syncChangedSettings(): void {
+    async function syncChangedSettings(): Promise<void> {
         if (isLoading) return;
 
         const wsStore = useWebSocketStore();
@@ -148,16 +159,20 @@ export const useSettingsStore = defineStore("settings", () => {
 
         for (const key of Object.keys(currentSettings)) {
             if (currentSettings[key] !== serverSnapshot[key]) {
-                wsStore.sendSetSetting(key, currentSettings[key]);
-                serverSnapshot[key] = currentSettings[key];
+                try {
+                    const ack = await wsStore.setSettingAndWait(key, currentSettings[key], 5000);
+                    serverSnapshot[key] = ack?.value ?? currentSettings[key];
+                } catch (err: any) {
+                    console.error(`[Settings] Failed to set '${key}':`, err);
+                }
             }
         }
     }
 
-    function restartDevice(): void {
+    async function restartDevice(): Promise<void> {
         const wsStore = useWebSocketStore();
         if (saveTimeout) clearTimeout(saveTimeout);
-        syncChangedSettings();
+        await syncChangedSettings();
         wsStore.sendRestart();
     }
 
@@ -245,7 +260,7 @@ export const useSettingsStore = defineStore("settings", () => {
         if (isLoading) return;
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            syncChangedSettings();
+            void syncChangedSettings();
         }, 500);
     }
 
@@ -266,8 +281,10 @@ export const useSettingsStore = defineStore("settings", () => {
         availableNetworks,
         volume,
         metronomeSound,
+        metronomeSoundDelay,
         hitSound,
         missSound,
+        waitingSound,
         macAddress,
         refreshAvailableNetworks,
         refreshAvailableBluetoothDevices,
@@ -281,6 +298,10 @@ export const useSettingsStore = defineStore("settings", () => {
         ledBrightness,
         isSoundEnabled,
         version,
-        updateFirmware
+        updateFirmware,
+        advancedSettingsEnabled,
+        dnsEnabled,
+        externalNetworkSsid,
+        externalNetworkPassword
     };
 });

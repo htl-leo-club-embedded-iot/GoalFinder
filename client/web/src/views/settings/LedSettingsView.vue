@@ -16,9 +16,7 @@
 
 <script setup lang="ts">
 import {useSettingsStore} from "@/stores/settings";
-import Button from "@/components/Button.vue";
 import InputForm from "@/components/InputForm.vue";
-import {computed} from "vue";
 import {useClampedValue} from "@/models/clampedValue";
 
 const settings = useSettingsStore();
@@ -27,14 +25,8 @@ function setLedMode(mode: number) {
   settings.ledMode = mode;
 }
 
-const ledBrightness = useClampedValue(
-  () => settings.ledBrightness,
-  (v) => settings.ledBrightness = v,
-  0, 100
-);
-
-const ledModeKey = computed(() => {
-  switch (settings.ledMode) {
+function getLedModeKey(mode: number): string {
+  switch (mode) {
     case 1: return 'word.on';
     case 2: return 'word.fade';
     case 3: return 'word.flash';
@@ -42,27 +34,72 @@ const ledModeKey = computed(() => {
     case 5: return 'word.off';
     default: return 'word.off';
   }
-});
+}
+
+function getLedBrightnessKey(mode: number): string {
+  switch (mode) {
+    case 1: return 'word.low';
+    case 2: return 'word.medium';
+    case 3: return 'word.high';
+    case 4: return 'word.max';
+    default: return 'word.medium';
+  }
+}
+
+const getSimplifiedBrightnessLevel = (actualBrightness: number): number => actualBrightness <= 25 ? 1 : (actualBrightness <= 50 ? 2 : (actualBrightness <= 75 ? 3 : 4));
+
+function setLedBrightness(simplifiedLevel: number) {
+  switch(simplifiedLevel) {
+    case 1: settings.ledBrightness = 25; break;
+    case 2: settings.ledBrightness = 50; break;
+    case 3: settings.ledBrightness = 75; break;
+    case 4: settings.ledBrightness = 100; break;
+    default: settings.ledBrightness = 75; break;
+  }
+}
+
+const ledBrightness = useClampedValue(
+  () => settings.ledBrightness,
+  (v) => settings.ledBrightness = v,
+  0, 100
+);
 </script>
 
 <template>
   <div class="container">
     <div id="led">
+      <h3>{{ $t("word.led_mode") }}</h3>
+      <div class="button-container">
+        <button
+          v-for="ledMode in ([1, 2, 3, 4, 5] as const)"
+          :key="ledMode"
+          type="button"
+          class="btn"
+          :class="{ active: settings.ledMode === ledMode }"
+          @click="setLedMode(ledMode)">
+          {{ $t(getLedModeKey(ledMode)) }}
+        </button>
+      </div>
+    </div>
+
+    <div id="brightness" v-show="!settings.advancedSettingsEnabled">
       <div class="label-container">
-        <h3 for="modus">{{ $t("word.led_mode") }}</h3>
+        <h3>{{ $t("word.brightness") }}</h3>
         <div class="button-container">
-          <Button class="button" @click="setLedMode(1)">{{ $t("word.on") }}</Button>
-          <Button class="button" @click="setLedMode(2)">{{ $t("word.fade") }}</Button>
-          <Button class="button" @click="setLedMode(3)">{{ $t("word.flash") }}</Button>
-          <Button class="button" @click="setLedMode(4)">{{ $t("word.turbo") }}</Button>
-          <Button class="button" @click="setLedMode(5)">{{ $t("word.off") }}</Button>
+          <button
+            v-for="ledBrightness in ([1, 2, 3, 4] as const)"
+            :key="ledBrightness"
+            type="button"
+            class="btn"
+            :class="{ active: getSimplifiedBrightnessLevel(settings.ledBrightness) === ledBrightness }"
+            @click="setLedBrightness(ledBrightness)">
+            {{ $t(getLedBrightnessKey(ledBrightness)) }}
+          </button>
         </div>
       </div>
     </div>
-    <div class="current-mode">
-      <p style="margin: 0;">{{ $t("word.curr_mode") }}: {{ $t(ledModeKey) }}</p>
-    </div>
-    <div id="brightness">
+
+    <div id="brightness" v-show="settings.advancedSettingsEnabled">
       <div class="label-container">
         <h3>{{ $t("word.brightness") }}</h3>
         <div class="button-container">
@@ -74,15 +111,36 @@ const ledModeKey = computed(() => {
 </template>
 
 <style scoped>
-h3 {
-  margin-top: 0.5rem;
-}
-
 #led {
   width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
 
 #brightness {
   width: 100%;
+}
+
+.btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--corner-radius);
+  border: 2px solid var(--border-color);
+  background: var(--card-background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.btn:hover {
+  border-color: var(--accent-color);
+}
+
+.btn.active {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: #fff;
 }
 </style>

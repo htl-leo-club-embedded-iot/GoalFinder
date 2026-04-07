@@ -15,18 +15,27 @@
  */
 
 <script setup lang="ts">
-import ConnectionSettingsForm from "@/components/settings/ConnectionSettingsView.vue";
+import ConnectionSettingsView from "@/components/settings/ConnectionSettingsView.vue";
+import Checkbox from "@/components/Checkbox.vue";
+import {useSettingsStore} from "@/stores/settings";
+
+const settings = useSettingsStore();
 </script>
 
 <template>
   <div class="container">
     <h3>{{ $t("settings.connection_general") }}</h3>
-    <ConnectionSettingsForm/>
+    <ConnectionSettingsView/>
+
+    <div class="container" v-show="settings.advancedSettingsEnabled">  
+      <h3 class="advanced">{{ $t("word.advanced") }}</h3>
+      <Checkbox v-model="settings.dnsEnabled" label="settings.dnsEnable" @change="settings.scheduleSave()" class="advanced"/>
+    </div>
   </div>
 </template>
 
-<style>
-  h3 {
-    margin-bottom: 0 !important; 
-  }
+<style scoped>
+.advanced {
+  text-align: center;
+}
 </style>

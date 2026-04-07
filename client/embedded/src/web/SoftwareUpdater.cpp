@@ -71,7 +71,7 @@ void SoftwareUpdater::HandleUpload() {
     HTTPUpload& upload = _server->upload();
 
     if (upload.status == UPLOAD_FILE_START) {
-        Logger::log("SoftwareUpdater", Logger::LogLevel::INFO, "Update started: %s", upload.filename.c_str());
+        Logger::Log("SoftwareUpdater", Logger::LogLevel::INFO, "Update started: %s", upload.filename.c_str());
         ResetState();
     } else if (upload.status == UPLOAD_FILE_WRITE) {
         ProcessChunk(upload.buf, upload.currentSize, false);
@@ -111,7 +111,7 @@ void SoftwareUpdater::ProcessChunk(uint8_t* data, size_t len, bool final) {
                 memcpy(&firmwareSize,   &headerBuffer[5], 4);
                 memcpy(&filesystemSize, &headerBuffer[9], 4);
 
-                Logger::log("SoftwareUpdater", Logger::LogLevel::INFO,
+                Logger::Log("SoftwareUpdater", Logger::LogLevel::INFO,
                             "GFPKG v%u: firmware=%u bytes, filesystem=%u bytes",
                             version, firmwareSize, filesystemSize);
 
@@ -130,13 +130,13 @@ void SoftwareUpdater::ProcessChunk(uint8_t* data, size_t len, bool final) {
                     }
                     phase = PHASE_FILESYSTEM;
                 } else {
-                    Logger::log("SoftwareUpdater", Logger::LogLevel::ERROR, "GFPKG has zero-size payload");
+                    Logger::Log("SoftwareUpdater", Logger::LogLevel::ERROR, "GFPKG has zero-size payload");
                     phase = PHASE_ERROR;
                     return;
                 }
             } else {
                 // Legacy plain .bin firmware – use UPDATE_SIZE_UNKNOWN
-                Logger::log("SoftwareUpdater", Logger::LogLevel::INFO, "Legacy firmware update detected");
+                Logger::Log("SoftwareUpdater", Logger::LogLevel::INFO, "Legacy firmware update detected");
                 if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) {
                     Update.printError(Serial);
                     phase = PHASE_ERROR;
@@ -174,10 +174,10 @@ void SoftwareUpdater::ProcessChunk(uint8_t* data, size_t len, bool final) {
                     phase = PHASE_ERROR;
                     return;
                 }
-                Logger::log("SoftwareUpdater", Logger::LogLevel::OK, "Firmware upload complete");
+                Logger::Log("SoftwareUpdater", Logger::LogLevel::OK, "Firmware upload complete");
 
                 if (filesystemSize > 0) {
-                    Logger::log("SoftwareUpdater", Logger::LogLevel::INFO,
+                    Logger::Log("SoftwareUpdater", Logger::LogLevel::INFO,
                                 "Starting filesystem update: %u bytes", filesystemSize);
                     if (!Update.begin(filesystemSize, U_SPIFFS)) {
                         Update.printError(Serial);
@@ -229,7 +229,7 @@ void SoftwareUpdater::ProcessChunk(uint8_t* data, size_t len, bool final) {
                 Update.printError(Serial);
                 phase = PHASE_ERROR;
             } else {
-                Logger::log("SoftwareUpdater", Logger::LogLevel::OK, "Update complete");
+                Logger::Log("SoftwareUpdater", Logger::LogLevel::OK, "Update complete");
                 phase = PHASE_COMPLETE;
             }
         }

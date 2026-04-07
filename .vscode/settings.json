@@ -3,6 +3,7 @@
     "Adafruit",
     "bblanchon",
     "bclk",
+    "Deutsch",
     "dont",
     "espressif",
     "GFDNS",
@@ -12,9 +13,16 @@
     "HTBLA",
     "ledc",
     "Leonding",
+    "Nacherkennung",
+    "NWPWD",
+    "NWSSID",
     "qclass",
     "sntp",
+    "ssid",
+    "Treffererkennung",
     "uploadfs",
-    "wclk"
-  ]
+    "wclk",
+    "wifi"
+  ],
+  "cSpell.language": "en,de"
 }

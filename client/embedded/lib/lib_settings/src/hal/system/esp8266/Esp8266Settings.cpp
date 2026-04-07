@@ -111,50 +111,50 @@ bool Settings::Begin(const char *name, bool readOnly, const char *partition_labe
         RootFileSystem *rfs = RootFileSystem::GetInstance();
         if (rfs != 0) {
             const char *filenNameCStr = name != 0 ? name : mDefaultFileName;
-            Logger::log("Settings", Logger::LogLevel::DEBUG, "pref. file: '%s'", filenNameCStr);
+            Logger::Log("Settings", Logger::LogLevel::DEBUG, "pref. file: '%s'", filenNameCStr);
             String prefFilePath(mNvsPath);
             prefFilePath.reserve(1 + strlen(filenNameCStr) + strlen(mFileNameExtension) + 1);
             prefFilePath.concat('/');
             prefFilePath.concat(filenNameCStr);
             prefFilePath.concat(mFileNameExtension);
-            Logger::log("Settings", Logger::LogLevel::DEBUG, "Opening preferences file '%s', RO: %c",
+            Logger::Log("Settings", Logger::LogLevel::DEBUG, "Opening preferences file '%s', RO: %c",
                         prefFilePath.c_str(), readOnly ? 'Y' : 'N');
             if (rfs->Exists(mNvsPath) || rfs->MkDir(mNvsPath)) {
                 mFile = rfs->Open(prefFilePath, (mReadOnly ? RootFileSystem::FileMode::Read
                                                            : RootFileSystem::FileMode::WriteTruncate));
                 rc = (bool)mFile;
                 if (!rc)
-                    Logger::log("Settings", Logger::LogLevel::ERROR, "Failed opening preferences file '%s'.",
+                    Logger::Log("Settings", Logger::LogLevel::ERROR, "Failed opening preferences file '%s'.",
                                 prefFilePath.c_str());
                 if (rc) {
                     size_t bufferLen = mFile.size() + 1;
-                    Logger::log("Settings", Logger::LogLevel::DEBUG, "Opened preferences file '%s', %d B",
+                    Logger::Log("Settings", Logger::LogLevel::DEBUG, "Opened preferences file '%s', %d B",
                                 prefFilePath.c_str(), mFile.size());
                     uint8_t buffer[bufferLen];
                     size_t readLen = 0;
                     if (mFile.size() > 0) {
                         mFile.read(buffer, bufferLen);
                         buffer[readLen] = '\0';
-                        Logger::log("Settings", Logger::LogLevel::DEBUG, "Deserializing JSON: '%s'", buffer);
+                        Logger::Log("Settings", Logger::LogLevel::DEBUG, "Deserializing JSON: '%s'", buffer);
                         DeserializationError res = deserializeJson(mDoc, buffer);
-                        Logger::log("Settings", Logger::LogLevel::DEBUG, "Deserialized JSON");
+                        Logger::Log("Settings", Logger::LogLevel::DEBUG, "Deserialized JSON");
                         rc = (res == DeserializationError::Ok);
                         if (!rc)
-                            Logger::log("Settings", Logger::LogLevel::ERROR,
+                            Logger::Log("Settings", Logger::LogLevel::ERROR,
                                         "Failed reading preferences from file '%s': %s", prefFilePath.c_str(),
                                         res.c_str());
                     }
                 }
                 if (mReadOnly && mFile) {
                     // the file can be closed immediately if preferences cannot be written
-                    Logger::log("Settings", Logger::LogLevel::DEBUG, "closing file");
+                    Logger::Log("Settings", Logger::LogLevel::DEBUG, "closing file");
                     mFile.close();
                 }
             } else {
-                Logger::log("Settings", Logger::LogLevel::ERROR, "Failed accessing NVS directory '%s'", mNvsPath);
+                Logger::Log("Settings", Logger::LogLevel::ERROR, "Failed accessing NVS directory '%s'", mNvsPath);
             }
         } else {
-            Logger::log("Settings", Logger::LogLevel::ERROR, "Failed accessing RFS");
+            Logger::Log("Settings", Logger::LogLevel::ERROR, "Failed accessing RFS");
         }
         mInitialized = rc;
     }

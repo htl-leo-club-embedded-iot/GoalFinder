@@ -40,7 +40,7 @@
 
 /* Centered wrapped page design */
 #page {
-  padding: 1rem;
+  padding: 0 1rem 1rem 1rem;
   margin: 0 auto;
   max-width: 1170px;
   width: 100%;
@@ -48,13 +48,13 @@
 }
 
 .page-content {
-  margin-top: 3vh;
+  margin-top: 1rem;
 }
 
 /* Adjustment for larger screens */
 @media (min-width: 768px) {
   .page-content {
-    margin-top: 5vh;
+    margin-top: 1rem;
   }
 }
 </style>

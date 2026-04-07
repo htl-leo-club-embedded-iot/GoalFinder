@@ -72,13 +72,10 @@ public:
     static const int shotVibrationThreshold;
     static const int maxShotDurationMs;
 
-    static const char* waitingClip;
     static const char* hitClips[];
-    static const int   hitClipsCnt;
     static const char* tickClips[];
-    static const int   tickClipsCnt;
     static const char* missClips[];
-    static const int   missClipsCnt;
+    static const char* waitingClips[];
 
     // FreeRTOS Tasks
     static void TaskAudio(void *pvParameters);
@@ -88,6 +85,9 @@ public:
     static void TaskLogger(void *pvParameters);
     static void TaskWebSocket(void *pvParameters);
     static void TaskHttp(void *pvParameters);
+
+    /** Enable or disable the DNS server. */
+    void SetDNSEnabled(bool enabled);
 
 private:
     friend class Singleton<GoalfinderApp>;
@@ -120,7 +120,6 @@ private:
     unsigned long announcingUntilMs;
     bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
-    unsigned long metronomeIntervalMs;
     unsigned long lastShockTime;
     unsigned long lastHitTime;
     unsigned long afterHitTimeoutMs;

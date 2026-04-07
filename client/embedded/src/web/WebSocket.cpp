@@ -32,10 +32,11 @@ GFWebSocket::~GFWebSocket() {}
 
 void GFWebSocket::Begin() {
     wsServer.begin();
+    wsServer.enableHeartbeat(15000, 3000, 2);
     wsServer.onEvent([this](uint8_t clientId, WStype_t type, uint8_t* payload, size_t length) {
         this->OnEvent(clientId, type, payload, length);
     });
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "WebSocket server started");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "WebSocket server started");
 }
 
 void GFWebSocket::Loop() {
@@ -55,7 +56,7 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
         case WStype_CONNECTED:
             {
                 IPAddress remoteIp = wsServer.remoteIP(clientId);
-                Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
+                Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
             }
             {
                 JsonDocument doc;
@@ -64,13 +65,13 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
             }
             break;
         case WStype_DISCONNECTED:
-            Logger::log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
+            Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
             break;
         case WStype_ERROR:
             if (payload && length > 0) {
-                Logger::log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
+                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
             } else {
-                Logger::log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
+                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
             }
             break;
         case WStype_TEXT:
@@ -85,7 +86,7 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
     JsonDocument doc;
     DeserializationError err = deserializeJson(doc, payload, length);
     if (err) {
-        Logger::log("WebSocket", Logger::LogLevel::WARN, "JSON parse error: %s", err.c_str());
+        Logger::Log("WebSocket", Logger::LogLevel::WARN, "JSON parse error: %s", err.c_str());
         return;
     }
 
@@ -111,7 +112,7 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
     } else if (strcmp(type, "ping") == 0) {
         HandlePing(clientId);
     } else {
-        Logger::log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
+        Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
     }
 }
 
@@ -157,12 +158,18 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["metronomeSound"] = settings->GetMetronomeSound();
     data["hitSound"] = settings->GetHitSound();
     data["missSound"] = settings->GetMissSound();
+    data["waitingSound"] = settings->GetWaitingSound();
+    data["metSoundDelay"] = settings->GetMetronomeTiming();
     data["ledMode"] = (int)settings->GetLedMode();
     data["ledBrightness"] = settings->GetLedBrightness();
     data["macAddress"] = settings->GetMacAddress();
     data["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
     data["version"] = FIRMWARE_VERSION;
     data["afterHitTimeout"] = settings->GetAfterHitTimeout();
+    data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
+    data["DNSEnabled"] = settings->DNSEnabled();
+    data["extNWSSID"] = settings->GetExternalNW_SSID();
+    data["extNWPWD"] = settings->GetExternalNW_PWD();
 
     SendJson(clientId, doc);
 }
@@ -207,9 +214,15 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "hitSound") == 0) {
         settings->SetHitSound(doc["value"].as<int>());
         response["value"] = settings->GetHitSound();
+    } else if (strcmp(key, "waitingSound") == 0) {
+        settings->SetWaitingSound(doc["value"].as<int>());
+        response["value"] = settings->GetWaitingSound();
     } else if (strcmp(key, "missSound") == 0) {
         settings->SetMissSound(doc["value"].as<int>());
         response["value"] = settings->GetMissSound();
+    } else if (strcmp(key, "metSoundDelay") == 0) {
+        settings->SetMetronomeTiming(doc["value"].as<int>());
+        response["value"] = settings->GetMetronomeTiming();
     } else if (strcmp(key, "ledMode") == 0) {
         settings->SetLedMode((LedMode)doc["value"].as<int>());
         response["value"] = (int)settings->GetLedMode();
@@ -219,16 +232,28 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "afterHitTimeout") == 0) {
         settings->SetAfterHitTimeout(doc["value"].as<int>());
         response["value"] = settings->GetAfterHitTimeout();
+    } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
+        settings->SetAdvancedSettingsEnabled(doc["value"].as<bool>());
+        response["value"] = settings->AdvancedSettingsEnabled();
+    } else if (strcmp(key, "extNWSSID") == 0) {
+        settings->SetExternalNW_SSID(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_SSID();
+    } else if (strcmp(key, "extNWPWD") == 0) {
+        settings->SetExternalNW_PWD(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_PWD();
+    } else if (strcmp(key, "DNSEnabled") == 0) {
+        settings->SetDNSEnabled(doc["value"].as<bool>());
+        response["value"] = settings->DNSEnabled();
     } else if (strcmp(key, "isSoundEnabled") == 0) {
         bool enabled = doc["value"].as<bool>();
         app->SetIsSoundEnabled(enabled);
         response["value"] = enabled;
     } else {
-        Logger::log("WebSocket", Logger::LogLevel::WARN, "Unknown setting key: %s", key);
+        Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown setting key: %s", key);
         return;
     }
 
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "Setting '%s' updated", key);
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Setting '%s' updated", key);
     SendJson(clientId, response);
 }
 
@@ -237,7 +262,7 @@ void GFWebSocket::HandleStart(uint8_t clientId) {
     JsonDocument doc;
     doc["type"] = "started";
     SendJson(clientId, doc);
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "Detection started");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Detection started");
 }
 
 void GFWebSocket::HandleStop(uint8_t clientId) {
@@ -245,7 +270,7 @@ void GFWebSocket::HandleStop(uint8_t clientId) {
     JsonDocument doc;
     doc["type"] = "stopped";
     SendJson(clientId, doc);
-    Logger::log("WebSocket", Logger::LogLevel::INFO, "Detection stopped");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Detection stopped");
 }
 
 void GFWebSocket::HandleRestart(uint8_t clientId) {
