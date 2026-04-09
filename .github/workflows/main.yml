@@ -71,45 +71,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install PlatformIO Core
-        run: pip install --upgrade platformio gcovr
-
-      - name: Run Host Unit Tests
-        # run: pio test -e native
-
-      - name: Generate Function Coverage Report
-        run: |
-          gcovr \
-            --root . \
-            --object-directory .pio/build/native \
-            --filter src \
-            --filter lib \
-            --exclude 'test/.*' \
-            --txt coverage-functions.txt \
-            --txt-metric function \
-            --json-summary coverage-summary.json
-
-      - name: Publish Coverage Summary
-        run: |
-          python - <<'PY'
-          import json
-          import os
-
-          with open("coverage-summary.json", "r", encoding="utf-8") as f:
-              summary = json.load(f)
-
-          covered = int(summary.get("function_covered", 0))
-          total = int(summary.get("function_total", 0))
-          percent = float(summary.get("function_percent", 0.0))
-
-          line = f"Function coverage (src + lib): {covered}/{total} ({percent:.2f}%)"
-          print(line)
-
-          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-          if summary_path:
-              with open(summary_path, "a", encoding="utf-8") as out:
-                  out.write("## Embedded Test Coverage\n\n")
-                  out.write(line + "\n")
-          PY
+        run: pip install --upgrade platformio
 
       - name: Upload Coverage Artifacts
         uses: actions/upload-artifact@v4

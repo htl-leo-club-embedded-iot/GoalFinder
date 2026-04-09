@@ -17,8 +17,8 @@
 #ifndef __WEB_WIFI_MANAGER_H
 #define __WEB_WIFI_MANAGER_H
 
-#include "..\Settings.h"
-#include "..\util\Logger.h"
+#include "../Settings.h"
+#include "../util/Logger.h"
 #include <WiFi.h>
 #include <DNSServer.h>
 #include "freertos/FreeRTOS.h"
