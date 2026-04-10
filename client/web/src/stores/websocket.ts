@@ -554,8 +554,8 @@ export const useWebSocketStore = defineStore("websocket", () => {
         send({ type: "factory_reset" });
     }
 
-    async function sendAuth(password: string): Promise<any> {
-        return sendAndWait({ type: "auth", password }, "auth_result");
+    async function sendAuth(passwordHash: string): Promise<any> {
+        return sendAndWait({ type: "auth", passwordHash }, "auth_result");
     }
 
     function sendPing(): void {

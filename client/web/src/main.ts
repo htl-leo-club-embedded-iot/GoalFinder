@@ -257,7 +257,7 @@ const i18n = createI18n({
                 doc: "GoalFinder Benutzerdokumentation",
                 restart_title: "Neustart nötig",
                 restart_desc: "Ein Neustart des Gerätes ist nötig um die Änderung zu übernehmen.",
-                restart_always: "Automatisch das Gerät neustarten wenn diese Einstellung geändert wurde and nicht mehr anzeigen.",
+                restart_always: "Automatisch das Gerät neustarten wenn diese Einstellung geändert wurde und nicht mehr anzeigen.",
                 restart_now: "Jetzt Neustarten",
                 restart_later: "Später Neustarten",
                 advanced: "Erweiterte Einstellungen",
