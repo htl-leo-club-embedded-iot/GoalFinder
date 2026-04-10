@@ -36,17 +36,17 @@ const getSimplifiedLevel = (actualSensitivity: number): number => actualSensitiv
 
 function getSimpleSize(simplifiedSensitivity: number) {
   switch(simplifiedSensitivity) {
-    case 1: settings.vibrationSensorSensitivity = 150; break;
-    case 2: settings.vibrationSensorSensitivity = 195; break;
-    case 3: settings.vibrationSensorSensitivity = 225; break;
-    default: settings.vibrationSensorSensitivity = 225; break;
+    case 1: settings.ballHitDetectionDistance = 150; break;
+    case 2: settings.ballHitDetectionDistance = 195; break;
+    case 3: settings.ballHitDetectionDistance = 225; break;
+    default: settings.ballHitDetectionDistance = 195; break;
   }
 }
 
 const distance = useClampedValue(
   () => settings.ballHitDetectionDistance,
   (v) => settings.ballHitDetectionDistance = v,
-  150, 600
+  100, 350
 );
 </script>
 
@@ -57,7 +57,7 @@ const distance = useClampedValue(
 
       <div class="button-container" v-show="!settings.advancedSettingsEnabled">
         <button
-          v-for="sensitivity in ([1, 2, 3, 4] as const)"
+          v-for="sensitivity in ([1, 2, 3] as const)"
           :key="sensitivity"
           type="button"
           class="btn"
