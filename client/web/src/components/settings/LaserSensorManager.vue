@@ -61,7 +61,7 @@ const distance = useClampedValue(
           :key="sensitivity"
           type="button"
           class="btn"
-          :class="{ active: getSimplifiedLevel(settings.vibrationSensorSensitivity) === sensitivity }"
+          :class="{ active: getSimplifiedLevel(settings.ballHitDetectionDistance) === sensitivity }"
           @click="getSimpleSize(sensitivity)">
           {{ $t(getSizeKey(sensitivity)) }}
         </button>
