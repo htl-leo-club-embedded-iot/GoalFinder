@@ -19,6 +19,7 @@ import {ref} from "vue";
 import {useWebSocketStore} from "@/stores/websocket";
 
 const API_URL = "/api";
+const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword", "extNWPWD"]);
 
 export const useSettingsStore = defineStore("settings", () => {
     let isLoading = false;
@@ -99,8 +100,6 @@ export const useSettingsStore = defineStore("settings", () => {
     /** Apply settings data from server response */
     function applySettingsData(json: Record<string, any>): void {
         deviceName.value = json["deviceName"] ?? deviceName.value;
-        devicePassword.value = json["devicePassword"] ?? devicePassword.value;
-        wifiPassword.value = json["wifiPassword"] ?? wifiPassword.value;
         volume.value = json["volume"] ?? volume.value;
         metronomeSound.value = json["metronomeSound"] ?? metronomeSound.value;
         hitSound.value = json["hitSound"] ?? hitSound.value;
@@ -119,7 +118,6 @@ export const useSettingsStore = defineStore("settings", () => {
         advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
         dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
         externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
-        externalNetworkPassword.value = json["extNWPWD"] ?? externalNetworkPassword.value;
 
         // Update LED mode string
         const ledModeMapping: { [key: number]: string } = {
@@ -161,7 +159,11 @@ export const useSettingsStore = defineStore("settings", () => {
             if (currentSettings[key] !== serverSnapshot[key]) {
                 try {
                     const ack = await wsStore.setSettingAndWait(key, currentSettings[key], 5000);
-                    serverSnapshot[key] = ack?.value ?? currentSettings[key];
+                    if (SECRET_SETTING_KEYS.has(key)) {
+                        serverSnapshot[key] = currentSettings[key];
+                    } else {
+                        serverSnapshot[key] = ack?.value ?? currentSettings[key];
+                    }
                 } catch (err: any) {
                     console.error(`[Settings] Failed to set '${key}':`, err);
                 }

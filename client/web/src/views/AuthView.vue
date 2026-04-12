@@ -18,6 +18,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { sha256 } from 'js-sha256';
 import { useWebSocketStore } from '@/stores/websocket';
 import Page from '@/components/Page.vue';
 import InputForm from '@/components/InputForm.vue';
@@ -41,7 +42,8 @@ async function authenticate() {
   errorMessage.value = '';
 
   try {
-    const result = await wsStore.sendAuth(password.value);
+    const passwordHash = sha256(password.value);
+    const result = await wsStore.sendAuth(passwordHash);
 
     if (result.success) {
       sessionStorage.setItem('authenticated', 'true');

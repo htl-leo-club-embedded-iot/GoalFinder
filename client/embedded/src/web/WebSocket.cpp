@@ -16,8 +16,43 @@
 
 #include "WebSocket.h"
 #include <GoalfinderApp.h>
+#include <mbedtls/sha256.h>
 #include "Settings.h"
 #include "version.h"
+
+namespace {
+bool ComputeSha256Hex(const String& input, String& output) {
+    unsigned char hash[32];
+    mbedtls_sha256_context ctx;
+    mbedtls_sha256_init(&ctx);
+
+    if (mbedtls_sha256_starts_ret(&ctx, 0) != 0) {
+        mbedtls_sha256_free(&ctx);
+        return false;
+    }
+
+    if (mbedtls_sha256_update_ret(&ctx, reinterpret_cast<const unsigned char*>(input.c_str()), input.length()) != 0) {
+        mbedtls_sha256_free(&ctx);
+        return false;
+    }
+
+    if (mbedtls_sha256_finish_ret(&ctx, hash) != 0) {
+        mbedtls_sha256_free(&ctx);
+        return false;
+    }
+
+    mbedtls_sha256_free(&ctx);
+
+    char hex[65];
+    for (size_t i = 0; i < sizeof(hash); ++i) {
+        snprintf(&hex[i * 2], 3, "%02x", hash[i]);
+    }
+    hex[64] = '\0';
+
+    output = String(hex);
+    return true;
+}
+}
 
 GFWebSocket::GFWebSocket()
     : wsServer(81),
@@ -149,8 +184,6 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     JsonObject data = doc["data"].to<JsonObject>();
 
     data["deviceName"] = settings->GetDeviceName();
-    data["wifiPassword"] = settings->GetWifiPassword();
-    data["devicePassword"] = settings->GetDevicePassword();
     data["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     data["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
     data["distanceOnlyHitDetection"] = settings->GetDistanceOnlyHitDetection();
@@ -169,7 +202,6 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
     data["DNSEnabled"] = settings->DNSEnabled();
     data["extNWSSID"] = settings->GetExternalNW_SSID();
-    data["extNWPWD"] = settings->GetExternalNW_PWD();
 
     SendJson(clientId, doc);
 }
@@ -192,10 +224,8 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         if (!doc["value"].isNull()) {
             settings->SetWifiPassword(doc["value"].as<String>());
         }
-        response["value"] = settings->GetWifiPassword();
     } else if (strcmp(key, "devicePassword") == 0) {
         settings->SetDevicePassword(doc["value"].as<String>());
-        response["value"] = settings->GetDevicePassword();
     } else if (strcmp(key, "vibrationSensorSensitivity") == 0) {
         settings->SetVibrationSensorSensitivity(doc["value"].as<int>());
         response["value"] = settings->GetVibrationSensorSensitivity();
@@ -240,7 +270,6 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         response["value"] = settings->GetExternalNW_SSID();
     } else if (strcmp(key, "extNWPWD") == 0) {
         settings->SetExternalNW_PWD(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_PWD();
     } else if (strcmp(key, "DNSEnabled") == 0) {
         settings->SetDNSEnabled(doc["value"].as<bool>());
         response["value"] = settings->DNSEnabled();
@@ -326,16 +355,25 @@ void GFWebSocket::HandleAuth(uint8_t clientId, JsonDocument& doc) {
 
     authAttempts[authAttemptCount++] = now;
 
-    const char* password = doc["password"];
-    if (!password) {
+    const char* passwordHash = doc["passwordHash"];
+    if (!passwordHash) {
         response["success"] = false;
-        response["error"] = "Password required";
+        response["error"] = "Password hash required";
         SendJson(clientId, response);
         return;
     }
 
     String correctPassword = Settings::GetInstance()->GetDevicePassword();
-    if (String(password) == correctPassword) {
+    String expectedHash;
+    if (!ComputeSha256Hex(correctPassword, expectedHash)) {
+        Logger::Log("WebSocket", Logger::LogLevel::ERROR, "Failed to compute password hash");
+        response["success"] = false;
+        response["error"] = "Authentication unavailable";
+        SendJson(clientId, response);
+        return;
+    }
+
+    if (String(passwordHash).equalsIgnoreCase(expectedHash)) {
         response["success"] = true;
     } else {
         response["success"] = false;
