@@ -202,6 +202,11 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
     data["DNSEnabled"] = settings->DNSEnabled();
     data["extNWSSID"] = settings->GetExternalNW_SSID();
+    data["extNWUseDHCP"] = settings->GetExternalNWE_UseDHCP();
+    data["extNWIP"] = settings->GetExternalNW_IP();
+    data["extNWSNM"] = settings->GetExternalNW_SNM();
+    data["extNWDFG"] = settings->GetExternalNW_DFG();
+    data["extNWDNSIP"] = settings->GetExternalNW_DNSIP();
 
     SendJson(clientId, doc);
 }
@@ -212,7 +217,7 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
 
     Settings* settings = Settings::GetInstance();
     GoalfinderApp* app = GoalfinderApp::GetInstance();
-
+    
     JsonDocument response;
     response["type"] = "setting_ack";
     response["key"] = key;
@@ -268,6 +273,21 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "extNWSSID") == 0) {
         settings->SetExternalNW_SSID(doc["value"].as<String>());
         response["value"] = settings->GetExternalNW_SSID();
+    } else if (strcmp(key, "extNWUseDHCP") == 0) {
+        settings->SetExternalNWE_UseDHCP(doc["value"].as<bool>());
+        response["value"] = settings->GetExternalNWE_UseDHCP();
+    } else if (strcmp(key, "extNWIP") == 0) {
+        settings->SetExternalNW_IP(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_IP();
+    } else if (strcmp(key, "extNWSNM") == 0) {
+        settings->SetExternalNW_SNM(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_SNM();
+    } else if (strcmp(key, "extNWDFG") == 0) {
+        settings->SetExternalNW_DFG(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_DFG();
+    } else if (strcmp(key, "extNWDNSIP") == 0) {
+        settings->SetExternalNW_DNSIP(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_DNSIP();
     } else if (strcmp(key, "extNWPWD") == 0) {
         settings->SetExternalNW_PWD(doc["value"].as<String>());
     } else if (strcmp(key, "DNSEnabled") == 0) {
