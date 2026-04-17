@@ -36,6 +36,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const WS_CONNECT_TIMEOUT_IP_MS = 1400;
     const WS_DNS_FALLBACK_MS = 550;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
+    const GET_SETTINGS_STRIPPED_KEYS = new Set(["devicePassword", "extNWPWD", "externalNetworkPassword"]);
+    const SETTINGS_KEY_ALIASES: Record<string, string[]> = {
+        extNW: ["useExternalNW"],
+        extNWUseDHCP: ["extNW_UseDHCP"],
+        extNWIP: ["extNW_IP"],
+        extNWSNM: ["extNW_SNM"],
+        extNWDFG: ["extNW_DFG"],
+        extNWDNSIP: ["extNW_DNSIP"],
+    };
 
     const MAX_RECONNECT_DELAY = 5000;
     const BASE_RECONNECT_DELAY = 500;
@@ -417,6 +426,46 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }, delay);
     }
 
+    function sanitizeSettingsData(data: Record<string, any>): Record<string, any> {
+        const sanitized: Record<string, any> = { ...data };
+        GET_SETTINGS_STRIPPED_KEYS.forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(sanitized, key)) {
+                delete sanitized[key];
+            }
+        });
+
+        Object.entries(SETTINGS_KEY_ALIASES).forEach(([canonicalKey, aliases]) => {
+            if (Object.prototype.hasOwnProperty.call(sanitized, canonicalKey)) return;
+
+            for (const alias of aliases) {
+                if (Object.prototype.hasOwnProperty.call(sanitized, alias)) {
+                    sanitized[canonicalKey] = sanitized[alias];
+                    break;
+                }
+            }
+        });
+
+        if (Object.prototype.hasOwnProperty.call(sanitized, "extNWUseDHCP")) {
+            const rawValue = sanitized["extNWUseDHCP"];
+            if (typeof rawValue === "number") {
+                sanitized["extNWUseDHCP"] = rawValue !== 0;
+            } else if (typeof rawValue === "string") {
+                sanitized["extNWUseDHCP"] = rawValue === "1" || rawValue.toLowerCase() === "true";
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(sanitized, "extNW")) {
+            const rawValue = sanitized["extNW"];
+            if (typeof rawValue === "number") {
+                sanitized["extNW"] = rawValue !== 0;
+            } else if (typeof rawValue === "string") {
+                sanitized["extNW"] = rawValue === "1" || rawValue.toLowerCase() === "true";
+            }
+        }
+
+        return sanitized;
+    }
+
     function handleMessage(raw: string): void {
         let msg: any;
         try {
@@ -518,7 +567,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
     function loadSettings(timeoutMs = 5000): Promise<Record<string, any>> {
         return sendAndWait({ type: "get_settings" }, "settings", timeoutMs)
-            .then((msg: any) => msg?.data ?? {});
+            .then((msg: any) => sanitizeSettingsData(msg?.data ?? {}));
     }
 
     function sendStart(): void {

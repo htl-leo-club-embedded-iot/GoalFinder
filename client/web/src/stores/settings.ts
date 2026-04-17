@@ -19,7 +19,7 @@ import {ref} from "vue";
 import {useWebSocketStore} from "@/stores/websocket";
 
 const API_URL = "/api";
-const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword", "extNWPWD"]);
+const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword"]);
 
 export const useSettingsStore = defineStore("settings", () => {
     let isLoading = false;
@@ -65,8 +65,13 @@ export const useSettingsStore = defineStore("settings", () => {
     const version = ref("");
     const advancedSettingsEnabled = ref(false);
     const dnsEnabled = ref(true);
+    const useExternalNetwork = ref(false);
     const externalNetworkSsid = ref("");
-    const externalNetworkPassword = ref("");
+    const externalNetworkUseDhcp = ref(true);
+    const externalNetworkIp = ref("");
+    const externalNetworkSubnetMask = ref("");
+    const externalNetworkDefaultGateway = ref("");
+    const externalNetworkDnsIp = ref("");
 
     const refreshAvailableNetworks = () => {};
     const refreshAvailableBluetoothDevices = () => {};
@@ -92,8 +97,13 @@ export const useSettingsStore = defineStore("settings", () => {
             isSoundEnabled: isSoundEnabled.value,
             advancedSettingsEnabled: advancedSettingsEnabled.value,
             DNSEnabled: dnsEnabled.value,
+            extNW: useExternalNetwork.value,
             extNWSSID: externalNetworkSsid.value,
-            extNWPWD: externalNetworkPassword.value,
+            extNWUseDHCP: externalNetworkUseDhcp.value,
+            extNWIP: externalNetworkIp.value,
+            extNWSNM: externalNetworkSubnetMask.value,
+            extNWDFG: externalNetworkDefaultGateway.value,
+            extNWDNSIP: externalNetworkDnsIp.value,
         };
     }
 
@@ -117,7 +127,13 @@ export const useSettingsStore = defineStore("settings", () => {
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
         advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
         dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
+        useExternalNetwork.value = json["extNW"] ?? useExternalNetwork.value;
         externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
+        externalNetworkUseDhcp.value = json["extNWUseDHCP"] ?? externalNetworkUseDhcp.value;
+        externalNetworkIp.value = json["extNWIP"] ?? externalNetworkIp.value;
+        externalNetworkSubnetMask.value = json["extNWSNM"] ?? externalNetworkSubnetMask.value;
+        externalNetworkDefaultGateway.value = json["extNWDFG"] ?? externalNetworkDefaultGateway.value;
+        externalNetworkDnsIp.value = json["extNWDNSIP"] ?? externalNetworkDnsIp.value;
 
         // Update LED mode string
         const ledModeMapping: { [key: number]: string } = {
@@ -303,7 +319,12 @@ export const useSettingsStore = defineStore("settings", () => {
         updateFirmware,
         advancedSettingsEnabled,
         dnsEnabled,
+        useExternalNetwork,
         externalNetworkSsid,
-        externalNetworkPassword
+        externalNetworkUseDhcp,
+        externalNetworkIp,
+        externalNetworkSubnetMask,
+        externalNetworkDefaultGateway,
+        externalNetworkDnsIp,
     };
 });

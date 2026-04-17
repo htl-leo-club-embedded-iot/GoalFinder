@@ -106,7 +106,7 @@ void GoalfinderApp::Init() {
         xMutex = xSemaphoreCreateMutex();    
 
         IPAddress deviceIP;
-        deviceIP.fromString(Settings::GetInstance()->GetDeviceIpAddress());
+        deviceIP.fromString(Settings::GetInstance()->GetDeviceAPIPAddress());
         dnsServer.Begin(deviceIP);
         dnsServer.IsRunning = Settings::GetInstance()->DNSEnabled();
 
@@ -368,4 +368,8 @@ void GoalfinderApp::Process() {
 
 void GoalfinderApp::SetDNSEnabled(bool enable) {
     dnsServer.IsRunning = enable;
+}
+
+void GoalfinderApp::NotifyWebSocketClientConnected() {
+    wifiManager.NotifyWebSocketClientConnected();
 }
