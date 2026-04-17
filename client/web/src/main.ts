@@ -101,7 +101,8 @@ const i18n = createI18n({
                 advanced: "Advanced Settings",
                 advanced_desc: "This option gives you advanced and more granular settings option",
                 dnsEnable: "Domain Name Service (DNS)",
-                between_sound: "Time between metronome ticks"
+                between_sound: "Time between metronome ticks",
+                remove_password: "Remove Password"
             },
             about: {
                 about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of Vienna by students of the HTBLA Leonding",
@@ -110,6 +111,8 @@ const i18n = createI18n({
             },
             word : {
                 on: "On",
+                show: "Show",
+                hide: "Hide",
                 welcome_back: "Welcome back",
                 save: "Save",
                 open: "Open",
@@ -263,7 +266,8 @@ const i18n = createI18n({
                 advanced: "Erweiterte Einstellungen",
                 advanced_desc: "Erweiterte Einstellungen ermöglichen Ihnen erweiterte und genauere Einstellungsmöglichkeiten.",
                 dnsEnable: "Domain Name Service (DNS)",
-                between_sound: "Zeitabstand zwischen Metronome Tönen"
+                between_sound: "Zeitabstand zwischen Metronome Tönen",
+                remove_password: "Passwort entfernen"
             },
             about: {
                 about_desc: "Dieses Gerät wurde im Zuge des \"Smart Sport Assistance\" Projekt in Kooperation mit Universität Wien von Schülern der HTBLA Leonding entwickelt.",
@@ -272,6 +276,8 @@ const i18n = createI18n({
             },
             word : {
                 on: "Ein",
+                show: "Anzeigen",
+                hide: "Verbergen",
                 welcome_back: "Willkommen zurück",
                 save: "Speichern",
                 open: "Öffnen",
