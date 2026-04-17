@@ -143,35 +143,10 @@ class Settings : public Singleton<Settings>
         /** Sets the external network password. */
         void SetExternalNW_PWD(String pwd);
 
-        /** Returns if DHCP is to be used for external networks */
-        bool GetExternalNWE_UseDHCP();
-        /** Sets if DHCP is to be used for external networks */
-        void SetExternalNWE_UseDHCP(bool useDHCP);
-
-        /** Returns the manually configured ip address for external networks */
-        String GetExternalNW_IP();
-        /** Sets the manually configured ip address for external networks */
-        void SetExternalNW_IP(String ip);
-
-        /** Returns the manually configured subnet mask for external networks */
-        String GetExternalNW_SNM();
-        /** Sets the manually configured subnet mask for external networks */
-        void SetExternalNW_SNM(String snm);
-
-        /** Returns the manually configured default gateway for external networks */
-        String GetExternalNW_DFG();
-        /** Sets the manually configured default gateway for external networks */
-        void SetExternalNW_DFG(String dfg);
-
-        /** Returns the manually configured DNS server address for external networks */
-        String GetExternalNW_DNSIP();
-        /** Sets the manually configured DNS server address for external networks */
-        void SetExternalNW_DNSIP(String dnsIP);
-
         /** Returns the configured device IP address. */
-        String GetDeviceAPIPAddress();
+        String GetDeviceIpAddress();
         /** Sets the configured device IP address. */
-        void SetDeviceAPIPAddress(String ip);
+        void SetDeviceIpAddress(String ip);
 
         /** Returns the configured subnet mask. */
         String GetSubnetMask();
@@ -257,23 +232,8 @@ class Settings : public Singleton<Settings>
         static const char* keyExternalNW_PWD;
         static const String defaultExternalNW_PWD;
 
-        static const char* keyExternalNW_UseDHCP;
-        static const bool defaultExternalNW_UseDHCP;
-
-        static const char* keyExternalNW_IP;
-        static const String defaultExternalNW_IP;
-        
-        static const char* keyExternalNW_SNM;
-        static const String defaultExternalNW_SNM;
-
-        static const char* keyExternalNW_DFG;
-        static const String defaultExternalNW_DFG;
-
-        static const char* keyExternalNW_DNSIP;
-        static const String defaultExternalNW_DNSIP;
-
-        static const char* keyDeviceIP;
-        static const String defaultDeviceIP;
+        static const char* keyDeviceIpAddress;
+        static const String defaultDeviceIpAddress;
 
         static const char* keySubnetMask;
         static const String defaultSubnetMask;

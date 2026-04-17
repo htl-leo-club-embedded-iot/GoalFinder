@@ -85,23 +85,8 @@ const String Settings::defaultExternalNW_SSID = emptyString;
 const char* Settings::keyExternalNW_PWD = "extNWPWD";
 const String Settings::defaultExternalNW_PWD = emptyString;
 
-const char* Settings::keyExternalNW_UseDHCP = "extNWUseDHCP";
-const bool Settings::defaultExternalNW_UseDHCP = true;
-
-const char* Settings::keyExternalNW_IP = "extNWIP";
-const String Settings::defaultExternalNW_IP = "192.168.4.1";
-
-const char* Settings::keyExternalNW_SNM = "extNWSNM";
-const String Settings::defaultExternalNW_SNM = "255.255.0.0";
-
-const char* Settings::keyExternalNW_DFG = "extNWDFG";
-const String Settings::defaultExternalNW_DFG = "192.168.0.0";
-
-const char* Settings::keyExternalNW_DNSIP = "extNWDNSIP";
-const String Settings::defaultExternalNW_DNSIP = "192.168.0.1";
-
-const char* Settings::keyDeviceIP = "deviceIP";
-const String Settings::defaultDeviceIP = "192.168.4.1";
+const char* Settings::keyDeviceIpAddress = "deviceIP";
+const String Settings::defaultDeviceIpAddress = "192.168.4.1";
 
 const char* Settings::keySubnetMask = "subnetMask";
 const String Settings::defaultSubnetMask = "255.255.255.0";
@@ -383,59 +368,14 @@ void Settings::SetExternalNW_PWD(String pwd) {
 	}
 }
 
-bool Settings::GetExternalNWE_UseDHCP() {
-	return store.IsKey(keyExternalNW_UseDHCP) ? (bool)store.GetInt(keyExternalNW_UseDHCP, (int)defaultExternalNW_UseDHCP) : defaultExternalNW_UseDHCP;
+String Settings::GetDeviceIpAddress() {
+	return store.GetString(keyDeviceIpAddress, defaultDeviceIpAddress);
 }
 
-void Settings::SetExternalNWE_UseDHCP(bool useDHCP) {
-	store.PutInt(keyExternalNW_UseDHCP, (int)useDHCP);
-	SetModified();
-}
-
-String Settings::GetExternalNW_IP() {
-	return store.IsKey(keyExternalNW_IP) ? store.GetString(keyExternalNW_IP, defaultExternalNW_IP) : defaultExternalNW_IP;
-}
-
-void Settings::SetExternalNW_IP(String ip) {
-	store.PutString(keyExternalNW_IP, ip);
-	SetModified();
-}
-
-String Settings::GetExternalNW_SNM() {
-	return store.IsKey(keyExternalNW_SNM) ? store.GetString(keyExternalNW_SNM, defaultExternalNW_SNM) : defaultExternalNW_SNM;
-}
-
-void Settings::SetExternalNW_SNM(String snm) {
-	store.PutString(keyExternalNW_SNM, snm);
-	SetModified();
-}
-
-String Settings::GetExternalNW_DFG() {
-	return store.IsKey(keyExternalNW_DFG) ? store.GetString(keyExternalNW_DFG, defaultExternalNW_DFG) : defaultExternalNW_DFG;
-}
-
-void Settings::SetExternalNW_DFG(String dfg) {
-	store.PutString(keyExternalNW_DFG, dfg);
-	SetModified();
-}
-
-String Settings::GetExternalNW_DNSIP() {
-	return store.IsKey(keyExternalNW_DNSIP) ? store.GetString(keyExternalNW_DNSIP, defaultExternalNW_DNSIP) : defaultExternalNW_DNSIP;
-}
-
-void Settings::SetExternalNW_DNSIP(String dnsIP) {
-	store.PutString(keyExternalNW_DNSIP, dnsIP);
-	SetModified();
-}
-
-String Settings::GetDeviceAPIPAddress() {
-	return store.GetString(keyDeviceIP, defaultDeviceIP);
-}
-
-void Settings::SetDeviceAPIPAddress(String ip) {
+void Settings::SetDeviceIpAddress(String ip) {
 	ip.trim();
 	if (!ip.isEmpty()) {
-		store.PutString(keyDeviceIP, ip);
+		store.PutString(keyDeviceIpAddress, ip);
 		SetModified();
 	}
 }

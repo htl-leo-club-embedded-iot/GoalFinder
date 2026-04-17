@@ -37,9 +37,6 @@ class WiFiManager {
         /** Returns true if operating in external network (STA) mode. */
         bool IsExternalNetwork() const;
 
-        /** Marks that at least one WebSocket client connected in this power cycle. */
-        void NotifyWebSocketClientConnected();
-
     private:
         void SetupAccessPoint();
         void SetupExternalNetwork();
@@ -49,7 +46,6 @@ class WiFiManager {
         DNSServer dnsServer;
         bool useExternalNW;
         bool connected;
-        bool wsClientConnectedThisPowerCycle;
         unsigned long lastReconnectAttemptMs;
         static const unsigned long reconnectIntervalMs;
         SemaphoreHandle_t wifiMutex;

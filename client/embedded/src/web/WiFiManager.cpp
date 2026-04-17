@@ -17,20 +17,11 @@
 #include "WiFiManager.h"
 #include <WiFi.h>
 
-namespace {
-bool ParseIpAddress(const String& rawValue, IPAddress& outAddress) {
-    String value = rawValue;
-    value.trim();
-    return outAddress.fromString(value);
-}
-}
-
 const unsigned long WiFiManager::reconnectIntervalMs = 10000;
 
 WiFiManager::WiFiManager()
     : useExternalNW(false),
       connected(false),
-            wsClientConnectedThisPowerCycle(false),
       lastReconnectAttemptMs(0),
       wifiMutex(nullptr)
 {}
@@ -44,8 +35,6 @@ void WiFiManager::Init() {
     }
 
     useExternalNW = settings->GetUseExternalNW();
-    connected = false;
-    wsClientConnectedThisPowerCycle = false;
 
     if (useExternalNW) {
         SetupExternalNetwork();
@@ -67,15 +56,6 @@ void WiFiManager::Loop() {
 
 bool WiFiManager::IsExternalNetwork() const {
     return useExternalNW;
-}
-
-void WiFiManager::NotifyWebSocketClientConnected() {
-    if (wifiMutex != nullptr && xSemaphoreTake(wifiMutex, 0) == pdTRUE) {
-        wsClientConnectedThisPowerCycle = true;
-        xSemaphoreGive(wifiMutex);
-    } else {
-        wsClientConnectedThisPowerCycle = true;
-    }
 }
 
 void WiFiManager::SetupAccessPoint() {
@@ -101,95 +81,45 @@ void WiFiManager::SetupExternalNetwork() {
     Settings* settings = Settings::GetInstance();
     String ssid = settings->GetExternalNW_SSID();
     String pwd = settings->GetExternalNW_PWD();
-    const bool useDhcp = settings->GetExternalNWE_UseDHCP();
-    bool fallbackToAccessPoint = false;
 
     if (ssid.isEmpty()) {
         Logger::Log("WiFiManager", Logger::LogLevel::WARN,
             "External SSID is empty, falling back to AP mode");
-        fallbackToAccessPoint = true;
-    } else {
-        WiFi.mode(WIFI_STA);
-        WiFi.setSleep(false);
-
-        if (useDhcp) {
-            const IPAddress dhcpReset(0U, 0U, 0U, 0U);
-            if (!WiFi.config(dhcpReset, dhcpReset, dhcpReset)) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to enable DHCP for external network, falling back to AP mode");
-                fallbackToAccessPoint = true;
-            } else {
-                Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                    "Using DHCP for external network '%s'", ssid.c_str());
-            }
-        } else {
-            IPAddress staticIp;
-            IPAddress subnetMask;
-            IPAddress defaultGateway;
-            IPAddress dnsServer;
-
-            const bool hasStaticIp = ParseIpAddress(settings->GetExternalNW_IP(), staticIp);
-            const bool hasSubnetMask = ParseIpAddress(settings->GetExternalNW_SNM(), subnetMask);
-            const bool hasDefaultGateway = ParseIpAddress(settings->GetExternalNW_DFG(), defaultGateway);
-            const bool hasDnsServer = ParseIpAddress(settings->GetExternalNW_DNSIP(), dnsServer);
-
-            if (!hasStaticIp || !hasSubnetMask || !hasDefaultGateway || !hasDnsServer) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Invalid static external network config (IP/Gateway/Subnet/DNS), falling back to AP mode");
-                fallbackToAccessPoint = true;
-            } else if (!WiFi.config(staticIp, defaultGateway, subnetMask, dnsServer)) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to apply static external network config, falling back to AP mode");
-                fallbackToAccessPoint = true;
-            } else {
-                Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                    "Using static external network config - IP: %s, Gateway: %s, Subnet: %s, DNS: %s",
-                    staticIp.toString().c_str(),
-                    defaultGateway.toString().c_str(),
-                    subnetMask.toString().c_str(),
-                    dnsServer.toString().c_str());
-            }
-        }
-
-        if (!fallbackToAccessPoint) {
-            if (pwd.isEmpty()) {
-                WiFi.begin(ssid.c_str());
-            } else {
-                WiFi.begin(ssid.c_str(), pwd.c_str());
-            }
-
-            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                "Connecting to external network '%s'...", ssid.c_str());
-
-            unsigned long startMs = millis();
-            const unsigned long timeoutMs = 15000;
-            while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < timeoutMs) {
-                delay(250);
-            }
-
-            if (WiFi.status() == WL_CONNECTED) {
-                connected = true;
-                Logger::Log("WiFiManager", Logger::LogLevel::OK,
-                    "Connected to '%s', IP: %s",
-                    ssid.c_str(), WiFi.localIP().toString().c_str());
-            } else {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
-                WiFi.disconnect();
-                fallbackToAccessPoint = true;
-            }
-        }
+        useExternalNW = false;
+        SetupAccessPoint();
+        return;
     }
 
-    if (fallbackToAccessPoint) {
+    WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
+
+    if (pwd.isEmpty()) {
+        WiFi.begin(ssid.c_str());
+    } else {
+        WiFi.begin(ssid.c_str(), pwd.c_str());
+    }
+
+    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+        "Connecting to external network '%s'...", ssid.c_str());
+
+    // Wait for initial connection with timeout
+    unsigned long startMs = millis();
+    const unsigned long timeoutMs = 15000;
+    while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < timeoutMs) {
+        delay(250);
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        connected = true;
+        Logger::Log("WiFiManager", Logger::LogLevel::OK,
+            "Connected to '%s', IP: %s",
+            ssid.c_str(), WiFi.localIP().toString().c_str());
+    } else {
         connected = false;
-        useExternalNW = false;
-        if (settings->GetUseExternalNW()) {
-            settings->SetUseExternalNW(false);
-            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                "Reverted extNW to false due failed external network setup");
-        }
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
         WiFi.disconnect();
+        useExternalNW = false;
         SetupAccessPoint();
     }
 }
