@@ -369,3 +369,7 @@ void GoalfinderApp::Process() {
 void GoalfinderApp::SetDNSEnabled(bool enable) {
     dnsServer.IsRunning = enable;
 }
+
+void GoalfinderApp::NotifyWebSocketClientConnected() {
+    wifiManager.NotifyWebSocketClientConnected();
+}

@@ -30,6 +30,7 @@ const unsigned long WiFiManager::reconnectIntervalMs = 10000;
 WiFiManager::WiFiManager()
     : useExternalNW(false),
       connected(false),
+            wsClientConnectedThisPowerCycle(false),
       lastReconnectAttemptMs(0),
       wifiMutex(nullptr)
 {}
@@ -43,6 +44,8 @@ void WiFiManager::Init() {
     }
 
     useExternalNW = settings->GetUseExternalNW();
+    connected = false;
+    wsClientConnectedThisPowerCycle = false;
 
     if (useExternalNW) {
         SetupExternalNetwork();
@@ -64,6 +67,15 @@ void WiFiManager::Loop() {
 
 bool WiFiManager::IsExternalNetwork() const {
     return useExternalNW;
+}
+
+void WiFiManager::NotifyWebSocketClientConnected() {
+    if (wifiMutex != nullptr && xSemaphoreTake(wifiMutex, 0) == pdTRUE) {
+        wsClientConnectedThisPowerCycle = true;
+        xSemaphoreGive(wifiMutex);
+    } else {
+        wsClientConnectedThisPowerCycle = true;
+    }
 }
 
 void WiFiManager::SetupAccessPoint() {
@@ -172,6 +184,12 @@ void WiFiManager::SetupExternalNetwork() {
     if (fallbackToAccessPoint) {
         connected = false;
         useExternalNW = false;
+        if (settings->GetUseExternalNW()) {
+            settings->SetUseExternalNW(false);
+            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                "Reverted extNW to false due failed external network setup");
+        }
+        WiFi.disconnect();
         SetupAccessPoint();
     }
 }

@@ -38,6 +38,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
     const GET_SETTINGS_STRIPPED_KEYS = new Set(["devicePassword", "extNWPWD", "externalNetworkPassword"]);
     const SETTINGS_KEY_ALIASES: Record<string, string[]> = {
+        extNW: ["useExternalNW"],
         extNWUseDHCP: ["extNW_UseDHCP"],
         extNWIP: ["extNW_IP"],
         extNWSNM: ["extNW_SNM"],
@@ -450,6 +451,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
                 sanitized["extNWUseDHCP"] = rawValue !== 0;
             } else if (typeof rawValue === "string") {
                 sanitized["extNWUseDHCP"] = rawValue === "1" || rawValue.toLowerCase() === "true";
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(sanitized, "extNW")) {
+            const rawValue = sanitized["extNW"];
+            if (typeof rawValue === "number") {
+                sanitized["extNW"] = rawValue !== 0;
+            } else if (typeof rawValue === "string") {
+                sanitized["extNW"] = rawValue === "1" || rawValue.toLowerCase() === "true";
             }
         }
 

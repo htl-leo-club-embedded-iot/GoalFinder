@@ -92,6 +92,7 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
             {
                 IPAddress remoteIp = wsServer.remoteIP(clientId);
                 Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
+                GoalfinderApp::GetInstance()->NotifyWebSocketClientConnected();
             }
             {
                 JsonDocument doc;
@@ -201,6 +202,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["afterHitTimeout"] = settings->GetAfterHitTimeout();
     data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
     data["DNSEnabled"] = settings->DNSEnabled();
+    data["extNW"] = settings->GetUseExternalNW();
     data["extNWSSID"] = settings->GetExternalNW_SSID();
     data["extNWUseDHCP"] = settings->GetExternalNWE_UseDHCP();
     data["extNWIP"] = settings->GetExternalNW_IP();
@@ -270,6 +272,9 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
         settings->SetAdvancedSettingsEnabled(doc["value"].as<bool>());
         response["value"] = settings->AdvancedSettingsEnabled();
+    } else if (strcmp(key, "extNW") == 0 || strcmp(key, "useExternalNW") == 0) {
+        settings->SetUseExternalNW(doc["value"].as<bool>());
+        response["value"] = settings->GetUseExternalNW();
     } else if (strcmp(key, "extNWSSID") == 0) {
         settings->SetExternalNW_SSID(doc["value"].as<String>());
         response["value"] = settings->GetExternalNW_SSID();

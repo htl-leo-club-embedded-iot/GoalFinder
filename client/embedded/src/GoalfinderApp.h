@@ -89,6 +89,9 @@ public:
     /** Enable or disable the DNS server. */
     void SetDNSEnabled(bool enabled);
 
+    /** Marks that a WebSocket client connected during this power cycle. */
+    void NotifyWebSocketClientConnected();
+
 private:
     friend class Singleton<GoalfinderApp>;
     /** Singleton constructor */

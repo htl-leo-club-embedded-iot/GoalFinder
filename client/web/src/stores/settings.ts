@@ -65,6 +65,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const version = ref("");
     const advancedSettingsEnabled = ref(false);
     const dnsEnabled = ref(true);
+    const useExternalNetwork = ref(false);
     const externalNetworkSsid = ref("");
     const externalNetworkUseDhcp = ref(true);
     const externalNetworkIp = ref("");
@@ -96,6 +97,7 @@ export const useSettingsStore = defineStore("settings", () => {
             isSoundEnabled: isSoundEnabled.value,
             advancedSettingsEnabled: advancedSettingsEnabled.value,
             DNSEnabled: dnsEnabled.value,
+            extNW: useExternalNetwork.value,
             extNWSSID: externalNetworkSsid.value,
             extNWUseDHCP: externalNetworkUseDhcp.value,
             extNWIP: externalNetworkIp.value,
@@ -125,6 +127,7 @@ export const useSettingsStore = defineStore("settings", () => {
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
         advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
         dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
+        useExternalNetwork.value = json["extNW"] ?? useExternalNetwork.value;
         externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
         externalNetworkUseDhcp.value = json["extNWUseDHCP"] ?? externalNetworkUseDhcp.value;
         externalNetworkIp.value = json["extNWIP"] ?? externalNetworkIp.value;
@@ -316,6 +319,7 @@ export const useSettingsStore = defineStore("settings", () => {
         updateFirmware,
         advancedSettingsEnabled,
         dnsEnabled,
+        useExternalNetwork,
         externalNetworkSsid,
         externalNetworkUseDhcp,
         externalNetworkIp,
