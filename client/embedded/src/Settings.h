@@ -168,6 +168,9 @@ class Settings : public Singleton<Settings>
         /** Sets the manually configured DNS server address for external networks */
         void SetExternalNW_DNSIP(String dnsIP);
 
+        // TODO(enterprise-auth): Add persisted enterprise network settings
+        // (auth mode, identity, username, phase2 method, certificates).
+
         /** Returns the configured device IP address. */
         String GetDeviceAPIPAddress();
         /** Sets the configured device IP address. */

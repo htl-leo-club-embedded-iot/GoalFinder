@@ -206,6 +206,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["DNSEnabled"] = settings->DNSEnabled();
     data["extNW"] = settings->GetUseExternalNW();
     data["extNWSSID"] = settings->GetExternalNW_SSID();
+    data["extNWPasswordSet"] = !settings->GetExternalNW_PWD().isEmpty();
     data["extNWUseDHCP"] = settings->GetExternalNWE_UseDHCP();
     data["extNWIP"] = settings->GetExternalNW_IP();
     data["extNWSNM"] = settings->GetExternalNW_SNM();
@@ -299,6 +300,8 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         response["value"] = settings->GetExternalNW_DNSIP();
     } else if (strcmp(key, "extNWPWD") == 0) {
         settings->SetExternalNW_PWD(doc["value"].as<String>());
+        // TODO(enterprise-auth): Extend websocket setting contract for enterprise
+        // auth mode and credential fields once firmware adds persisted support.
     } else if (strcmp(key, "DNSEnabled") == 0) {
         settings->SetDNSEnabled(doc["value"].as<bool>());
         response["value"] = settings->DNSEnabled();

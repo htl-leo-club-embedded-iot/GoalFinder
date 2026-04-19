@@ -152,6 +152,8 @@ void WiFiManager::SetupExternalNetwork() {
         }
 
         if (!fallbackToAccessPoint) {
+            // TODO(enterprise-auth): Add dedicated WiFi.begin enterprise branch
+            // once auth mode and enterprise credentials are available in Settings.
             if (pwd.isEmpty()) {
                 WiFi.begin(ssid.c_str());
             } else {

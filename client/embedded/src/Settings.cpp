@@ -100,6 +100,9 @@ const String Settings::defaultExternalNW_DFG = "192.168.0.0";
 const char* Settings::keyExternalNW_DNSIP = "extNWDNSIP";
 const String Settings::defaultExternalNW_DNSIP = "192.168.0.1";
 
+// TODO(enterprise-auth): Introduce default keys and persisted values for
+// enterprise network authentication once firmware-side feature support lands.
+
 const char* Settings::keyDeviceIP = "deviceIP";
 const String Settings::defaultDeviceIP = "192.168.4.1";
 
