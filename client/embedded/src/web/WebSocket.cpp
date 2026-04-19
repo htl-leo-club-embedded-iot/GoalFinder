@@ -185,6 +185,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     JsonObject data = doc["data"].to<JsonObject>();
 
     data["deviceName"] = settings->GetDeviceName();
+    data["devicePasswordSet"] = !settings->GetDevicePassword().isEmpty();
     data["wifiPasswordSet"] = !settings->GetWifiPassword().isEmpty();
     data["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     data["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
@@ -233,7 +234,9 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
             settings->SetWifiPassword(doc["value"].as<String>());
         }
     } else if (strcmp(key, "devicePassword") == 0) {
-        settings->SetDevicePassword(doc["value"].as<String>());
+        if (!doc["value"].isNull()) {
+            settings->SetDevicePassword(doc["value"].as<String>());
+        }
     } else if (strcmp(key, "vibrationSensorSensitivity") == 0) {
         settings->SetVibrationSensorSensitivity(doc["value"].as<int>());
         response["value"] = settings->GetVibrationSensorSensitivity();

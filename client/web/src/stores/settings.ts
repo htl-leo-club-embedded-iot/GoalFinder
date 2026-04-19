@@ -111,8 +111,14 @@ export const useSettingsStore = defineStore("settings", () => {
     /** Apply settings data from server response */
     function applySettingsData(json: Record<string, any>): void {
         const hasWifiPassword = json["wifiPasswordSet"] === true;
+        const hasDevicePassword = json["devicePasswordSet"] === true;
 
         deviceName.value = json["deviceName"] ?? deviceName.value;
+        if (Object.prototype.hasOwnProperty.call(json, "devicePassword")) {
+            devicePassword.value = json["devicePassword"] ?? devicePassword.value;
+        } else {
+            devicePassword.value = hasDevicePassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
         if (Object.prototype.hasOwnProperty.call(json, "wifiPassword")) {
             wifiPassword.value = json["wifiPassword"] ?? wifiPassword.value;
         } else {

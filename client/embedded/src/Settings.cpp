@@ -222,14 +222,19 @@ String Settings::GetDevicePassword() {
 }
 
 void Settings::SetDevicePassword(String devicePassword) {
+	devicePassword.trim();
+
 	if(devicePassword.isEmpty()) {
 		if (store.IsKey(keyDevicePassword)) {
 			store.Remove(keyDevicePassword);
+			SetModified();
 		}
-	} else {
+	} else if (devicePassword.length() >= 8 && devicePassword.length() < 63) {
 		store.PutString(keyDevicePassword, devicePassword);
+		SetModified();
+	} else {
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid device password length. Expected 8-63 characters.");
 	}
-	SetModified();
 }
 
 String Settings::GetWifiPassword() {
