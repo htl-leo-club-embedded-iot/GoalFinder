@@ -212,6 +212,15 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["extNWSNM"] = settings->GetExternalNW_SNM();
     data["extNWDFG"] = settings->GetExternalNW_DFG();
     data["extNWDNSIP"] = settings->GetExternalNW_DNSIP();
+    data["extNWAuthMode"] = settings->GetExternalNW_AuthMode();
+    data["extNWEnterpriseIdentity"] = settings->GetExternalNW_EnterpriseIdentity();
+    data["extNWEnterpriseUsername"] = settings->GetExternalNW_EnterpriseUsername();
+    data["extNWEnterpriseAnonymousIdentity"] = settings->GetExternalNW_EnterpriseAnonymousIdentity();
+    data["extNWEnterprisePasswordSet"] = !settings->GetExternalNW_EnterprisePassword().isEmpty();
+    data["extNWEnterprisePhase2Method"] = settings->GetExternalNW_EnterprisePhase2Method();
+    data["extNWEnterpriseCaCertificate"] = settings->GetExternalNW_EnterpriseCaCertificate();
+    data["extNWEnterpriseClientCertificate"] = settings->GetExternalNW_EnterpriseClientCertificate();
+    data["extNWEnterpriseClientPrivateKey"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
 
     SendJson(clientId, doc);
 }
@@ -300,8 +309,34 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
         response["value"] = settings->GetExternalNW_DNSIP();
     } else if (strcmp(key, "extNWPWD") == 0) {
         settings->SetExternalNW_PWD(doc["value"].as<String>());
-        // TODO(enterprise-auth): Extend websocket setting contract for enterprise
-        // auth mode and credential fields once firmware adds persisted support.
+    } else if (strcmp(key, "extNWAuthMode") == 0) {
+        settings->SetExternalNW_AuthMode(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_AuthMode();
+    } else if (strcmp(key, "extNWEnterpriseIdentity") == 0) {
+        settings->SetExternalNW_EnterpriseIdentity(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterpriseIdentity();
+    } else if (strcmp(key, "extNWEnterpriseUsername") == 0) {
+        settings->SetExternalNW_EnterpriseUsername(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterpriseUsername();
+    } else if (strcmp(key, "extNWEnterpriseAnonymousIdentity") == 0) {
+        settings->SetExternalNW_EnterpriseAnonymousIdentity(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterpriseAnonymousIdentity();
+    } else if (strcmp(key, "extNWEnterprisePassword") == 0) {
+        if (!doc["value"].isNull()) {
+            settings->SetExternalNW_EnterprisePassword(doc["value"].as<String>());
+        }
+    } else if (strcmp(key, "extNWEnterprisePhase2Method") == 0) {
+        settings->SetExternalNW_EnterprisePhase2Method(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterprisePhase2Method();
+    } else if (strcmp(key, "extNWEnterpriseCaCertificate") == 0) {
+        settings->SetExternalNW_EnterpriseCaCertificate(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterpriseCaCertificate();
+    } else if (strcmp(key, "extNWEnterpriseClientCertificate") == 0) {
+        settings->SetExternalNW_EnterpriseClientCertificate(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterpriseClientCertificate();
+    } else if (strcmp(key, "extNWEnterpriseClientPrivateKey") == 0) {
+        settings->SetExternalNW_EnterpriseClientPrivateKey(doc["value"].as<String>());
+        response["value"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
     } else if (strcmp(key, "DNSEnabled") == 0) {
         settings->SetDNSEnabled(doc["value"].as<bool>());
         response["value"] = settings->DNSEnabled();

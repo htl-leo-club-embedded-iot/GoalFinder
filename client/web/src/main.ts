@@ -126,7 +126,6 @@ const i18n = createI18n({
                 external_network_password: "External network password",
                 submit_secret: "Confirm password",
                 enterprise_configuration: "Enterprise configuration",
-                enterprise_pending_note: "Enterprise authentication integration is not yet supported by device firmware.",
                 enterprise_identity: "Enterprise identity",
                 enterprise_username: "Enterprise username",
                 enterprise_anonymous_identity: "Enterprise anonymous identity",
@@ -138,7 +137,6 @@ const i18n = createI18n({
                 enterprise_ca_certificate: "CA certificate",
                 enterprise_client_certificate: "Client certificate",
                 enterprise_client_private_key: "Client private key",
-                enterprise_advanced_hint: "Enable advanced settings to edit enterprise identity and certificate fields.",
                 use_dhcp: "Use DHCP",
                 manual_network_configuration: "Manual network configuration",
                 network_ip_address: "IP address",
@@ -146,7 +144,6 @@ const i18n = createI18n({
                 network_subnet_mask: "Subnet mask",
                 network_dns: "DNS server",
                 manual_network_advanced_hint: "Enable advanced settings to edit manual network address fields.",
-                enterprise_not_applied_note: "Enterprise-only fields are currently UI placeholders and are not applied on device.",
                 apply_network_configuration: "Apply network configuration"
             },
             about: {
@@ -336,7 +333,6 @@ const i18n = createI18n({
                 external_network_password: "Passwort des externen Netzwerks",
                 submit_secret: "Passwort bestätigen",
                 enterprise_configuration: "Enterprise-Konfiguration",
-                enterprise_pending_note: "Enterprise-Authentifizierung wird von der Geräte-Firmware aktuell noch nicht unterstützt.",
                 enterprise_identity: "Enterprise-Identität",
                 enterprise_username: "Enterprise-Benutzername",
                 enterprise_anonymous_identity: "Enterprise-anonyme Identität",
@@ -348,7 +344,6 @@ const i18n = createI18n({
                 enterprise_ca_certificate: "CA-Zertifikat",
                 enterprise_client_certificate: "Client-Zertifikat",
                 enterprise_client_private_key: "Privater Client-Schlüssel",
-                enterprise_advanced_hint: "Aktivieren Sie die erweiterten Einstellungen, um Enterprise-Identitäts- und Zertifikatsfelder zu bearbeiten.",
                 use_dhcp: "DHCP verwenden",
                 manual_network_configuration: "Manuelle Netzwerkkonfiguration",
                 network_ip_address: "IP-Adresse",
@@ -356,7 +351,6 @@ const i18n = createI18n({
                 network_subnet_mask: "Subnetzmaske",
                 network_dns: "DNS-Server",
                 manual_network_advanced_hint: "Aktivieren Sie die erweiterten Einstellungen, um manuelle Netzwerkadressfelder zu bearbeiten.",
-                enterprise_not_applied_note: "Reine Enterprise-Felder sind derzeit nur UI-Platzhalter und werden nicht auf das Gerät angewendet.",
                 apply_network_configuration: "Netzwerkkonfiguration anwenden"
             },
             about: {

@@ -100,8 +100,32 @@ const String Settings::defaultExternalNW_DFG = "192.168.0.0";
 const char* Settings::keyExternalNW_DNSIP = "extNWDNSIP";
 const String Settings::defaultExternalNW_DNSIP = "192.168.0.1";
 
-// TODO(enterprise-auth): Introduce default keys and persisted values for
-// enterprise network authentication once firmware-side feature support lands.
+const char* Settings::keyExternalNW_AuthMode = "extNWAuthMode";
+const String Settings::defaultExternalNW_AuthMode = "wpa2-personal";
+
+const char* Settings::keyExternalNW_EnterpriseIdentity = "extNWEntIdentity";
+const String Settings::defaultExternalNW_EnterpriseIdentity = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseUsername = "extNWEntUsername";
+const String Settings::defaultExternalNW_EnterpriseUsername = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseAnonymousIdentity = "extNWEntAnonIdentity";
+const String Settings::defaultExternalNW_EnterpriseAnonymousIdentity = emptyString;
+
+const char* Settings::keyExternalNW_EnterprisePassword = "extNWEntPWD";
+const String Settings::defaultExternalNW_EnterprisePassword = emptyString;
+
+const char* Settings::keyExternalNW_EnterprisePhase2Method = "extNWEntPhase2";
+const String Settings::defaultExternalNW_EnterprisePhase2Method = "auto";
+
+const char* Settings::keyExternalNW_EnterpriseCaCertificate = "extNWEntCACert";
+const String Settings::defaultExternalNW_EnterpriseCaCertificate = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseClientCertificate = "extNWEntClientCert";
+const String Settings::defaultExternalNW_EnterpriseClientCertificate = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseClientPrivateKey = "extNWEntClientKey";
+const String Settings::defaultExternalNW_EnterpriseClientPrivateKey = emptyString;
 
 const char* Settings::keyDeviceIP = "deviceIP";
 const String Settings::defaultDeviceIP = "192.168.4.1";
@@ -119,6 +143,46 @@ namespace {
 int ClampSoundIndex(int value, int soundCount) {
 	int maxIndex = max(soundCount - 1, 0);
 	return max(min(value, maxIndex), 0);
+}
+
+bool IsValidExternalNetworkAuthMode(const String& authMode) {
+	bool isValid =
+		authMode == "open" ||
+		authMode == "wpa2-personal" ||
+		authMode == "wpa2-enterprise";
+
+	return isValid;
+}
+
+bool IsValidExternalNetworkPhase2Method(const String& phase2Method) {
+	bool isValid =
+		phase2Method == "auto" ||
+		phase2Method == "mschapv2" ||
+		phase2Method == "gtc";
+
+	return isValid;
+}
+
+String NormalizeExternalNetworkAuthMode(String authMode) {
+	authMode.trim();
+	authMode.toLowerCase();
+
+	if (!IsValidExternalNetworkAuthMode(authMode)) {
+		authMode = "wpa2-personal";
+	}
+
+	return authMode;
+}
+
+String NormalizeExternalNetworkPhase2Method(String phase2Method) {
+	phase2Method.trim();
+	phase2Method.toLowerCase();
+
+	if (!IsValidExternalNetworkPhase2Method(phase2Method)) {
+		phase2Method = "auto";
+	}
+
+	return phase2Method;
 }
 }
 	
@@ -433,6 +497,127 @@ String Settings::GetExternalNW_DNSIP() {
 
 void Settings::SetExternalNW_DNSIP(String dnsIP) {
 	store.PutString(keyExternalNW_DNSIP, dnsIP);
+	SetModified();
+}
+
+String Settings::GetExternalNW_AuthMode() {
+	String authMode = store.IsKey(keyExternalNW_AuthMode)
+		? store.GetString(keyExternalNW_AuthMode, defaultExternalNW_AuthMode)
+		: defaultExternalNW_AuthMode;
+
+	return NormalizeExternalNetworkAuthMode(authMode);
+}
+
+void Settings::SetExternalNW_AuthMode(String authMode) {
+	store.PutString(keyExternalNW_AuthMode, NormalizeExternalNetworkAuthMode(authMode));
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseIdentity() {
+	return store.IsKey(keyExternalNW_EnterpriseIdentity)
+		? store.GetString(keyExternalNW_EnterpriseIdentity, defaultExternalNW_EnterpriseIdentity)
+		: defaultExternalNW_EnterpriseIdentity;
+}
+
+void Settings::SetExternalNW_EnterpriseIdentity(String identity) {
+	identity.trim();
+	store.PutString(keyExternalNW_EnterpriseIdentity, identity);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseUsername() {
+	return store.IsKey(keyExternalNW_EnterpriseUsername)
+		? store.GetString(keyExternalNW_EnterpriseUsername, defaultExternalNW_EnterpriseUsername)
+		: defaultExternalNW_EnterpriseUsername;
+}
+
+void Settings::SetExternalNW_EnterpriseUsername(String username) {
+	username.trim();
+	store.PutString(keyExternalNW_EnterpriseUsername, username);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseAnonymousIdentity() {
+	return store.IsKey(keyExternalNW_EnterpriseAnonymousIdentity)
+		? store.GetString(keyExternalNW_EnterpriseAnonymousIdentity, defaultExternalNW_EnterpriseAnonymousIdentity)
+		: defaultExternalNW_EnterpriseAnonymousIdentity;
+}
+
+void Settings::SetExternalNW_EnterpriseAnonymousIdentity(String anonymousIdentity) {
+	anonymousIdentity.trim();
+	store.PutString(keyExternalNW_EnterpriseAnonymousIdentity, anonymousIdentity);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterprisePassword() {
+	return store.IsKey(keyExternalNW_EnterprisePassword)
+		? store.GetString(keyExternalNW_EnterprisePassword, defaultExternalNW_EnterprisePassword)
+		: defaultExternalNW_EnterprisePassword;
+}
+
+void Settings::SetExternalNW_EnterprisePassword(String password) {
+	password.trim();
+
+	if(password.isEmpty())
+	{
+		if (store.IsKey(keyExternalNW_EnterprisePassword)) {
+			store.Remove(keyExternalNW_EnterprisePassword);
+			SetModified();
+		}
+	} else if (password.length() >= 8 && password.length() < 64) {
+		store.PutString(keyExternalNW_EnterprisePassword, password);
+		SetModified();
+	} else {
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid enterprise password length. Expected 8-63 characters.");
+	}
+}
+
+String Settings::GetExternalNW_EnterprisePhase2Method() {
+	String phase2Method = store.IsKey(keyExternalNW_EnterprisePhase2Method)
+		? store.GetString(keyExternalNW_EnterprisePhase2Method, defaultExternalNW_EnterprisePhase2Method)
+		: defaultExternalNW_EnterprisePhase2Method;
+
+	return NormalizeExternalNetworkPhase2Method(phase2Method);
+}
+
+void Settings::SetExternalNW_EnterprisePhase2Method(String phase2Method) {
+	store.PutString(keyExternalNW_EnterprisePhase2Method, NormalizeExternalNetworkPhase2Method(phase2Method));
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseCaCertificate() {
+	return store.IsKey(keyExternalNW_EnterpriseCaCertificate)
+		? store.GetString(keyExternalNW_EnterpriseCaCertificate, defaultExternalNW_EnterpriseCaCertificate)
+		: defaultExternalNW_EnterpriseCaCertificate;
+}
+
+void Settings::SetExternalNW_EnterpriseCaCertificate(String caCertificate) {
+	caCertificate.trim();
+	store.PutString(keyExternalNW_EnterpriseCaCertificate, caCertificate);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseClientCertificate() {
+	return store.IsKey(keyExternalNW_EnterpriseClientCertificate)
+		? store.GetString(keyExternalNW_EnterpriseClientCertificate, defaultExternalNW_EnterpriseClientCertificate)
+		: defaultExternalNW_EnterpriseClientCertificate;
+}
+
+void Settings::SetExternalNW_EnterpriseClientCertificate(String clientCertificate) {
+	clientCertificate.trim();
+	store.PutString(keyExternalNW_EnterpriseClientCertificate, clientCertificate);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseClientPrivateKey() {
+	return store.IsKey(keyExternalNW_EnterpriseClientPrivateKey)
+		? store.GetString(keyExternalNW_EnterpriseClientPrivateKey, defaultExternalNW_EnterpriseClientPrivateKey)
+		: defaultExternalNW_EnterpriseClientPrivateKey;
+}
+
+void Settings::SetExternalNW_EnterpriseClientPrivateKey(String clientPrivateKey) {
+	clientPrivateKey.trim();
+	store.PutString(keyExternalNW_EnterpriseClientPrivateKey, clientPrivateKey);
 	SetModified();
 }
 

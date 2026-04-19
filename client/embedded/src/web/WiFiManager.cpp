@@ -16,12 +16,168 @@
 
 #include "WiFiManager.h"
 #include <WiFi.h>
+#include <esp_wifi.h>
+#include "esp_wpa2.h"
 
 namespace {
+const char* EXTERNAL_NETWORK_AUTH_MODE_OPEN = "open";
+const char* EXTERNAL_NETWORK_AUTH_MODE_WPA2_PERSONAL = "wpa2-personal";
+const char* EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE = "wpa2-enterprise";
+
+const char* EXTERNAL_NETWORK_PHASE2_METHOD_AUTO = "auto";
+const char* EXTERNAL_NETWORK_PHASE2_METHOD_MSCHAPV2 = "mschapv2";
+
 bool ParseIpAddress(const String& rawValue, IPAddress& outAddress) {
     String value = rawValue;
     value.trim();
     return outAddress.fromString(value);
+}
+
+void ClearEnterpriseAuthenticationState() {
+    esp_wifi_sta_wpa2_ent_clear_identity();
+    esp_wifi_sta_wpa2_ent_clear_username();
+    esp_wifi_sta_wpa2_ent_clear_password();
+    esp_wifi_sta_wpa2_ent_clear_ca_cert();
+    esp_wifi_sta_wpa2_ent_clear_cert_key();
+    esp_wifi_sta_wpa2_ent_disable();
+}
+
+esp_eap_ttls_phase2_types ResolveEnterprisePhase2Method(const String& phase2Method) {
+    esp_eap_ttls_phase2_types phase2Type = ESP_EAP_TTLS_PHASE2_EAP;
+
+    if (phase2Method == EXTERNAL_NETWORK_PHASE2_METHOD_MSCHAPV2) {
+        phase2Type = ESP_EAP_TTLS_PHASE2_MSCHAPV2;
+    }
+
+    return phase2Type;
+}
+
+bool ConfigureEnterpriseAuthentication(Settings* settings) {
+    bool isConfigured = true;
+
+    String identity = settings->GetExternalNW_EnterpriseIdentity();
+    String username = settings->GetExternalNW_EnterpriseUsername();
+    String anonymousIdentity = settings->GetExternalNW_EnterpriseAnonymousIdentity();
+    String password = settings->GetExternalNW_EnterprisePassword();
+    String phase2Method = settings->GetExternalNW_EnterprisePhase2Method();
+    String caCertificate = settings->GetExternalNW_EnterpriseCaCertificate();
+    String clientCertificate = settings->GetExternalNW_EnterpriseClientCertificate();
+    String clientPrivateKey = settings->GetExternalNW_EnterpriseClientPrivateKey();
+
+    identity.trim();
+    username.trim();
+    anonymousIdentity.trim();
+    password.trim();
+    phase2Method.trim();
+    phase2Method.toLowerCase();
+    caCertificate.trim();
+    clientCertificate.trim();
+    clientPrivateKey.trim();
+
+    String outerIdentity = anonymousIdentity;
+    if (outerIdentity.isEmpty()) {
+        outerIdentity = identity;
+    }
+    if (outerIdentity.isEmpty()) {
+        outerIdentity = username;
+    }
+
+    const bool hasClientCertificate = !clientCertificate.isEmpty();
+    const bool hasClientPrivateKey = !clientPrivateKey.isEmpty();
+
+    if (username.isEmpty() || password.isEmpty()) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Enterprise mode requires username and password");
+        isConfigured = false;
+    }
+
+    if (isConfigured && (hasClientCertificate != hasClientPrivateKey)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Enterprise client certificate and private key must be provided together");
+        isConfigured = false;
+    }
+
+    if (isConfigured) {
+        ClearEnterpriseAuthenticationState();
+
+        esp_err_t result = esp_wifi_sta_wpa2_ent_set_identity(
+            reinterpret_cast<const unsigned char*>(outerIdentity.c_str()),
+            outerIdentity.length());
+        if (result != ESP_OK) {
+            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                "Failed to set enterprise identity (err=%d)", static_cast<int>(result));
+            isConfigured = false;
+        }
+
+        if (isConfigured) {
+            result = esp_wifi_sta_wpa2_ent_set_username(
+                reinterpret_cast<const unsigned char*>(username.c_str()),
+                username.length());
+            if (result != ESP_OK) {
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Failed to set enterprise username (err=%d)", static_cast<int>(result));
+                isConfigured = false;
+            }
+        }
+
+        if (isConfigured) {
+            result = esp_wifi_sta_wpa2_ent_set_password(
+                reinterpret_cast<const unsigned char*>(password.c_str()),
+                password.length());
+            if (result != ESP_OK) {
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Failed to set enterprise password (err=%d)", static_cast<int>(result));
+                isConfigured = false;
+            }
+        }
+
+        if (isConfigured && !caCertificate.isEmpty()) {
+            result = esp_wifi_sta_wpa2_ent_set_ca_cert(
+                reinterpret_cast<const unsigned char*>(caCertificate.c_str()),
+                caCertificate.length() + 1);
+            if (result != ESP_OK) {
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Failed to set enterprise CA certificate (err=%d)", static_cast<int>(result));
+                isConfigured = false;
+            }
+        }
+
+        if (isConfigured && hasClientCertificate) {
+            result = esp_wifi_sta_wpa2_ent_set_cert_key(
+                reinterpret_cast<const unsigned char*>(clientCertificate.c_str()),
+                clientCertificate.length() + 1,
+                reinterpret_cast<const unsigned char*>(clientPrivateKey.c_str()),
+                clientPrivateKey.length() + 1,
+                nullptr,
+                0);
+            if (result != ESP_OK) {
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Failed to set enterprise client cert/key (err=%d)", static_cast<int>(result));
+                isConfigured = false;
+            }
+        }
+
+        if (isConfigured && phase2Method != EXTERNAL_NETWORK_PHASE2_METHOD_AUTO) {
+            result = esp_wifi_sta_wpa2_ent_set_ttls_phase2_method(
+                ResolveEnterprisePhase2Method(phase2Method));
+            if (result != ESP_OK) {
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Failed to set enterprise phase2 method (err=%d)", static_cast<int>(result));
+                isConfigured = false;
+            }
+        }
+
+        if (isConfigured) {
+            result = esp_wifi_sta_wpa2_ent_enable();
+            if (result != ESP_OK) {
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Failed to enable enterprise auth (err=%d)", static_cast<int>(result));
+                isConfigured = false;
+            }
+        }
+    }
+
+    return isConfigured;
 }
 }
 
@@ -83,6 +239,7 @@ void WiFiManager::SetupAccessPoint() {
     String ssid = settings->GetDeviceName();
     String wifiPassword = settings->GetWifiPassword();
 
+    ClearEnterpriseAuthenticationState();
     WiFi.mode(WIFI_AP);
 
     if (wifiPassword.isEmpty()) {
@@ -101,8 +258,21 @@ void WiFiManager::SetupExternalNetwork() {
     Settings* settings = Settings::GetInstance();
     String ssid = settings->GetExternalNW_SSID();
     String pwd = settings->GetExternalNW_PWD();
+    String authMode = settings->GetExternalNW_AuthMode();
     const bool useDhcp = settings->GetExternalNWE_UseDHCP();
     bool fallbackToAccessPoint = false;
+
+    authMode.trim();
+    authMode.toLowerCase();
+    if (
+        authMode != EXTERNAL_NETWORK_AUTH_MODE_OPEN &&
+        authMode != EXTERNAL_NETWORK_AUTH_MODE_WPA2_PERSONAL &&
+        authMode != EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE
+    ) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Unknown external auth mode '%s', defaulting to WPA2 personal", authMode.c_str());
+        authMode = EXTERNAL_NETWORK_AUTH_MODE_WPA2_PERSONAL;
+    }
 
     if (ssid.isEmpty()) {
         Logger::Log("WiFiManager", Logger::LogLevel::WARN,
@@ -152,33 +322,57 @@ void WiFiManager::SetupExternalNetwork() {
         }
 
         if (!fallbackToAccessPoint) {
-            // TODO(enterprise-auth): Add dedicated WiFi.begin enterprise branch
-            // once auth mode and enterprise credentials are available in Settings.
-            if (pwd.isEmpty()) {
+            bool startedConnectionAttempt = false;
+
+            if (authMode == EXTERNAL_NETWORK_AUTH_MODE_OPEN) {
+                ClearEnterpriseAuthenticationState();
                 WiFi.begin(ssid.c_str());
+                startedConnectionAttempt = true;
+                Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                    "Connecting to open external network '%s'...", ssid.c_str());
+            } else if (authMode == EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE) {
+                if (ConfigureEnterpriseAuthentication(settings)) {
+                    WiFi.begin(ssid.c_str());
+                    startedConnectionAttempt = true;
+                    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                        "Connecting to WPA2 enterprise network '%s'...", ssid.c_str());
+                } else {
+                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        "Failed to configure enterprise authentication, falling back to AP mode");
+                    fallbackToAccessPoint = true;
+                }
             } else {
-                WiFi.begin(ssid.c_str(), pwd.c_str());
+                ClearEnterpriseAuthenticationState();
+                if (pwd.isEmpty()) {
+                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        "WPA2 personal mode requires a password, falling back to AP mode");
+                    fallbackToAccessPoint = true;
+                } else {
+                    WiFi.begin(ssid.c_str(), pwd.c_str());
+                    startedConnectionAttempt = true;
+                    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                        "Connecting to WPA2 personal network '%s'...", ssid.c_str());
+                }
             }
 
-            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                "Connecting to external network '%s'...", ssid.c_str());
+            if (!fallbackToAccessPoint && startedConnectionAttempt) {
+                unsigned long startMs = millis();
+                const unsigned long timeoutMs = 15000;
+                while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < timeoutMs) {
+                    delay(250);
+                }
 
-            unsigned long startMs = millis();
-            const unsigned long timeoutMs = 15000;
-            while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < timeoutMs) {
-                delay(250);
-            }
-
-            if (WiFi.status() == WL_CONNECTED) {
-                connected = true;
-                Logger::Log("WiFiManager", Logger::LogLevel::OK,
-                    "Connected to '%s', IP: %s",
-                    ssid.c_str(), WiFi.localIP().toString().c_str());
-            } else {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
-                WiFi.disconnect();
-                fallbackToAccessPoint = true;
+                if (WiFi.status() == WL_CONNECTED) {
+                    connected = true;
+                    Logger::Log("WiFiManager", Logger::LogLevel::OK,
+                        "Connected to '%s', IP: %s",
+                        ssid.c_str(), WiFi.localIP().toString().c_str());
+                } else {
+                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
+                    WiFi.disconnect();
+                    fallbackToAccessPoint = true;
+                }
             }
         }
     }

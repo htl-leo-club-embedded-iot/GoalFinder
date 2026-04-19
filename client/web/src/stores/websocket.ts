@@ -36,7 +36,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const WS_CONNECT_TIMEOUT_IP_MS = 1400;
     const WS_DNS_FALLBACK_MS = 550;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
-    const GET_SETTINGS_STRIPPED_KEYS = new Set(["devicePassword", "extNWPWD", "externalNetworkPassword"]);
+    const GET_SETTINGS_STRIPPED_KEYS = new Set(["devicePassword", "extNWPWD", "externalNetworkPassword", "extNWEnterprisePassword"]);
     const SETTINGS_KEY_ALIASES: Record<string, string[]> = {
         extNW: ["useExternalNW"],
         extNWUseDHCP: ["extNW_UseDHCP"],

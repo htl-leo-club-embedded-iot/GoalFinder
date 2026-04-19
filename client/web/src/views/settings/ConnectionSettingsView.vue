@@ -31,7 +31,7 @@ const settings = useSettingsStore();
     <h3>{{ $t("settings.external_network") }}</h3>
     <ExternalNetworkSettingsView/>
 
-    <div class="container" v-show="settings.advancedSettingsEnabled">  
+    <div class="container" v-show="settings.advancedSettingsEnabled">
       <h3 class="advanced">{{ $t("word.advanced") }}</h3>
       <Checkbox v-model="settings.dnsEnabled" label="settings.dnsEnable" @change="settings.scheduleSave()" class="advanced"/>
     </div>

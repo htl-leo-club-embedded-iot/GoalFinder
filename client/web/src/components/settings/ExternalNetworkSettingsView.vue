@@ -30,7 +30,6 @@ const settings = useSettingsStore();
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 63;
 const CONNECTION_WARNING_STORAGE_KEY = "connectionWarningDontShow";
-const EXTERNAL_AUTH_MODE_STORAGE_KEY = "externalNetworkAuthMode";
 
 const AUTH_MODE_OPEN = "open";
 const AUTH_MODE_WPA2_PERSONAL = "wpa2-personal";
@@ -47,6 +46,7 @@ interface ModalRefHandle {
 
 interface ExternalNetworkSnapshot {
   useExternalNetwork: boolean;
+  authMode: string;
   externalNetworkSsid: string;
   externalNetworkUseDhcp: boolean;
   externalNetworkIp: string;
@@ -94,7 +94,7 @@ const externalNetworkDnsIpDraft = ref("");
 const externalNetworkPasswordDraft = ref("");
 const externalNetworkPasswordStoredPresent = ref(false);
 
-const authModeDraft = ref(AUTH_MODE_WPA2_PERSONAL);
+const authModeDraft = ref(AUTH_MODE_WPA2_PERSONAL); 
 
 const enterpriseIdentityDraft = ref("");
 const enterpriseUsernameDraft = ref("");
@@ -108,6 +108,7 @@ const enterpriseClientPrivateKeyDraft = ref("");
 
 const originalExternalSnapshot = ref<ExternalNetworkSnapshot>({
   useExternalNetwork: false,
+  authMode: AUTH_MODE_WPA2_PERSONAL,
   externalNetworkSsid: "",
   externalNetworkUseDhcp: true,
   externalNetworkIp: "",
@@ -128,7 +129,7 @@ const originalEnterpriseSnapshot = ref<EnterpriseSnapshot>({
   clientPrivateKey: "",
 });
 
-const isSecuredAuthMode = computed(() => authModeDraft.value !== AUTH_MODE_OPEN);
+const isPersonalAuthMode = computed(() => authModeDraft.value === AUTH_MODE_WPA2_PERSONAL);
 const isEnterpriseAuthMode = computed(() => authModeDraft.value === AUTH_MODE_WPA2_ENTERPRISE);
 
 const hasValidExternalPasswordDraft = computed(() => {
@@ -140,21 +141,23 @@ const canUseSecuredPassword = computed(() => {
   return externalNetworkPasswordStoredPresent.value || hasValidExternalPasswordDraft.value;
 });
 
+const hasValidEnterprisePasswordDraft = computed(() => {
+  return enterprisePasswordDraft.value.length >= PASSWORD_MIN_LENGTH
+    && enterprisePasswordDraft.value.length <= PASSWORD_MAX_LENGTH;
+});
+
+const canUseEnterprisePassword = computed(() => {
+  return enterprisePasswordStoredPresent.value || hasValidEnterprisePasswordDraft.value;
+});
+
 const showManualFields = computed(() => {
   return !externalNetworkUseDhcpDraft.value && settings.advancedSettingsEnabled;
-});
-
-const showManualFieldsAdvancedHint = computed(() => {
-  return !externalNetworkUseDhcpDraft.value && !settings.advancedSettingsEnabled;
-});
-
-const showEnterpriseAdvancedHint = computed(() => {
-  return isEnterpriseAuthMode.value && !settings.advancedSettingsEnabled;
 });
 
 function createExternalSnapshotFromDrafts(): ExternalNetworkSnapshot {
   const snapshot: ExternalNetworkSnapshot = {
     useExternalNetwork: externalNetworkEnabledDraft.value,
+    authMode: authModeDraft.value,
     externalNetworkSsid: externalNetworkSsidDraft.value,
     externalNetworkUseDhcp: externalNetworkUseDhcpDraft.value,
     externalNetworkIp: externalNetworkIpDraft.value,
@@ -183,6 +186,7 @@ function createEnterpriseSnapshotFromDrafts(): EnterpriseSnapshot {
 function hasExternalSnapshotChanged(current: ExternalNetworkSnapshot, baseline: ExternalNetworkSnapshot): boolean {
   const changed =
     current.useExternalNetwork !== baseline.useExternalNetwork
+    || current.authMode !== baseline.authMode
     || current.externalNetworkSsid !== baseline.externalNetworkSsid
     || current.externalNetworkUseDhcp !== baseline.externalNetworkUseDhcp
     || current.externalNetworkIp !== baseline.externalNetworkIp
@@ -216,40 +220,28 @@ const hasEnterprisePendingChanges = computed(() => {
   return hasEnterpriseSnapshotChanged(current, originalEnterpriseSnapshot.value);
 });
 
-const hasEnterpriseOnlyPendingChanges = computed(() => {
-  return hasEnterprisePendingChanges.value && !hasSupportedPendingChanges.value;
+const hasNetworkPendingChanges = computed(() => {
+  return hasSupportedPendingChanges.value || hasEnterprisePendingChanges.value;
 });
 
 const canApplyNetworkConfiguration = computed(() => {
-  let canApply = hasSupportedPendingChanges.value;
+  let canApply = hasNetworkPendingChanges.value;
 
   if (canApply && externalNetworkEnabledDraft.value) {
     canApply = externalNetworkSsidDraft.value.trim().length > 0;
 
-    if (canApply && isSecuredAuthMode.value) {
+    if (canApply && isPersonalAuthMode.value) {
       canApply = canUseSecuredPassword.value;
     }
 
+    if (canApply && isEnterpriseAuthMode.value) {
+      const hasUsername = enterpriseUsernameDraft.value.trim().length > 0;
+      canApply = hasUsername && canUseEnterprisePassword.value;
+    }
   }
 
   return canApply;
 });
-
-function loadAuthModePreference(): void {
-  const storedAuthMode = localStorage.getItem(EXTERNAL_AUTH_MODE_STORAGE_KEY);
-  const isKnownAuthMode =
-    storedAuthMode === AUTH_MODE_OPEN
-    || storedAuthMode === AUTH_MODE_WPA2_PERSONAL
-    || storedAuthMode === AUTH_MODE_WPA2_ENTERPRISE;
-
-  if (isKnownAuthMode) {
-    authModeDraft.value = storedAuthMode;
-  }
-}
-
-function persistAuthModePreference(): void {
-  localStorage.setItem(EXTERNAL_AUTH_MODE_STORAGE_KEY, authModeDraft.value);
-}
 
 function syncDraftsFromSettings(): void {
   externalNetworkEnabledDraft.value = settings.useExternalNetwork;
@@ -261,6 +253,25 @@ function syncDraftsFromSettings(): void {
   externalNetworkDnsIpDraft.value = settings.externalNetworkDnsIp;
   externalNetworkPasswordDraft.value = settings.externalNetworkPassword;
   externalNetworkPasswordStoredPresent.value = settings.externalNetworkPassword !== "";
+
+  if (settings.externalNetworkAuthMode === AUTH_MODE_OPEN
+    || settings.externalNetworkAuthMode === AUTH_MODE_WPA2_PERSONAL
+    || settings.externalNetworkAuthMode === AUTH_MODE_WPA2_ENTERPRISE
+  ) {
+    authModeDraft.value = settings.externalNetworkAuthMode;
+  } else {
+    authModeDraft.value = AUTH_MODE_WPA2_PERSONAL;
+  }
+
+  enterpriseIdentityDraft.value = settings.externalNetworkEnterpriseIdentity;
+  enterpriseUsernameDraft.value = settings.externalNetworkEnterpriseUsername;
+  enterpriseAnonymousIdentityDraft.value = settings.externalNetworkEnterpriseAnonymousIdentity;
+  enterprisePasswordDraft.value = settings.externalNetworkEnterprisePassword;
+  enterprisePasswordStoredPresent.value = settings.externalNetworkEnterprisePassword !== "";
+  enterprisePhase2MethodDraft.value = settings.externalNetworkEnterprisePhase2Method;
+  enterpriseCaCertificateDraft.value = settings.externalNetworkEnterpriseCaCertificate;
+  enterpriseClientCertificateDraft.value = settings.externalNetworkEnterpriseClientCertificate;
+  enterpriseClientPrivateKeyDraft.value = settings.externalNetworkEnterpriseClientPrivateKey;
 }
 
 function updateOriginalSnapshots(): void {
@@ -324,12 +335,19 @@ function applyDraftsToStore(): void {
 
   if (authModeDraft.value === AUTH_MODE_OPEN) {
     settings.externalNetworkPassword = "";
-  } else {
+  } else if (authModeDraft.value === AUTH_MODE_WPA2_PERSONAL) {
     settings.externalNetworkPassword = externalNetworkPasswordDraft.value;
   }
 
-  // TODO(enterprise-backend): Persist auth mode and enterprise credentials once
-  // embedded settings/WebSocket/WiFi auth contracts support enterprise mode.
+  settings.externalNetworkAuthMode = authModeDraft.value;
+  settings.externalNetworkEnterpriseIdentity = enterpriseIdentityDraft.value;
+  settings.externalNetworkEnterpriseUsername = enterpriseUsernameDraft.value;
+  settings.externalNetworkEnterpriseAnonymousIdentity = enterpriseAnonymousIdentityDraft.value;
+  settings.externalNetworkEnterprisePassword = enterprisePasswordDraft.value;
+  settings.externalNetworkEnterprisePhase2Method = enterprisePhase2MethodDraft.value;
+  settings.externalNetworkEnterpriseCaCertificate = enterpriseCaCertificateDraft.value;
+  settings.externalNetworkEnterpriseClientCertificate = enterpriseClientCertificateDraft.value;
+  settings.externalNetworkEnterpriseClientPrivateKey = enterpriseClientPrivateKeyDraft.value;
 }
 
 function openNetworkModal(): void {
@@ -345,9 +363,8 @@ function persistDontShowAgainPreference(): void {
 function onApplyNetworkConfiguration(): void {
   if (canApplyNetworkConfiguration.value) {
     applyDraftsToStore();
-    persistAuthModePreference();
 
-    if (hasSupportedPendingChanges.value) {
+    if (hasNetworkPendingChanges.value) {
       if (dontShowAgain.value) {
         persistDontShowAgainPreference();
         updateOriginalSnapshots();
@@ -376,7 +393,6 @@ function closeNetworkModal(restart: boolean): void {
 }
 
 onMounted(() => {
-  loadAuthModePreference();
   syncDraftsFromSettings();
   updateOriginalSnapshots();
 
@@ -394,6 +410,15 @@ watch(
     settings.externalNetworkDefaultGateway,
     settings.externalNetworkDnsIp,
     settings.externalNetworkPassword,
+    settings.externalNetworkAuthMode,
+    settings.externalNetworkEnterpriseIdentity,
+    settings.externalNetworkEnterpriseUsername,
+    settings.externalNetworkEnterpriseAnonymousIdentity,
+    settings.externalNetworkEnterprisePassword,
+    settings.externalNetworkEnterprisePhase2Method,
+    settings.externalNetworkEnterpriseCaCertificate,
+    settings.externalNetworkEnterpriseClientCertificate,
+    settings.externalNetworkEnterpriseClientPrivateKey,
   ],
   () => {
     if (!hasUserEditedNetworkSettings.value) {
@@ -431,7 +456,7 @@ watch(
       />
 
       <RemovableSecretInput
-        v-show="isSecuredAuthMode"
+        v-show="isPersonalAuthMode"
         id="externalNetworkPasswordInput"
         :model-value="externalNetworkPasswordDraft"
         :label="$t('settings.external_network_password')"
@@ -450,9 +475,8 @@ watch(
 
       <div class="advanced-section" v-show="isEnterpriseAuthMode">
         <h4>{{ $t("settings.enterprise_configuration") }}</h4>
-        <p class="description-text">{{ $t("settings.enterprise_pending_note") }}</p>
 
-        <div v-show="settings.advancedSettingsEnabled" class="enterprise-fields">
+        <div class="enterprise-fields">
           <NetworkTextField
             v-model="enterpriseIdentityDraft"
             :label="$t('settings.enterprise_identity')"
@@ -525,10 +549,6 @@ watch(
             @change="markNetworkSettingsEdited"
           />
         </div>
-
-        <p class="description-text" v-show="showEnterpriseAdvancedHint">
-          {{ $t("settings.enterprise_advanced_hint") }}
-        </p>
       </div>
 
       <Checkbox
@@ -581,18 +601,10 @@ watch(
             @change="markNetworkSettingsEdited"
           />
         </div>
-
-        <p class="description-text" v-show="showManualFieldsAdvancedHint">
-          {{ $t("settings.manual_network_advanced_hint") }}
-        </p>
       </div>
     </div>
 
-    <p v-show="hasEnterpriseOnlyPendingChanges" class="todo-note">
-      {{ $t("settings.enterprise_not_applied_note") }}
-    </p>
-
-    <div class="apply-actions" v-show="hasSupportedPendingChanges || hasEnterprisePendingChanges">
+    <div class="apply-actions" v-show="hasNetworkPendingChanges">
       <Button
         primary
         :disabled="!canApplyNetworkConfiguration"
@@ -657,13 +669,6 @@ watch(
 }
 
 .description-text {
-  text-align: center;
-  color: var(--text-color-secondary);
-  margin: 0;
-  font-size: 0.85rem;
-}
-
-.todo-note {
   text-align: center;
   color: var(--text-color-secondary);
   margin: 0;
