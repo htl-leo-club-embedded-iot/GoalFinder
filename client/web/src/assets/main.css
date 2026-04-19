@@ -8,6 +8,8 @@
     --text-color: #373737;
     --text-color-secondary: #555555;
     --accent-color: cornflowerblue;
+    --accent-contrast-color: #ffffff;
+    --surface-transparent: transparent;
     --corner-radius: 10px;
     --corner-radius-secondary: 6px;
     background-color: var(--background-color);
@@ -23,6 +25,8 @@
         --text-color: #9b9b9b;
         --text-color-secondary: #aaaaaa;
         --accent-color: #6495ed;
+        --accent-contrast-color: #ffffff;
+        --surface-transparent: transparent;
         --corner-radius: 10px;
         --corner-radius-secondary: 6px;
         background-color: var(--background-color);
@@ -38,6 +42,8 @@
     --text-color: #c8c8c8;
     --text-color-secondary: #939393;
     --accent-color: #6495ed;
+    --accent-contrast-color: #ffffff;
+    --surface-transparent: transparent;
     --corner-radius: 10px;
     --corner-radius-secondary: 6px;
     background-color: var(--background-color);

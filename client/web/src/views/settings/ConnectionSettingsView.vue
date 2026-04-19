@@ -15,7 +15,8 @@
  */
 
 <script setup lang="ts">
-import ConnectionSettingsView from "@/components/settings/ConnectionSettingsView.vue";
+import ConnectionGeneralSettingsView from "@/components/settings/ConnectionSettingsView.vue";
+import ExternalNetworkSettingsView from "@/components/settings/ExternalNetworkSettingsView.vue";
 import Checkbox from "@/components/Checkbox.vue";
 import {useSettingsStore} from "@/stores/settings";
 
@@ -25,7 +26,10 @@ const settings = useSettingsStore();
 <template>
   <div class="container">
     <h3>{{ $t("settings.connection_general") }}</h3>
-    <ConnectionSettingsView/>
+    <ConnectionGeneralSettingsView/>
+
+    <h3>{{ $t("settings.external_network") }}</h3>
+    <ExternalNetworkSettingsView/>
 
     <div class="container" v-show="settings.advancedSettingsEnabled">  
       <h3 class="advanced">{{ $t("word.advanced") }}</h3>

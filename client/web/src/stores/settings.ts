@@ -19,7 +19,7 @@ import {ref} from "vue";
 import {useWebSocketStore} from "@/stores/websocket";
 
 const API_URL = "/api";
-const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword"]);
+const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword", "extNWPWD"]);
 const SECRET_PRESENT_PLACEHOLDER = "***";
 
 export const useSettingsStore = defineStore("settings", () => {
@@ -68,6 +68,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const dnsEnabled = ref(true);
     const useExternalNetwork = ref(false);
     const externalNetworkSsid = ref("");
+    const externalNetworkPassword = ref("");
     const externalNetworkUseDhcp = ref(true);
     const externalNetworkIp = ref("");
     const externalNetworkSubnetMask = ref("");
@@ -100,6 +101,7 @@ export const useSettingsStore = defineStore("settings", () => {
             DNSEnabled: dnsEnabled.value,
             extNW: useExternalNetwork.value,
             extNWSSID: externalNetworkSsid.value,
+            extNWPWD: externalNetworkPassword.value,
             extNWUseDHCP: externalNetworkUseDhcp.value,
             extNWIP: externalNetworkIp.value,
             extNWSNM: externalNetworkSubnetMask.value,
@@ -112,6 +114,7 @@ export const useSettingsStore = defineStore("settings", () => {
     function applySettingsData(json: Record<string, any>): void {
         const hasWifiPassword = json["wifiPasswordSet"] === true;
         const hasDevicePassword = json["devicePasswordSet"] === true;
+        const hasExternalNetworkPassword = json["extNWPasswordSet"] === true;
 
         deviceName.value = json["deviceName"] ?? deviceName.value;
         if (Object.prototype.hasOwnProperty.call(json, "devicePassword")) {
@@ -143,6 +146,11 @@ export const useSettingsStore = defineStore("settings", () => {
         dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
         useExternalNetwork.value = json["extNW"] ?? useExternalNetwork.value;
         externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
+        if (Object.prototype.hasOwnProperty.call(json, "extNWPWD")) {
+            externalNetworkPassword.value = json["extNWPWD"] ?? externalNetworkPassword.value;
+        } else {
+            externalNetworkPassword.value = hasExternalNetworkPassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
         externalNetworkUseDhcp.value = json["extNWUseDHCP"] ?? externalNetworkUseDhcp.value;
         externalNetworkIp.value = json["extNWIP"] ?? externalNetworkIp.value;
         externalNetworkSubnetMask.value = json["extNWSNM"] ?? externalNetworkSubnetMask.value;
@@ -335,6 +343,7 @@ export const useSettingsStore = defineStore("settings", () => {
         dnsEnabled,
         useExternalNetwork,
         externalNetworkSsid,
+        externalNetworkPassword,
         externalNetworkUseDhcp,
         externalNetworkIp,
         externalNetworkSubnetMask,

@@ -44,6 +44,7 @@ defineEmits<{
 .checkbox-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
   user-select: none;

@@ -262,6 +262,7 @@ function onPrimaryEnter() {
 .dont-show-again {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   margin-top: 1rem;
 }
@@ -273,15 +274,15 @@ function onPrimaryEnter() {
   gap: 1rem;
 }
 
-.connection-modal-actions ::v-deep button.invert-hover {
-  background: transparent;
+.connection-modal-actions :deep(button.invert-hover) {
+  background: var(--surface-transparent);
   color: var(--accent-color);
   border: 2px solid var(--accent-color);
 }
-.connection-modal-actions ::v-deep button.invert-hover:hover {
+.connection-modal-actions :deep(button.invert-hover:hover) {
   background: var(--accent-color);
-  color: white;
-  border: 2px solid transparent;
+  color: var(--accent-contrast-color);
+  border: 2px solid var(--surface-transparent);
 }
 
 .control-btn {
@@ -359,12 +360,12 @@ function onPrimaryEnter() {
 .password-submit-btn.password-submit-btn-ready {
   background: var(--accent-color);
   border-color: var(--accent-color);
-  color: white;
+  color: var(--accent-contrast-color);
 }
 
 .password-submit-btn.password-submit-btn-ready:hover {
   background: var(--accent-color);
   border-color: var(--accent-color);
-  color: white;
+  color: var(--accent-contrast-color);
 }
 </style>
