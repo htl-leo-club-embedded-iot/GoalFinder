@@ -20,6 +20,7 @@ import {useWebSocketStore} from "@/stores/websocket";
 
 const API_URL = "/api";
 const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword"]);
+const SECRET_PRESENT_PLACEHOLDER = "***";
 
 export const useSettingsStore = defineStore("settings", () => {
     let isLoading = false;
@@ -109,7 +110,14 @@ export const useSettingsStore = defineStore("settings", () => {
 
     /** Apply settings data from server response */
     function applySettingsData(json: Record<string, any>): void {
+        const hasWifiPassword = json["wifiPasswordSet"] === true;
+
         deviceName.value = json["deviceName"] ?? deviceName.value;
+        if (Object.prototype.hasOwnProperty.call(json, "wifiPassword")) {
+            wifiPassword.value = json["wifiPassword"] ?? wifiPassword.value;
+        } else {
+            wifiPassword.value = hasWifiPassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
         volume.value = json["volume"] ?? volume.value;
         metronomeSound.value = json["metronomeSound"] ?? metronomeSound.value;
         hitSound.value = json["hitSound"] ?? hitSound.value;

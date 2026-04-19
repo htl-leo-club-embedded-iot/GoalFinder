@@ -4,6 +4,7 @@ import Modal from "@/components/Modal.vue";
 import Button from "@/components/Button.vue";
 import EyeIcon from "@/components/icons/EyeIcon.vue";
 import EyeOffIcon from "@/components/icons/EyeOffIcon.vue";
+import KeyEnterIcon from "@/components/icons/KeyEnterIcon.vue";
 import { useSettingsStore } from "@/stores/settings";
 import { computed, ref, onMounted, useTemplateRef, watch } from "vue";
 
@@ -17,12 +18,17 @@ const originalDevicePassword = ref("");
 const hasUserEditedConnectionSettings = ref(false);
 const showWifiPasswordInput = ref(false);
 const showWifiPassword = ref(false);
+const wifiPasswordDraft = ref("");
 const passwordPresent = computed(() => originalWifiPassword.value !== "" && !showWifiPasswordInput.value);
+const canSubmitWifiPassword = computed(() => {
+  return wifiPasswordDraft.value.length >= 8 && wifiPasswordDraft.value.length <= 63;
+});
 
 onMounted(() => {
   originalDeviceName.value = settings.deviceName || "";
   originalWifiPassword.value = settings.wifiPassword || "";
   originalDevicePassword.value = settings.devicePassword || "";
+  wifiPasswordDraft.value = settings.wifiPassword || "";
   const stored = localStorage.getItem('connectionWarningDontShow');
   dontShowAgain.value = stored === 'true';
 });
@@ -34,6 +40,7 @@ watch(
       originalDeviceName.value = deviceName;
       originalWifiPassword.value = wifiPassword;
       originalDevicePassword.value = devicePassword;
+      wifiPasswordDraft.value = wifiPassword;
     }
   },
   { immediate: true }
@@ -46,12 +53,23 @@ function markConnectionSettingsEdited() {
 function onResetWifiPasswordClick() {
   showWifiPasswordInput.value = true;
   showWifiPassword.value = false;
+  wifiPasswordDraft.value = "";
   settings.wifiPassword = "";
   markConnectionSettingsEdited();
 }
 
 function toggleWifiPasswordVisibility() {
   showWifiPassword.value = !showWifiPassword.value;
+}
+
+function submitWifiPassword() {
+  if (!canSubmitWifiPassword.value) {
+    return;
+  }
+
+  settings.wifiPassword = wifiPasswordDraft.value;
+  markConnectionSettingsEdited();
+  onPrimaryEnter();
 }
 
 function openConnectionModal() {
@@ -66,6 +84,7 @@ function closeConnectionModal(restart: boolean) {
   originalDeviceName.value = settings.deviceName || "";
   originalWifiPassword.value = settings.wifiPassword || "";
   originalDevicePassword.value = settings.devicePassword || "";
+  wifiPasswordDraft.value = settings.wifiPassword || "";
   showWifiPasswordInput.value = false;
   showWifiPassword.value = false;
   hasUserEditedConnectionSettings.value = false;
@@ -99,20 +118,13 @@ function onPrimaryEnter() {
     <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
            :placeholder="$t('description.device_name_description')" type="text"
         name="deviceName" autocomplete="off" @update:modelValue="markConnectionSettingsEdited" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
-    <!-- <InputForm v-model="settings.wifiPassword" :label="$t('word.ssid_password')"
-           :placeholder="$t('description.ssid_password_description')" type="password"
-           :minlength="8" :maxlength="63" pattern="^.{8,63}$|^$"
-        name="wifiPassword" autocomplete="new-password" @update:modelValue="markConnectionSettingsEdited" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
-    <InputForm v-show="settings.advancedSettingsEnabled" v-model="settings.devicePassword" :label="$t('word.device_password')"
-               :placeholder="$t('description.device_password_description')" type="password"
-               name="devicePassword" autocomplete="new-password"/> -->
                
-    <div class="wifi-password-field" v-show="!passwordPresent">
+    <div class="wifi-password-field">
       <label for="wifiPasswordInput">{{ $t('word.ssid_password') }}</label>
-      <div class="wifi-password-row">
+      <div class="wifi-password-row" v-show="!passwordPresent">
         <input
           id="wifiPasswordInput"
-          v-model="settings.wifiPassword"
+          v-model="wifiPasswordDraft"
           :type="showWifiPassword ? 'text' : 'password'"
           :placeholder="$t('description.ssid_password_description')"
           :minlength="8"
@@ -121,26 +133,29 @@ function onPrimaryEnter() {
           name="wifiPassword"
           autocomplete="new-password"
           @input="markConnectionSettingsEdited"
-          @keyup.enter="onPrimaryEnter"
-          @blur="onPrimaryEnter"
+          @keyup.enter="submitWifiPassword"
         />
-        <Button
-          class="control-btn password-toggle-btn"
-          type="button"
-          :aria-label="showWifiPassword ? $t('word.hide') : $t('word.show')"
-          @click="toggleWifiPasswordVisibility"
-        >
-          <Transition name="icon-fade" mode="out-in">
+        <Button class="control-btn password-toggle-btn"
+          type="button" :aria-label="showWifiPassword ? $t('word.hide') : $t('word.show')"
+          @click="toggleWifiPasswordVisibility">
             <EyeOffIcon v-if="showWifiPassword" key="hide" class="password-toggle-icon" />
             <EyeIcon v-else key="show" class="password-toggle-icon" />
-          </Transition>
         </Button>
-      </div>
+        
+        <Button
+        class="control-btn password-submit-btn"
+        :class="{ 'password-submit-btn-ready': canSubmitWifiPassword }"
+        :disabled="!canSubmitWifiPassword"
+        aria-label="Enter password"
+        type="button"
+        @click="submitWifiPassword"
+        >
+        <KeyEnterIcon class="password-submit-icon" />
+      </Button>
     </div>
-
-    <div>
+      
       <Button class="control-btn" id="resetWifiPassword" type="button"
-        v-show="passwordPresent" @click="onResetWifiPasswordClick">{{ $t("settings.remove_password") }}</Button>
+      v-show="passwordPresent" @click="onResetWifiPasswordClick">{{ $t("settings.remove_password") }}</Button>
     </div>
     
   </form>
@@ -195,7 +210,7 @@ function onPrimaryEnter() {
 
 .control-btn {
   min-width: 6rem;
-  border-width: 3px;
+  margin: auto;
 }
 
 .wifi-password-field {
@@ -247,5 +262,33 @@ function onPrimaryEnter() {
 .password-toggle-icon {
   width: 1rem;
   height: 1rem;
+}
+
+.password-submit-btn {
+  background: var(--card-background-color);
+  min-width: 2.75rem;
+  width: 2.75rem;
+  padding: 0.5rem;
+  border-width: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-submit-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.password-submit-btn.password-submit-btn-ready {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.password-submit-btn.password-submit-btn-ready:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
 }
 </style>

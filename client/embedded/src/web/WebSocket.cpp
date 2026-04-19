@@ -185,6 +185,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     JsonObject data = doc["data"].to<JsonObject>();
 
     data["deviceName"] = settings->GetDeviceName();
+    data["wifiPasswordSet"] = !settings->GetWifiPassword().isEmpty();
     data["vibrationSensorSensitivity"] = settings->GetVibrationSensorSensitivity();
     data["ballHitDetectionDistance"] = settings->GetBallHitDetectionDistance();
     data["distanceOnlyHitDetection"] = settings->GetDistanceOnlyHitDetection();
