@@ -20,7 +20,6 @@
 #include "../Settings.h"
 #include "../util/Logger.h"
 #include <WiFi.h>
-#include <DNSServer.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
@@ -43,7 +42,6 @@ class WiFiManager {
         void MonitorConnection();
         void ApplyDeviceNameByScan();
 
-        DNSServer dnsServer;
         bool useExternalNW;
         bool connected;
         unsigned long lastReconnectAttemptMs;

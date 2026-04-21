@@ -32,9 +32,9 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
     const WS_DEFAULT_PORT = "81";
     const WS_CONNECT_TIMEOUT_MS = 2000;
-    const WS_CONNECT_TIMEOUT_LOCAL_HOST_MS = 900;
+    const WS_CONNECT_TIMEOUT_LOCAL_HOST_MS = 1800;
     const WS_CONNECT_TIMEOUT_IP_MS = 1400;
-    const WS_DNS_FALLBACK_MS = 550;
+    const WS_DNS_FALLBACK_MS = 1200;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
 
     const MAX_RECONNECT_DELAY = 5000;
@@ -156,8 +156,6 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const urls: string[] = [];
         const currentLocation = new URL(window.location.href);
-        const currentHost = currentLocation.hostname.toLowerCase();
-        const isLocalAliasHost = currentHost === "goalfinder.local" || currentHost.endsWith(".goalfinder.local");
 
         const addCandidate = (candidate: string | null) => {
             if (!candidate || urls.includes(candidate)) return;
@@ -168,10 +166,6 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
         if (currentLocation.port && currentLocation.port !== "80" && currentLocation.port !== "443") {
             addCandidate(buildWsUrl(protocol, currentLocation.hostname, currentLocation.port));
-        }
-
-        if (isLocalAliasHost) {
-            addCandidate(buildWsUrl(protocol, "192.168.4.1", WS_DEFAULT_PORT));
         }
 
         addCandidate(getRememberedWsUrl(protocol));
@@ -196,7 +190,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const currentHostname = getHostnameFromUrl(wsUrl);
         const nextCandidate = candidateIndex + 1 < candidateUrls.length ? candidateUrls[candidateIndex + 1] : null;
         const nextHostname = nextCandidate ? getHostnameFromUrl(nextCandidate) : "";
-        const shouldApplyDnsFallback = currentHostname.endsWith(".local") && isIpHostname(nextHostname);
+        const shouldApplyDnsFallback = candidateIndex > 0 && currentHostname.endsWith(".local") && isIpHostname(nextHostname);
         let opened = false;
         let dnsFallbackTimer: ReturnType<typeof setTimeout> | null = null;
         let socket: WebSocket;

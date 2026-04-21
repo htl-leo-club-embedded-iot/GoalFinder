@@ -15,6 +15,8 @@
  */
 
 #include "DNSServer.h"
+#include <WiFi.h>
+#include <ctype.h>
 #include "../util/Logger.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -38,6 +40,38 @@ namespace {
     
         String hostSuffix = "." + String(hostName);
         return normalizedName.endsWith(hostSuffix);
+    }
+
+    String BuildAliasHostFromDeviceName(String deviceName) {
+        String label;
+        label.reserve(deviceName.length());
+        bool lastWasSeparator = false;
+
+        for (size_t i = 0; i < deviceName.length(); ++i) {
+            unsigned char c = static_cast<unsigned char>(deviceName.charAt(i));
+
+            if (isalnum(c)) {
+                label += static_cast<char>(tolower(c));
+                lastWasSeparator = false;
+                continue;
+            }
+
+            bool isSeparator = c == ' ' || c == '-' || c == '_' || c == '.';
+            if (isSeparator && !lastWasSeparator && !label.isEmpty()) {
+                label += '-';
+                lastWasSeparator = true;
+            }
+        }
+
+        while (label.endsWith("-")) {
+            label.remove(label.length() - 1);
+        }
+
+        if (label.isEmpty()) {
+            return String();
+        }
+
+        return label + ".local";
     }
     
     void SendNoErrorNoAnswer(WiFiUDP& udp,
@@ -84,10 +118,18 @@ const char* GFDNSServer::HOSTNAME = "goalfinder.local";
 GFDNSServer::GFDNSServer() {}
 GFDNSServer::~GFDNSServer() {}
 
-void GFDNSServer::Begin(const IPAddress& resolvedIP) {
+void GFDNSServer::Begin(const IPAddress& resolvedIP, const String& deviceName) {
     _resolvedIP = resolvedIP;
+    _deviceAliasHost = NormalizeDnsName(BuildAliasHostFromDeviceName(deviceName));
     _udp.begin(DNS_PORT);
-    Logger::Log("DNSServer", Logger::LogLevel::INFO, "DNS Server started");
+
+    if (_deviceAliasHost.isEmpty()) {
+        Logger::Log("DNSServer", Logger::LogLevel::INFO,
+            "DNS server started for host '%s'", HOSTNAME);
+    } else {
+        Logger::Log("DNSServer", Logger::LogLevel::INFO,
+            "DNS server started for hosts '%s' and '%s'", HOSTNAME, _deviceAliasHost.c_str());
+    }
 }
 
 void GFDNSServer::Loop() {
@@ -115,7 +157,6 @@ void GFDNSServer::HandlePacket() {
         IPAddress  remoteIP   = _udp.remoteIP();
         uint16_t   remotePort = _udp.remotePort();
         
-        uint16_t txId   = ((uint16_t)buf[0] << 8) | buf[1];
         uint16_t flags  = ((uint16_t)buf[2] << 8) | buf[3];
         uint16_t qdCnt  = ((uint16_t)buf[4] << 8) | buf[5];
         
@@ -128,55 +169,60 @@ void GFDNSServer::HandlePacket() {
                     uint16_t qclass = ((uint16_t)buf[nameEnd + 2] << 8) | buf[nameEnd + 3];
                     
                     String normalizedQueryName = NormalizeDnsName(queryName);
-                    bool isOurHost  = IsSupportedHost(normalizedQueryName, HOSTNAME);
+                    bool isPrimaryHost = IsSupportedHost(normalizedQueryName, HOSTNAME);
+                    bool isAliasHost = !_deviceAliasHost.isEmpty() && IsSupportedHost(normalizedQueryName, _deviceAliasHost.c_str());
+                    bool isKnownHost = isPrimaryHost || isAliasHost;
                     bool isTypeA    = (qtype  == 1 || qtype  == 255);
                     bool isClassIN  = (qclass == 1 || qclass == 255);
+                    bool shouldAnswerA = isTypeA && isClassIN && (isKnownHost || ((WiFi.getMode() & WIFI_AP) != 0));
                     
-                    if (isOurHost && isClassIN) {
-                        if (isTypeA) {
-                            uint8_t rsp[DNS_BUF_SIZE];
-                            int     rLen = 0;
+                    if (shouldAnswerA) {
+                        uint8_t rsp[DNS_BUF_SIZE];
+                        int     rLen = 0;
 
-                            rsp[rLen++] = buf[0];
-                            rsp[rLen++] = buf[1];
+                        rsp[rLen++] = buf[0];
+                        rsp[rLen++] = buf[1];
 
-                            uint16_t rFlags = 0x8400;
-                            if (flags & 0x0100) rFlags |= 0x0100; // mirror RD
-                            rsp[rLen++] = (rFlags >> 8) & 0xFF;
-                            rsp[rLen++] =  rFlags       & 0xFF;
+                        uint16_t rFlags = 0x8400;
+                        if (flags & 0x0100) rFlags |= 0x0100; // mirror RD
+                        rsp[rLen++] = (rFlags >> 8) & 0xFF;
+                        rsp[rLen++] =  rFlags       & 0xFF;
 
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x00;
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x00;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x00;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x00;
 
-                            size_t questionLen = (size_t)(nameEnd + 4) - 12;
-                            memcpy(rsp + rLen, buf + 12, questionLen);
-                            rLen += (int)questionLen;
+                        size_t questionLen = (size_t)(nameEnd + 4) - 12;
+                        memcpy(rsp + rLen, buf + 12, questionLen);
+                        rLen += (int)questionLen;
 
-                            rsp[rLen++] = 0xC0; rsp[rLen++] = 0x0C;
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
-                            rsp[rLen++] = (DNS_TTL >> 24) & 0xFF;
-                            rsp[rLen++] = (DNS_TTL >> 16) & 0xFF;
-                            rsp[rLen++] = (DNS_TTL >>  8) & 0xFF;
-                            rsp[rLen++] =  DNS_TTL        & 0xFF;
-                            rsp[rLen++] = 0x00; rsp[rLen++] = 0x04;
-                            rsp[rLen++] = _resolvedIP[0];
-                            rsp[rLen++] = _resolvedIP[1];
-                            rsp[rLen++] = _resolvedIP[2];
-                            rsp[rLen++] = _resolvedIP[3];
+                        rsp[rLen++] = 0xC0; rsp[rLen++] = 0x0C;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x01;
+                        rsp[rLen++] = (DNS_TTL >> 24) & 0xFF;
+                        rsp[rLen++] = (DNS_TTL >> 16) & 0xFF;
+                        rsp[rLen++] = (DNS_TTL >>  8) & 0xFF;
+                        rsp[rLen++] =  DNS_TTL        & 0xFF;
+                        rsp[rLen++] = 0x00; rsp[rLen++] = 0x04;
+                        rsp[rLen++] = _resolvedIP[0];
+                        rsp[rLen++] = _resolvedIP[1];
+                        rsp[rLen++] = _resolvedIP[2];
+                        rsp[rLen++] = _resolvedIP[3];
 
-                            _udp.beginPacket(remoteIP, remotePort);
-                            _udp.write(rsp, rLen);
-                            _udp.endPacket();
+                        _udp.beginPacket(remoteIP, remotePort);
+                        _udp.write(rsp, rLen);
+                        _udp.endPacket();
 
-                            Logger::Log("DNSServer", Logger::LogLevel::INFO, "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(), _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
-                        } else {
-                            // Return NOERROR/NODATA for non-A queries (e.g. AAAA/HTTPS)
-                            // so mobile resolvers quickly continue with A lookups.
-                            SendNoErrorNoAnswer(_udp, remoteIP, remotePort, buf, flags, (uint16_t)(nameEnd + 4));
+                        if (isKnownHost) {
+                            Logger::Log("DNSServer", Logger::LogLevel::INFO,
+                                "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(),
+                                _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
                         }
+                    } else if (isKnownHost && isClassIN) {
+                        // Return NOERROR/NODATA for non-A queries (e.g. AAAA/HTTPS)
+                        // so mobile resolvers quickly continue with A lookups.
+                        SendNoErrorNoAnswer(_udp, remoteIP, remotePort, buf, flags, (uint16_t)(nameEnd + 4));
                     }
                 }
             }

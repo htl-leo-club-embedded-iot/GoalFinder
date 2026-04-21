@@ -108,7 +108,20 @@ Settings::Settings() :
     Singleton<Settings>(),
 	store(),
 	modified(false) {
-    	store.Begin("app_prefs");
+	if (!store.Begin("app_prefs")) {
+		Logger::Log("Settings", Logger::LogLevel::ERROR, "Failed to initialize preferences namespace 'app_prefs'");
+		return;
+	}
+
+	if (!store.IsKey(keyDeviceIpAddress)) {
+		store.PutString(keyDeviceIpAddress, defaultDeviceIpAddress);
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Missing key '%s'. Using default '%s'", keyDeviceIpAddress, defaultDeviceIpAddress.c_str());
+	}
+
+	if (!store.IsKey(keySubnetMask)) {
+		store.PutString(keySubnetMask, defaultSubnetMask);
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Missing key '%s'. Using default '%s'", keySubnetMask, defaultSubnetMask.c_str());
+	}
 	}
 
 	Settings::~Settings() {
@@ -369,26 +382,80 @@ void Settings::SetExternalNW_PWD(String pwd) {
 }
 
 String Settings::GetDeviceIpAddress() {
-	return store.GetString(keyDeviceIpAddress, defaultDeviceIpAddress);
+	String ip;
+
+	if (!store.IsKey(keyDeviceIpAddress)) {
+	    Logger::Log("Settings", Logger::LogLevel::WARN,
+	        "Missing key '%s'. Using default '%s'",
+	        keyDeviceIpAddress, defaultDeviceIpAddress.c_str());
+	} else {
+	    ip = store.GetString(keyDeviceIpAddress, defaultDeviceIpAddress);
+	    ip.trim();
+	    if (ip.isEmpty()) {
+	        Logger::Log("Settings", Logger::LogLevel::WARN,
+	            "Invalid empty value for '%s'. Using default '%s'",
+	            keyDeviceIpAddress, defaultDeviceIpAddress.c_str());
+	    }
+	}
+
+	const String result = ip.isEmpty() ? defaultDeviceIpAddress : ip;
+
+	if (result == defaultDeviceIpAddress) {
+	    store.PutString(keyDeviceIpAddress, defaultDeviceIpAddress);
+	}
+
+	return result;
 }
 
 void Settings::SetDeviceIpAddress(String ip) {
 	ip.trim();
 	if (!ip.isEmpty()) {
-		store.PutString(keyDeviceIpAddress, ip);
-		SetModified();
+		IPAddress parsedIp;
+		if (!parsedIp.fromString(ip)) {
+			Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid device IP '%s'", ip.c_str());
+		} else {
+			store.PutString(keyDeviceIpAddress, ip);
+			SetModified();
+		}
 	}
 }
 
 String Settings::GetSubnetMask() {
-	return store.GetString(keySubnetMask, defaultSubnetMask);
+	String mask;
+
+	if (!store.IsKey(keySubnetMask)) {
+	    Logger::Log("Settings", Logger::LogLevel::WARN,
+	        "Missing key '%s'. Using default '%s'",
+	        keySubnetMask, defaultSubnetMask.c_str());
+	} else {
+	    mask = store.GetString(keySubnetMask, defaultSubnetMask);
+	    mask.trim();
+	    if (mask.isEmpty()) {
+	        Logger::Log("Settings", Logger::LogLevel::WARN,
+	            "Invalid empty value for '%s'. Using default '%s'",
+	            keySubnetMask, defaultSubnetMask.c_str());
+	    }
+	}
+
+	const String result = mask.isEmpty() ? defaultSubnetMask : mask;
+
+	if (result == defaultSubnetMask) {
+	    store.PutString(keySubnetMask, defaultSubnetMask);
+	}
+
+	return result;
 }
 
 void Settings::SetSubnetMask(String mask) {
 	mask.trim();
 	if (!mask.isEmpty()) {
-		store.PutString(keySubnetMask, mask);
-		SetModified();
+		IPAddress parsedMask;
+		if (!parsedMask.fromString(mask)) {
+			Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid subnet mask '%s'", mask.c_str());
+		} else {
+			store.PutString(keySubnetMask, mask);
+			SetModified();
+		}
 	}
 }
 
