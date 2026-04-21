@@ -195,7 +195,7 @@ function onPrimaryEnter() {
       v-show="wifiPasswordPresent" @click="onResetWifiPasswordClick">{{ $t("settings.remove_password") }}</Button>
     </div>
 
-    <div class="password-field">
+    <div class="password-field" v-show="settings.advancedSettingsEnabled">
       <label for="devicePasswordInput">{{ $t('word.device_password') }}</label>
       <div class="password-row" v-show="!devicePasswordPresent">
         <input
@@ -233,7 +233,6 @@ function onPrimaryEnter() {
       <Button class="control-btn" id="resetDevicePassword" type="button"
       v-show="devicePasswordPresent" @click="onResetDevicePasswordClick">{{ $t("settings.remove_password") }}</Button>
     </div>
-    
   </form>
 
   <Modal ref="connectionModal" :title="$t('settings.restart_title')" centered hide-close-button>
