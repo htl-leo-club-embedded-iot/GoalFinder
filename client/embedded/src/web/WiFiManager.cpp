@@ -17,6 +17,11 @@
 #include "WiFiManager.h"
 #include <WiFi.h>
 
+namespace {
+    const char* kDefaultApIp = "192.168.4.1";
+    const char* kDefaultSubnetMask = "255.255.255.0";
+}
+
 const unsigned long WiFiManager::reconnectIntervalMs = 10000;
 
 WiFiManager::WiFiManager()
@@ -47,8 +52,6 @@ void WiFiManager::Loop() {
     if (xSemaphoreTake(wifiMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
         if (useExternalNW) {
             MonitorConnection();
-        } else {
-            dnsServer.processNextRequest();
         }
         xSemaphoreGive(wifiMutex);
     }
@@ -62,8 +65,33 @@ void WiFiManager::SetupAccessPoint() {
     Settings* settings = Settings::GetInstance();
     String ssid = settings->GetDeviceName();
     String wifiPassword = settings->GetWifiPassword();
+    String configuredIp = settings->GetDeviceIpAddress();
+    String configuredMask = settings->GetSubnetMask();
+
+    IPAddress apIp;
+    if (!apIp.fromString(configuredIp)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Invalid device IP '%s'. Falling back to %s", configuredIp.c_str(), kDefaultApIp);
+        configuredIp = kDefaultApIp;
+        apIp.fromString(configuredIp);
+        settings->SetDeviceIpAddress(configuredIp);
+    }
+
+    IPAddress subnetMask;
+    if (!subnetMask.fromString(configuredMask)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Invalid subnet mask '%s'. Falling back to %s", configuredMask.c_str(), kDefaultSubnetMask);
+        configuredMask = kDefaultSubnetMask;
+        subnetMask.fromString(configuredMask);
+        settings->SetSubnetMask(configuredMask);
+    }
 
     WiFi.mode(WIFI_AP);
+
+    if (!WiFi.softAPConfig(apIp, apIp, subnetMask)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Failed to apply AP config IP=%s Mask=%s", configuredIp.c_str(), configuredMask.c_str());
+    }
 
     if (wifiPassword.isEmpty()) {
         WiFi.softAP(ssid);
@@ -72,7 +100,6 @@ void WiFiManager::SetupAccessPoint() {
     }
     WiFi.setSleep(false);
 
-    dnsServer.start(53, "*", WiFi.softAPIP());
     Logger::Log("WiFiManager", Logger::LogLevel::INFO, "AP started - SSID: %s, IP: %s",
         ssid.c_str(), WiFi.softAPIP().toString().c_str());
 }
