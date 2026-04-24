@@ -55,7 +55,7 @@ void AudioPlayer::PlayMP3(const char *path) {
     fsSource->open(path);
     bufferedSource = new AudioFileSourceBuffer(fsSource, AUDIO_BUFFER_SIZE);
 
-    
+    delay(AUDIO_BUFFER_TIMEOUT);
 
     mp3Generator->begin(bufferedSource, audioOutput);
 }
