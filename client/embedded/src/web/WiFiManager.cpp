@@ -17,7 +17,13 @@
 #include "WiFiManager.h"
 #include <WiFi.h>
 #include <esp_wifi.h>
+#include <esp_err.h>
 #include "esp_wpa2.h"
+
+// Helper to do basic PEM-format checks
+bool LooksLikePem(const String& s) {
+    return s.indexOf("-----BEGIN ") >= 0 && s.indexOf("-----END ") >= 0;
+}
 
 namespace {
 const char* EXTERNAL_NETWORK_AUTH_MODE_OPEN = "open";
@@ -85,9 +91,15 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
     const bool hasClientCertificate = !clientCertificate.isEmpty();
     const bool hasClientPrivateKey = !clientPrivateKey.isEmpty();
 
+    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+        "Enterprise credential lengths: identity=%d, username=%d, password=%d, ca=%d, cert=%d, key=%d",
+        outerIdentity.length(), username.length(), password.length(), caCertificate.length(), clientCertificate.length(), clientPrivateKey.length());
+
     if (username.isEmpty() || password.isEmpty()) {
         Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-            "Enterprise mode requires username and password");
+            "Enterprise mode requires username and password (usernameEmpty=%s, passwordEmpty=%s)",
+            username.isEmpty() ? "true" : "false",
+            password.isEmpty() ? "true" : "false");
         isConfigured = false;
     }
 
@@ -105,7 +117,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
             outerIdentity.length());
         if (result != ESP_OK) {
             Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                "Failed to set enterprise identity (err=%d)", static_cast<int>(result));
+                "Failed to set enterprise identity (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
             isConfigured = false;
         }
 
@@ -115,7 +127,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 username.length());
             if (result != ESP_OK) {
                 Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to set enterprise username (err=%d)", static_cast<int>(result));
+                    "Failed to set enterprise username (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
         }
@@ -126,7 +138,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 password.length());
             if (result != ESP_OK) {
                 Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to set enterprise password (err=%d)", static_cast<int>(result));
+                    "Failed to set enterprise password (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
         }
@@ -137,7 +149,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 caCertificate.length() + 1);
             if (result != ESP_OK) {
                 Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to set enterprise CA certificate (err=%d)", static_cast<int>(result));
+                    "Failed to set enterprise CA certificate (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
         }
@@ -152,7 +164,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 0);
             if (result != ESP_OK) {
                 Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to set enterprise client cert/key (err=%d)", static_cast<int>(result));
+                    "Failed to set enterprise client cert/key (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
         }
@@ -162,18 +174,36 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 ResolveEnterprisePhase2Method(phase2Method));
             if (result != ESP_OK) {
                 Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to set enterprise phase2 method (err=%d)", static_cast<int>(result));
+                    "Failed to set enterprise phase2 method (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
         }
 
         if (isConfigured) {
-            result = esp_wifi_sta_wpa2_ent_enable();
-            if (result != ESP_OK) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to enable enterprise auth (err=%d)", static_cast<int>(result));
-                isConfigured = false;
-            }
+                if (!caCertificate.isEmpty() && !LooksLikePem(caCertificate)) {
+                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        "CA certificate does not appear to be PEM-formatted");
+                    isConfigured = false;
+                }
+                if (hasClientCertificate && !LooksLikePem(clientCertificate)) {
+                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        "Client certificate does not appear to be PEM-formatted");
+                    isConfigured = false;
+                }
+                if (hasClientPrivateKey && !LooksLikePem(clientPrivateKey)) {
+                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        "Client private key does not appear to be PEM-formatted");
+                    isConfigured = false;
+                }
+
+                if (isConfigured) {
+                    result = esp_wifi_sta_wpa2_ent_enable();
+                    if (result != ESP_OK) {
+                        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                            "Failed to enable enterprise auth (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
+                        isConfigured = false;
+                    }
+                }
         }
     }
 
@@ -202,6 +232,32 @@ void WiFiManager::Init() {
     useExternalNW = settings->GetUseExternalNW();
     connected = false;
     wsClientConnectedThisPowerCycle = false;
+
+    // Register lightweight WiFi event handler for additional diagnostics
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+        switch (event) {
+#if defined(ARDUINO_EVENT_WIFI_STA_DISCONNECTED)
+        case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                "WiFi event: STA_DISCONNECTED (reason=%d)", info.disconnected.reason);
+            break;
+#endif
+#if defined(ARDUINO_EVENT_WIFI_STA_CONNECTED)
+        case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                "WiFi event: STA_CONNECTED");
+            break;
+#endif
+#if defined(ARDUINO_EVENT_WIFI_STA_GOT_IP)
+        case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+            Logger::Log("WiFiManager", Logger::LogLevel::OK,
+                "WiFi event: GOT_IP %s", WiFi.localIP().toString().c_str());
+            break;
+#endif
+        default:
+            break;
+        }
+    });
 
     if (useExternalNW) {
         SetupExternalNetwork();
@@ -283,15 +339,11 @@ void WiFiManager::SetupExternalNetwork() {
         WiFi.setSleep(false);
 
         if (useDhcp) {
-            const IPAddress dhcpReset(0U, 0U, 0U, 0U);
-            if (!WiFi.config(dhcpReset, dhcpReset, dhcpReset)) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                    "Failed to enable DHCP for external network, falling back to AP mode");
-                fallbackToAccessPoint = true;
-            } else {
-                Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                    "Using DHCP for external network '%s'", ssid.c_str());
-            }
+            // Rely on the stack's default DHCP behavior instead of attempting
+            // to "reset" DHCP via WiFi.config(). Calling WiFi.config with
+            // zero addresses may fail on some cores and cause spurious fallbacks.
+            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                "Using DHCP for external network '%s'", ssid.c_str());
         } else {
             IPAddress staticIp;
             IPAddress subnetMask;
@@ -322,56 +374,100 @@ void WiFiManager::SetupExternalNetwork() {
         }
 
         if (!fallbackToAccessPoint) {
-            bool startedConnectionAttempt = false;
-
-            if (authMode == EXTERNAL_NETWORK_AUTH_MODE_OPEN) {
-                ClearEnterpriseAuthenticationState();
-                WiFi.begin(ssid.c_str());
-                startedConnectionAttempt = true;
+            // Pre-flight scan: attempt to find SSID and log channel/RSSI/encryption.
+            int scanCount = WiFi.scanNetworks();
+            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                "Pre-connect scan found %d networks", scanCount);
+            int foundIndex = -1;
+            for (int i = 0; i < scanCount; ++i) {
+                if (WiFi.SSID(i) == ssid) {
+                    foundIndex = i;
+                    break;
+                }
+            }
+            if (foundIndex >= 0) {
+                int ch = WiFi.channel(foundIndex);
+                int rssi = WiFi.RSSI(foundIndex);
+                int enc = WiFi.encryptionType(foundIndex);
                 Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                    "Connecting to open external network '%s'...", ssid.c_str());
-            } else if (authMode == EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE) {
-                if (ConfigureEnterpriseAuthentication(settings)) {
-                    WiFi.begin(ssid.c_str());
-                    startedConnectionAttempt = true;
-                    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                        "Connecting to WPA2 enterprise network '%s'...", ssid.c_str());
-                } else {
+                    "Found SSID '%s' in scan: channel=%d, rssi=%d, enc=%d",
+                    ssid.c_str(), ch, rssi, enc);
+                // Channels > 14 indicate 5GHz band on typical WiFi chips.
+                if (ch > 14) {
                     Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                        "Failed to configure enterprise authentication, falling back to AP mode");
+                        "Target SSID appears to be on 5GHz channel %d; device requires 2.4GHz or a dual-band SSID", ch);
                     fallbackToAccessPoint = true;
                 }
             } else {
-                ClearEnterpriseAuthenticationState();
-                if (pwd.isEmpty()) {
-                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                        "WPA2 personal mode requires a password, falling back to AP mode");
-                    fallbackToAccessPoint = true;
-                } else {
-                    WiFi.begin(ssid.c_str(), pwd.c_str());
-                    startedConnectionAttempt = true;
-                    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
-                        "Connecting to WPA2 personal network '%s'...", ssid.c_str());
-                }
+                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    "Target SSID '%s' not found in scan results; proceeding (may be hidden)", ssid.c_str());
             }
+            WiFi.scanDelete();
 
-            if (!fallbackToAccessPoint && startedConnectionAttempt) {
-                unsigned long startMs = millis();
-                const unsigned long timeoutMs = 15000;
-                while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < timeoutMs) {
-                    delay(250);
+            if (!fallbackToAccessPoint) {
+                bool enterpriseMode = (authMode == EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE);
+                bool usePassword = (authMode == EXTERNAL_NETWORK_AUTH_MODE_WPA2_PERSONAL);
+
+                if (enterpriseMode) {
+                    if (!ConfigureEnterpriseAuthentication(settings)) {
+                        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                            "Failed to configure enterprise authentication, falling back to AP mode");
+                        fallbackToAccessPoint = true;
+                    }
+                } else if (!usePassword && authMode != EXTERNAL_NETWORK_AUTH_MODE_OPEN) {
+                    // Unexpected auth mode after normalization - treat as personal with password
+                    usePassword = true;
                 }
 
-                if (WiFi.status() == WL_CONNECTED) {
-                    connected = true;
-                    Logger::Log("WiFiManager", Logger::LogLevel::OK,
-                        "Connected to '%s', IP: %s",
-                        ssid.c_str(), WiFi.localIP().toString().c_str());
-                } else {
-                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                        "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
-                    WiFi.disconnect();
-                    fallbackToAccessPoint = true;
+                if (!fallbackToAccessPoint) {
+                    const int maxAttempts = enterpriseMode ? 3 : 2;
+                    const unsigned long attemptTimeoutMs = enterpriseMode ? 60000UL : 15000UL;
+                    for (int attempt = 1; attempt <= maxAttempts && !connected; ++attempt) {
+                        // (Re)start the connection for each attempt so auth is re-negotiated.
+                        if (authMode == EXTERNAL_NETWORK_AUTH_MODE_OPEN) {
+                            ClearEnterpriseAuthenticationState();
+                            WiFi.begin(ssid.c_str());
+                            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                                "Connecting to open external network '%s' (attempt %d/%d)...", ssid.c_str(), attempt, maxAttempts);
+                        } else if (enterpriseMode) {
+                            WiFi.begin(ssid.c_str());
+                            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                                "Connecting to WPA2 enterprise network '%s' (attempt %d/%d)...", ssid.c_str(), attempt, maxAttempts);
+                        } else {
+                            if (pwd.isEmpty()) {
+                                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                                    "WPA2 personal mode requires a password, falling back to AP mode");
+                                fallbackToAccessPoint = true;
+                                break;
+                            }
+                            ClearEnterpriseAuthenticationState();
+                            WiFi.begin(ssid.c_str(), pwd.c_str());
+                            Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                                "Connecting to WPA2 personal network '%s' (attempt %d/%d)...", ssid.c_str(), attempt, maxAttempts);
+                        }
+
+                        unsigned long startMs = millis();
+                        while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < attemptTimeoutMs) {
+                            delay(250);
+                        }
+
+                        if (WiFi.status() == WL_CONNECTED) {
+                            connected = true;
+                            Logger::Log("WiFiManager", Logger::LogLevel::OK,
+                                "Connected to '%s', IP: %s",
+                                ssid.c_str(), WiFi.localIP().toString().c_str());
+                            break;
+                        } else {
+                            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                                "Attempt %d/%d to connect to '%s' failed", attempt, maxAttempts, ssid.c_str());
+                            WiFi.disconnect();
+                            if (attempt < maxAttempts) {
+                                vTaskDelay(pdMS_TO_TICKS(1000UL * attempt));
+                            } else {
+                                fallbackToAccessPoint = true;
+                            }
+                        }
+                    }
                 }
             }
         }
