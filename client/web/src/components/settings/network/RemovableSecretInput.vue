@@ -39,11 +39,13 @@ const props = withDefaults(defineProps<{
   maxLength?: number;
   inputName?: string;
   autocomplete?: string;
+  showSubmitButton?: boolean;
 }>(), {
   minLength: 8,
   maxLength: 63,
   inputName: "password",
   autocomplete: "new-password",
+  showSubmitButton: true,
 });
 
 const emit = defineEmits<{
@@ -139,6 +141,7 @@ watch(() => props.modelValue, (value) => {
       </Button>
 
       <Button
+        v-if="showSubmitButton"
         class="control-btn password-submit-btn"
         :class="{ 'password-submit-btn-ready': canCommit }"
         :disabled="!canCommit"
