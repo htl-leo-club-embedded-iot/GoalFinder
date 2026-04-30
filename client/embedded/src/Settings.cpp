@@ -103,13 +103,13 @@ const String Settings::defaultExternalNW_DNSIP = "192.168.0.1";
 const char* Settings::keyExternalNW_AuthMode = "extNWAuthMode";
 const String Settings::defaultExternalNW_AuthMode = "wpa2-personal";
 
-const char* Settings::keyExternalNW_EnterpriseIdentity = "extNWEntIdentity";
+const char* Settings::keyExternalNW_EnterpriseIdentity = "extNWIdent";
 const String Settings::defaultExternalNW_EnterpriseIdentity = emptyString;
 
-const char* Settings::keyExternalNW_EnterpriseUsername = "extNWEntUsername";
+const char* Settings::keyExternalNW_EnterpriseUsername = "extNWUser";
 const String Settings::defaultExternalNW_EnterpriseUsername = emptyString;
 
-const char* Settings::keyExternalNW_EnterpriseAnonymousIdentity = "extNWEntAnonIdentity";
+const char* Settings::keyExternalNW_EnterpriseAnonymousIdentity = "extNWAnonId";
 const String Settings::defaultExternalNW_EnterpriseAnonymousIdentity = emptyString;
 
 const char* Settings::keyExternalNW_EnterprisePassword = "extNWEntPWD";
@@ -121,10 +121,10 @@ const String Settings::defaultExternalNW_EnterprisePhase2Method = "auto";
 const char* Settings::keyExternalNW_EnterpriseCaCertificate = "extNWEntCACert";
 const String Settings::defaultExternalNW_EnterpriseCaCertificate = emptyString;
 
-const char* Settings::keyExternalNW_EnterpriseClientCertificate = "extNWEntClientCert";
+const char* Settings::keyExternalNW_EnterpriseClientCertificate = "extNWClientCrt";
 const String Settings::defaultExternalNW_EnterpriseClientCertificate = emptyString;
 
-const char* Settings::keyExternalNW_EnterpriseClientPrivateKey = "extNWEntClientKey";
+const char* Settings::keyExternalNW_EnterpriseClientPrivateKey = "extNWClientKey";
 const String Settings::defaultExternalNW_EnterpriseClientPrivateKey = emptyString;
 
 const char* Settings::keyDeviceIP = "deviceIP";
