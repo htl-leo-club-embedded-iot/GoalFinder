@@ -144,7 +144,8 @@ const i18n = createI18n({
                 network_subnet_mask: "Subnet mask",
                 network_dns: "DNS server",
                 manual_network_advanced_hint: "Enable advanced settings to edit manual network address fields.",
-                apply_network_configuration: "Apply network configuration"
+                apply_network_configuration: "Apply network configuration",
+                advancedEnterpriseSettings: "Advanced Enterprise Network Configuration Options"
             },
             about: {
                 about_desc: "This device was developed within the \"Smart Sport Assistance\" project in cooperation with the university of Vienna by students of the HTBLA Leonding",

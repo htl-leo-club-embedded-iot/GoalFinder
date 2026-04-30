@@ -25,6 +25,15 @@ import NetworkTextareaField from "@/components/settings/network/NetworkTextareaF
 import RemovableSecretInput from "@/components/settings/network/RemovableSecretInput.vue";
 import AuthModeSelector from "@/components/settings/network/AuthModeSelector.vue";
 
+const showAdvancedEnterpriseOptions = ref("");
+
+const showAdvancedEnterpriseOptionsEnabled = computed<boolean>({
+  get: () => showAdvancedEnterpriseOptions.value !== "",
+  set: (value: boolean) => {
+    showAdvancedEnterpriseOptions.value = value ? "enabled" : "";
+  },
+});
+
 const settings = useSettingsStore();
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -479,6 +488,7 @@ watch(
         <div class="enterprise-fields">
           <NetworkTextField
             v-model="enterpriseIdentityDraft"
+            v-show="showAdvancedEnterpriseOptionsEnabled"
             :label="$t('settings.enterprise_identity')"
             :placeholder="$t('description.enterprise_identity_description')"
             name="enterpriseIdentity"
@@ -497,6 +507,7 @@ watch(
 
           <NetworkTextField
             v-model="enterpriseAnonymousIdentityDraft"
+            v-show="showAdvancedEnterpriseOptionsEnabled"
             :label="$t('settings.enterprise_anonymous_identity')"
             :placeholder="$t('description.enterprise_anonymous_identity_description')"
             name="enterpriseAnonymousIdentity"
@@ -524,6 +535,7 @@ watch(
 
           <AuthModeSelector
             v-model="enterprisePhase2MethodDraft"
+            v-show="showAdvancedEnterpriseOptionsEnabled"
             :label="$t('settings.enterprise_phase2_method')"
             :options="enterprisePhase2Options"
             @change="markNetworkSettingsEdited"
@@ -531,6 +543,7 @@ watch(
 
           <NetworkTextareaField
             v-model="enterpriseCaCertificateDraft"
+            v-show="showAdvancedEnterpriseOptionsEnabled"
             :label="$t('settings.enterprise_ca_certificate')"
             :placeholder="$t('description.enterprise_ca_certificate_description')"
             @change="markNetworkSettingsEdited"
@@ -538,6 +551,7 @@ watch(
 
           <NetworkTextareaField
             v-model="enterpriseClientCertificateDraft"
+            v-show="showAdvancedEnterpriseOptionsEnabled"
             :label="$t('settings.enterprise_client_certificate')"
             :placeholder="$t('description.enterprise_client_certificate_description')"
             @change="markNetworkSettingsEdited"
@@ -545,10 +559,16 @@ watch(
 
           <NetworkTextareaField
             v-model="enterpriseClientPrivateKeyDraft"
+            v-show="showAdvancedEnterpriseOptionsEnabled"
             :label="$t('settings.enterprise_client_private_key')"
             :placeholder="$t('description.enterprise_client_private_key_description')"
             @change="markNetworkSettingsEdited"
           />
+
+          <label class="enterprise-options-checkbox">
+            <input type="checkbox" v-model="showAdvancedEnterpriseOptionsEnabled" />
+            {{ $t('settings.advancedEnterpriseSettings') }}
+          </label>
         </div>
       </div>
 
@@ -687,6 +707,20 @@ watch(
   justify-content: center;
   gap: 0.5rem;
   margin-top: 1rem;
+}
+
+.enterprise-options-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  color: var(--text-color);
+}
+
+.enterprise-options-checkbox input[type="checkbox"] {
+  accent-color: var(--accent-color);
+  cursor: pointer;
 }
 
 .connection-modal-actions {
