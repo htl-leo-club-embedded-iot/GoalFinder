@@ -359,7 +359,9 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
 }
 
 void GFWebSocket::SendWebLog(String message) {
-    // TODO
+    JsonDocument doc;
+    doc["type"] = "log";
+    doc["message"] = message;
 }
 
 void GFWebSocket::HandleStart(uint8_t clientId) {
@@ -484,7 +486,7 @@ void GFWebSocket::HandlePing(uint8_t clientId) {
 void GFWebSocket::HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc) {
     bool value = doc["value"].as<bool>();
     webLogFlag = value;
-    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Flag set to %s", flagSet ? "true" : "false");
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Flag set to %s", webLogFlag ? "true" : "false");
 
     JsonDocument response;
     response["type"] = "set_web_logging_ack";

@@ -84,7 +84,7 @@ private:
     void HandleAuth(uint8_t clientId, JsonDocument& doc);
     void HandleIsAuth(uint8_t clientId);
     void HandlePing(uint8_t clientId);
-    void HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc)
+    void HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc);
 };
 
 #endif

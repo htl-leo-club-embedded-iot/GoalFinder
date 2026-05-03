@@ -98,7 +98,7 @@ String HttpServer::GetContentType(const String& fileName) {
 }
 
 bool HttpServer::HasFileExtension(const String& uri) {
-    return lastDot > uri.lastIndexOf('/') && uri.lastIndexOf('.') > 0;
+    return uri.lastIndexOf('.') > uri.lastIndexOf('/') && uri.lastIndexOf('.') > 0;
 }
 
 HttpServer::HttpServer(FileSystem* fileSystem)
