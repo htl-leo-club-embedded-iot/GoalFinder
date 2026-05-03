@@ -29,8 +29,7 @@ static HttpServer* _instance = nullptr;
 volatile bool g_httpServingFile = false;
 
 namespace {
-    String StripQueryAndFragment(const String& uri)
-    {
+    String StripQueryAndFragment(const String& uri) {
         int q = uri.indexOf('?');
         int h = uri.indexOf('#');
         int cut = -1;
@@ -43,27 +42,17 @@ namespace {
             cut = h;
         }
 
-        if (cut < 0) {
-            return uri;
-        }
-
-        return uri.substring(0, cut);
+        return cut < 0 ? uri : uri.substring(0, cut);
     }
 
-    String StripPortFromHost(const String& host)
-    {
-        // Keep IPv6 literals (multiple ':') untouched; only strip host:port patterns.
-        int firstColon = host.indexOf(':');
-        int lastColon = host.lastIndexOf(':');
-        return firstColon > 0 && firstColon == lastColon ? host.substring(0, firstColon) : host;
+    String StripPortFromHost(const String& host) {
+        return host.indexOf(':') > 0 && host.indexOf(':') == host.lastIndexOf(':') ? host.substring(0, host.indexOf(':')) : host;
     }
 
-    bool ShouldTryCompressedVariant(const String& filePath)
-    {
+    bool ShouldTryCompressedVariant(const String& filePath) {
         String lower = filePath;
         lower.toLowerCase();
 
-        // Skip speculative .gz probes for already-compressed/binary assets.
         return lower.endsWith(".html") ||
                lower.endsWith(".css")  ||
                lower.endsWith(".js")   ||
@@ -90,30 +79,26 @@ namespace {
     }
 }
 
-String HttpServer::GetContentType(const String& fileName)
-{
+String HttpServer::GetContentType(const String& fileName) {
     if (fileName.endsWith("html"))      return "text/html";
     if (fileName.endsWith("css"))       return "text/css";
     if (fileName.endsWith("js"))        return "application/javascript";
     if (fileName.endsWith("ico"))       return "image/x-icon";
     if (fileName.endsWith("png"))       return "image/png";
     if (fileName.endsWith("svg"))       return "image/svg+xml";
-    if (fileName.endsWith("jpg") || fileName.endsWith("jpeg")) return "image/jpeg";
+    if (fileName.endsWith("jpg"))       return "image/jpeg";
+    if (fileName.endsWith("jpeg"))       return "image/jpeg";
     if (fileName.endsWith("json"))      return "application/json";
     if (fileName.endsWith("woff2"))     return "font/woff2";
     if (fileName.endsWith("woff"))      return "font/woff";
     if (fileName.endsWith("ttf"))       return "font/ttf";
     if (fileName.endsWith("txt"))       return "text/plain";
     if (fileName.endsWith("gz"))        return "application/gzip";
-
     return "";
 }
 
-bool HttpServer::HasFileExtension(const String& uri)
-{
-    int lastDot = uri.lastIndexOf('.');
-    int lastSlash = uri.lastIndexOf('/');
-    return lastDot > lastSlash && lastDot > 0;
+bool HttpServer::HasFileExtension(const String& uri) {
+    return lastDot > uri.lastIndexOf('/') && uri.lastIndexOf('.') > 0;
 }
 
 HttpServer::HttpServer(FileSystem* fileSystem)
@@ -127,13 +112,11 @@ HttpServer::HttpServer(FileSystem* fileSystem)
 
 HttpServer::~HttpServer() {}
 
-void HttpServer::Init()
-{
+void HttpServer::Init() {
     Logger::Log("HttpServer", Logger::LogLevel::OK, "HTTP server initialized");
 }
 
-void HttpServer::Begin()
-{
+void HttpServer::Begin() {
     updater.Begin(API_URL "/update");
 
     server.on(API_URL "/update-status", HTTP_GET, [this]() {
@@ -169,19 +152,14 @@ void HttpServer::Begin()
     server.on("/gen_204", HTTP_GET, redirectHandler);
     server.on("/204", HTTP_GET, redirectHandler);
     server.on("/mobile/status.php", HTTP_GET, redirectHandler);
-    // iOS / macOS
     server.on("/hotspot-detect.html", HTTP_GET, htmlHandler);
-    // Windows
     server.on("/ncsi.txt", HTTP_GET, redirectHandler);
     server.on("/connecttest.txt", HTTP_GET, redirectHandler);
     server.on("/fwlink", HTTP_GET, redirectHandler);
-    // Firefox
     server.on("/canonical.html", HTTP_GET, redirectHandler);
     server.on("/success.txt", HTTP_GET, redirectHandler);
-    // Generic fallback
     server.on("/redirect", HTTP_GET, redirectHandler);
 
-    // CORS preflight handler
     server.on(API_URL "/update", HTTP_OPTIONS, [this]() {
         server.sendHeader("Access-Control-Allow-Origin", "*");
         server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -195,6 +173,8 @@ void HttpServer::Begin()
             uri = "/";
         }
 
+        bool handled = false;
+
         // Captive portal: redirect requests from non-AP hosts
         String host = NormalizeHostForPortal(server.hostHeader());
         String apIp = WiFi.softAPIP().toString();
@@ -202,72 +182,62 @@ void HttpServer::Begin()
             String url = "http://" + apIp + "/games";
             server.sendHeader("Location", url, true);
             server.send(302, "text/plain", "");
-            return;
+            handled = true;
         }
 
         // Handle CORS preflight
-        if (server.method() == HTTP_OPTIONS) {
+        if (!handled && server.method() == HTTP_OPTIONS) {
             server.sendHeader("Access-Control-Allow-Origin", "*");
             server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
             server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
             server.send(200);
-            return;
+            handled = true;
         }
 
-        bool isFileRequest = HasFileExtension(uri);
+        if (!handled) {
+            bool isFileRequest = HasFileExtension(uri);
 
-        if (isFileRequest) {
-            String filePath = WEBAPP_DIR + uri;
-            bool requestedGzip = filePath.endsWith(COMPRESSED_FILE_EXTENSION);
-            String contentType = GetContentType(requestedGzip
-                                                ? filePath.substring(0, filePath.length() - 3)
-                                                : filePath);
-            if (contentType.isEmpty()) {
-                contentType = "application/octet-stream";
-            }
-
-            if (requestedGzip) {
-                if (!fs->FileExists(filePath)) {
-                    server.send(404, "text/plain", "Not found");
-                    return;
+            if (isFileRequest) {
+                String filePath = WEBAPP_DIR + uri;
+                bool requestedGzip = filePath.endsWith(COMPRESSED_FILE_EXTENSION);
+                String contentType = GetContentType(requestedGzip
+                                                    ? filePath.substring(0, filePath.length() - 3)
+                                                    : filePath);
+                if (contentType.isEmpty()) {
+                    contentType = "application/octet-stream";
                 }
 
-                ServeFile(filePath, contentType, true, filePath.endsWith("index.html.gz"));
-                return;
+                if (requestedGzip) {
+                    if (!fs->FileExists(filePath)) {
+                        server.send(404, "text/plain", "Not found");
+                    } else {
+                        ServeFile(filePath, contentType, true, filePath.endsWith("index.html.gz"));
+                    }
+                } else {
+                    // Try gzip-compressed version first
+                    String compressedPath = filePath + COMPRESSED_FILE_EXTENSION;
+                    bool isCompressed = ShouldTryCompressedVariant(filePath) && fs->FileExists(compressedPath);
+                    bool fileExists = isCompressed || fs->FileExists(filePath);
+
+                    if (!fileExists) {
+                        server.send(404, "text/plain", "Not found");
+                    } else {
+                        String servePath = isCompressed ? compressedPath : filePath;
+                        ServeFile(servePath, contentType, isCompressed, filePath.endsWith("index.html"));
+                    }
+                }
+            } else {
+                // SPA fallback: serve index.html for client-side routes
+                String compressedPath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
+                bool isCompressed = fs->FileExists(compressedPath);
+
+                if (!isCompressed && !fs->FileExists(WEBAPP_DIR INDEX_PATH)) {
+                    server.send(404, "text/plain", "Not found");
+                } else {
+                    String servePath = isCompressed ? compressedPath : String(WEBAPP_DIR INDEX_PATH);
+                    ServeFile(servePath, "text/html", isCompressed, true);
+                }
             }
-
-            // Try gzip-compressed version first
-            String compressedPath = filePath + COMPRESSED_FILE_EXTENSION;
-            bool isCompressed = false;
-            if (ShouldTryCompressedVariant(filePath)) {
-                isCompressed = fs->FileExists(compressedPath);
-            }
-            bool fileExists = isCompressed;
-
-            // Try uncompressed
-            if (!fileExists) {
-                fileExists = fs->FileExists(filePath);
-            }
-
-            if (!fileExists) {
-                server.send(404, "text/plain", "Not found");
-                return;
-            }
-
-            String servePath = isCompressed ? compressedPath : filePath;
-            ServeFile(servePath, contentType, isCompressed, filePath.endsWith("index.html"));
-        } else {
-            // --- SPA fallback: serve index.html for client-side routes ---
-            String compressedPath = WEBAPP_DIR INDEX_PATH COMPRESSED_FILE_EXTENSION;
-            bool isCompressed = fs->FileExists(compressedPath);
-
-            if (!isCompressed && !fs->FileExists(WEBAPP_DIR INDEX_PATH)) {
-                server.send(404, "text/plain", "Not found");
-                return;
-            }
-
-            String servePath = isCompressed ? compressedPath : String(WEBAPP_DIR INDEX_PATH);
-            ServeFile(servePath, "text/html", isCompressed, true);
         }
     };
 
@@ -276,7 +246,7 @@ void HttpServer::Begin()
 
     server.begin();
     Logger::Log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
-} 
+}
 
 void HttpServer::Loop()
 {
@@ -291,47 +261,43 @@ void HttpServer::ServeFile(const String& path, const String& contentType, bool i
     if (!file) {
         Logger::Log("HttpServer", Logger::LogLevel::ERROR, "Failed to open file: %s", path.c_str());
         server.send(500, "text/plain", "Internal server error");
-        return;
-    }
-
-    if (noCache) {
-        server.sendHeader("Cache-Control", "no-cache");
     } else {
-        server.sendHeader("Cache-Control", "max-age=604800");
-    }
-
-    if (isCompressed && contentType != "application/gzip") {
-        server.sendHeader("Content-Encoding", "gzip");
-    }
-
-    server.setContentLength(file.size());
-    server.send(200, contentType, "");
-
-    if (server.method() == HTTP_HEAD) {
-        file.close();
-        return;
-    }
-
-    uint8_t buffer[1024];
-    while (file.available()) {
-        size_t chunkSize = g_audioPlaybackActive ? 384 : sizeof(buffer);
-
-        g_httpServingFile = true;
-        size_t bytesRead = file.read(buffer, chunkSize);
-        g_httpServingFile = false;
-
-        if (bytesRead == 0) {
-            break;
-        }
-
-        server.sendContent(reinterpret_cast<const char*>(buffer), bytesRead);
-        if (g_audioPlaybackActive) {
-            delay(1);
+        if (noCache) {
+            server.sendHeader("Cache-Control", "no-cache");
         } else {
-            delay(0);
+            server.sendHeader("Cache-Control", "max-age=604800");
+        }
+    
+        if (isCompressed && contentType != "application/gzip") {
+            server.sendHeader("Content-Encoding", "gzip");
+        }
+    
+        server.setContentLength(file.size());
+        server.send(200, contentType, "");
+    
+        if (server.method() != HTTP_HEAD) {        
+            uint8_t buffer[1024];
+            bool continueReading = true;
+            while (continueReading && file.available()) {
+                size_t chunkSize = g_audioPlaybackActive ? 384 : sizeof(buffer);
+                
+                g_httpServingFile = true;
+                size_t bytesRead = file.read(buffer, chunkSize);
+                g_httpServingFile = false;
+                
+                if (bytesRead == 0) {
+                    continueReading = false;
+                } else {
+                    server.sendContent(reinterpret_cast<const char*>(buffer), bytesRead);
+                    delay(g_audioPlaybackActive ? 1 : 0);
+                    if (g_audioPlaybackActive) {
+                        delay(1);
+                    }
+                }
+            }
         }
     }
-
+        
     file.close();
 }
 
