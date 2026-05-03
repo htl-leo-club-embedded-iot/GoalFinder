@@ -359,9 +359,11 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
 }
 
 void GFWebSocket::SendWebLog(String message) {
-    JsonDocument doc;
-    doc["type"] = "log";
-    doc["message"] = message;
+    if (webLogFlag) {
+        JsonDocument doc;
+        doc["type"] = "log";
+        doc["message"] = message;
+    }
 }
 
 void GFWebSocket::HandleStart(uint8_t clientId) {

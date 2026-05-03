@@ -18,6 +18,8 @@
 #include "../Settings.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include "../GoalFinderApp.h"
+#include "../web/WebSocket.h"
 
 Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
 QueueHandle_t Logger::logQueue = nullptr;
@@ -104,6 +106,8 @@ void Logger::PrintNow(const LogEntry &entry) {
         out += String("[") + entry.file + "]";
     }
     out += " " + entry.message;
+    GFWebSocket ws = GoalfinderApp::GetInstance()->GetWebSocket();
+    ws.SendWebLog(out);
     Serial.println(out);
 }
 
