@@ -58,7 +58,8 @@ GFWebSocket::GFWebSocket()
     : wsServer(81),
       authAttemptCount(0),
       authTimedOut(false),
-      authTimeoutStart(0)
+      authTimeoutStart(0),
+      webLogFlag(0)
 {
     memset(authAttempts, 0, sizeof(authAttempts));
 }
@@ -126,32 +127,33 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
     DeserializationError err = deserializeJson(doc, payload, length);
     if (err) {
         Logger::Log("WebSocket", Logger::LogLevel::WARN, "JSON parse error: %s", err.c_str());
-        return;
-    }
-
-    const char* type = doc["type"];
-    if (!type) return;
-
-    if (strcmp(type, "get_settings") == 0) {
-        HandleGetSettings(clientId);
-    } else if (strcmp(type, "set") == 0) {
-        HandleSetSetting(clientId, doc);
-    } else if (strcmp(type, "start") == 0) {
-        HandleStart(clientId);
-    } else if (strcmp(type, "stop") == 0) {
-        HandleStop(clientId);
-    } else if (strcmp(type, "restart") == 0) {
-        HandleRestart(clientId);
-    } else if (strcmp(type, "factory_reset") == 0) {
-        HandleFactoryReset(clientId);
-    } else if (strcmp(type, "auth") == 0) {
-        HandleAuth(clientId, doc);
-    } else if (strcmp(type, "is_auth") == 0) {
-        HandleIsAuth(clientId);
-    } else if (strcmp(type, "ping") == 0) {
-        HandlePing(clientId);
     } else {
-        Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
+        const char* type = doc["type"];
+        if (type) {   
+            if (strcmp(type, "get_settings") == 0) {
+                HandleGetSettings(clientId);
+            } else if (strcmp(type, "set") == 0) {
+                HandleSetSetting(clientId, doc);
+            } else if (strcmp(type, "start") == 0) {
+                HandleStart(clientId);
+            } else if (strcmp(type, "stop") == 0) {
+                HandleStop(clientId);
+            } else if (strcmp(type, "restart") == 0) {
+                HandleRestart(clientId);
+            } else if (strcmp(type, "factory_reset") == 0) {
+                HandleFactoryReset(clientId);
+            } else if (strcmp(type, "auth") == 0) {
+                HandleAuth(clientId, doc);
+            } else if (strcmp(type, "is_auth") == 0) {
+                HandleIsAuth(clientId);
+            } else if (strcmp(type, "ping") == 0) {
+                HandlePing(clientId);
+            } else if (strcmp(type, "set_web_logging") == 0) {
+                HandleSetWebLoggingFlag(clientId, doc);
+            } else {
+                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
+            }
+        }
     }
 }
 
@@ -356,6 +358,10 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     }
 }
 
+void GFWebSocket::SendWebLog(String message) {
+    // TODO
+}
+
 void GFWebSocket::HandleStart(uint8_t clientId) {
     GoalfinderApp::GetInstance()->SetIsSoundEnabled(true);
     JsonDocument doc;
@@ -468,3 +474,20 @@ void GFWebSocket::HandlePing(uint8_t clientId) {
     SendJson(clientId, doc);
 }
 
+/**
+    Apply flag from ws
+    {
+        "type": "set_flag",
+        "value": true or false
+    }
+*/
+void GFWebSocket::HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc) {
+    bool value = doc["value"].as<bool>();
+    webLogFlag = value;
+    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Flag set to %s", flagSet ? "true" : "false");
+
+    JsonDocument response;
+    response["type"] = "set_web_logging_ack";
+    response["value"] = value;
+    SendJson(clientId, response);
+}
