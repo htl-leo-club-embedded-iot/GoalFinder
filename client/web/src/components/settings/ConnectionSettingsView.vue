@@ -12,6 +12,8 @@ const settings = useSettingsStore();
 
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 63;
+const DEVICE_NAME_MIN_LENGTH = 8;
+const DEVICE_NAME_MAX_LENGTH = 32;
 
 const connectionModal = useTemplateRef<any>("connectionModal");
 const dontShowAgain = ref(false);
@@ -32,6 +34,10 @@ const devicePasswordDraft = ref("");
 const devicePasswordPresent = computed(() => originalDevicePassword.value !== "" && !showDevicePasswordInput.value);
 const canSubmitDevicePassword = computed(() => {
   return devicePasswordDraft.value.length >= PASSWORD_MIN_LENGTH && devicePasswordDraft.value.length <= PASSWORD_MAX_LENGTH;
+});
+const deviceNameDraft = ref("");
+const canSubmitDeviceName = computed(() => {
+  return deviceNameDraft.value.length >= DEVICE_NAME_MIN_LENGTH && deviceNameDraft.value.length <= DEVICE_NAME_MAX_LENGTH;
 });
 
 onMounted(() => {
@@ -86,24 +92,28 @@ function toggleDevicePasswordVisibility() {
   showDevicePassword.value = !showDevicePassword.value;
 }
 
-function submitWifiPassword() {
-  if (!canSubmitWifiPassword.value) {
-    return;
+function submitDeviceName() {
+  if (canSubmitDeviceName.value) {    
+    settings.deviceName = deviceNameDraft.value;
+    markConnectionSettingsEdited();
+    onPrimaryEnter();
   }
+}
 
-  settings.wifiPassword = wifiPasswordDraft.value;
-  markConnectionSettingsEdited();
-  onPrimaryEnter();
+function submitWifiPassword() {
+  if (canSubmitWifiPassword.value) {    
+    settings.wifiPassword = wifiPasswordDraft.value;
+    markConnectionSettingsEdited();
+    onPrimaryEnter();
+  }
 }
 
 function submitDevicePassword() {
-  if (!canSubmitDevicePassword.value) {
-    return;
+  if (canSubmitDevicePassword.value) { 
+    settings.devicePassword = devicePasswordDraft.value;
+    markConnectionSettingsEdited();
+    onPrimaryEnter();
   }
-
-  settings.devicePassword = devicePasswordDraft.value;
-  markConnectionSettingsEdited();
-  onPrimaryEnter();
 }
 
 function openConnectionModal() {
@@ -119,6 +129,7 @@ function closeConnectionModal(restart: boolean) {
   originalWifiPassword.value = settings.wifiPassword || "";
   originalDevicePassword.value = settings.devicePassword || "";
   wifiPasswordDraft.value = settings.wifiPassword || "";
+  deviceNameDraft.value = settings.deviceName || "";
   devicePasswordDraft.value = settings.devicePassword || "";
   showWifiPasswordInput.value = false;
   showWifiPassword.value = false;
@@ -152,10 +163,32 @@ function onPrimaryEnter() {
 
 <template>
   <form id="general-input" autocomplete="off">
-    <InputForm v-model="settings.deviceName" :label="$t('word.device_name')"
-           :placeholder="$t('description.device_name_description')" type="text"
-        name="deviceName" autocomplete="off" @update:modelValue="markConnectionSettingsEdited" @enter="onPrimaryEnter" @blur="onPrimaryEnter"/>
-               
+    <div class="password-field">
+      <label for="deviceNameInput">{{ $t('word.device_name') }}</label>
+      <div class="password-row">
+        <input
+          id="deviceNameInput"
+          v-model="deviceNameDraft"
+          :placeholder="$t('description.device_name_description')"
+          minlength="8"
+          maxlength="35"
+          pattern="^[a-zA-Z0-9_ ]{8,35}$|^$"
+          name="deviceName"
+          @input="markConnectionSettingsEdited"
+        />
+        <Button
+          class="control-btn password-submit-btn"
+          :class="{ 'password-submit-btn-ready': canSubmitDeviceName }"
+          :disabled="!canSubmitDeviceName"
+          aria-label="Enter device name"
+          type="button"
+          @click="submitDeviceName"
+        >
+          <KeyEnterIcon class="password-submit-icon" />
+        </Button>
+      </div>
+    </div>
+
     <div class="password-field">
       <label for="wifiPasswordInput">{{ $t('word.ssid_password') }}</label>
       <div class="password-row" v-show="!wifiPasswordPresent">
@@ -172,6 +205,7 @@ function onPrimaryEnter() {
           @input="markConnectionSettingsEdited"
           @keyup.enter="submitWifiPassword"
         />
+        
         <Button class="control-btn password-toggle-btn"
           type="button" :aria-label="showWifiPassword ? $t('word.hide') : $t('word.show')"
           @click="toggleWifiPasswordVisibility">
