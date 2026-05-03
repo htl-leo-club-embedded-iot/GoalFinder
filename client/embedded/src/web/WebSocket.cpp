@@ -100,9 +100,11 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
                 SendJson(clientId, doc);
             }
             break;
+
         case WStype_DISCONNECTED:
             Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
             break;
+
         case WStype_ERROR:
             if (payload && length > 0) {
                 Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
@@ -110,11 +112,12 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
                 Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
             }
             break;
+
         case WStype_TEXT:
             HandleMessage(clientId, payload, length);
             break;
-        default:
-            break;
+
+        default: break;
     }
 }
 
@@ -227,130 +230,130 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
 
 void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     const char* key = doc["key"];
-    if (!key) return;
+    if (key) {        
+        Settings* settings = Settings::GetInstance();
+        GoalfinderApp* app = GoalfinderApp::GetInstance();
+        
+        JsonDocument response;
+        response["type"] = "setting_ack";
+        response["key"] = key;
+        
+        if (strcmp(key, "deviceName") == 0) {
+            settings->SetDeviceName(doc["value"].as<String>());
+            response["value"] = settings->GetDeviceName();
+        } else if (strcmp(key, "wifiPassword") == 0) {
+            if (!doc["value"].isNull()) {
+                settings->SetWifiPassword(doc["value"].as<String>());
+            }
+        } else if (strcmp(key, "devicePassword") == 0) {
+            if (!doc["value"].isNull()) {
+                settings->SetDevicePassword(doc["value"].as<String>());
+            }
+        } else if (strcmp(key, "vibrationSensorSensitivity") == 0) {
+            settings->SetVibrationSensorSensitivity(doc["value"].as<int>());
+            response["value"] = settings->GetVibrationSensorSensitivity();
+        } else if (strcmp(key, "ballHitDetectionDistance") == 0) {
+            settings->SetBallHitDetectionDistance(doc["value"].as<int>());
+            response["value"] = settings->GetBallHitDetectionDistance();
+        } else if (strcmp(key, "distanceOnlyHitDetection") == 0) {
+            settings->SetDistanceOnlyHitDetection(doc["value"].as<bool>());
+            response["value"] = settings->GetDistanceOnlyHitDetection();
+        } else if (strcmp(key, "volume") == 0) {
+            settings->SetVolume(doc["value"].as<int>());
+            response["value"] = settings->GetVolume();
+        } else if (strcmp(key, "metronomeSound") == 0) {
+            settings->SetMetronomeSound(doc["value"].as<int>());
+            response["value"] = settings->GetMetronomeSound();
+        } else if (strcmp(key, "hitSound") == 0) {
+            settings->SetHitSound(doc["value"].as<int>());
+            response["value"] = settings->GetHitSound();
+        } else if (strcmp(key, "waitingSound") == 0) {
+            settings->SetWaitingSound(doc["value"].as<int>());
+            response["value"] = settings->GetWaitingSound();
+        } else if (strcmp(key, "missSound") == 0) {
+            settings->SetMissSound(doc["value"].as<int>());
+            response["value"] = settings->GetMissSound();
+        } else if (strcmp(key, "metSoundDelay") == 0) {
+            settings->SetMetronomeTiming(doc["value"].as<int>());
+            response["value"] = settings->GetMetronomeTiming();
+        } else if (strcmp(key, "ledMode") == 0) {
+            settings->SetLedMode((LedMode)doc["value"].as<int>());
+            response["value"] = (int)settings->GetLedMode();
+        } else if (strcmp(key, "ledBrightness") == 0) {
+            settings->SetLedBrightness(doc["value"].as<int>());
+            response["value"] = settings->GetLedBrightness();
+        } else if (strcmp(key, "afterHitTimeout") == 0) {
+            settings->SetAfterHitTimeout(doc["value"].as<int>());
+            response["value"] = settings->GetAfterHitTimeout();
+        } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
+            settings->SetAdvancedSettingsEnabled(doc["value"].as<bool>());
+            response["value"] = settings->AdvancedSettingsEnabled();
+        } else if (strcmp(key, "extNW") == 0 || strcmp(key, "useExternalNW") == 0) {
+            settings->SetUseExternalNW(doc["value"].as<bool>());
+            response["value"] = settings->GetUseExternalNW();
+        } else if (strcmp(key, "extNWSSID") == 0) {
+            settings->SetExternalNW_SSID(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_SSID();
+        } else if (strcmp(key, "extNWUseDHCP") == 0) {
+            settings->SetExternalNWE_UseDHCP(doc["value"].as<bool>());
+            response["value"] = settings->GetExternalNWE_UseDHCP();
+        } else if (strcmp(key, "extNWIP") == 0) {
+            settings->SetExternalNW_IP(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_IP();
+        } else if (strcmp(key, "extNWSNM") == 0) {
+            settings->SetExternalNW_SNM(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_SNM();
+        } else if (strcmp(key, "extNWDFG") == 0) {
+            settings->SetExternalNW_DFG(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_DFG();
+        } else if (strcmp(key, "extNWDNSIP") == 0) {
+            settings->SetExternalNW_DNSIP(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_DNSIP();
+        } else if (strcmp(key, "extNWPWD") == 0) {
+            settings->SetExternalNW_PWD(doc["value"].as<String>());
+        } else if (strcmp(key, "extNWAuthMode") == 0) {
+            settings->SetExternalNW_AuthMode(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_AuthMode();
+        } else if (strcmp(key, "extNWEnterpriseIdentity") == 0) {
+            settings->SetExternalNW_EnterpriseIdentity(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterpriseIdentity();
+        } else if (strcmp(key, "extNWEnterpriseUsername") == 0) {
+            settings->SetExternalNW_EnterpriseUsername(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterpriseUsername();
+        } else if (strcmp(key, "extNWEnterpriseAnonymousIdentity") == 0) {
+            settings->SetExternalNW_EnterpriseAnonymousIdentity(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterpriseAnonymousIdentity();
+        } else if (strcmp(key, "extNWEnterprisePassword") == 0) {
+            if (!doc["value"].isNull()) {
+                settings->SetExternalNW_EnterprisePassword(doc["value"].as<String>());
+            }
+        } else if (strcmp(key, "extNWEnterprisePhase2Method") == 0) {
+            settings->SetExternalNW_EnterprisePhase2Method(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterprisePhase2Method();
+        } else if (strcmp(key, "extNWEnterpriseCaCertificate") == 0) {
+            settings->SetExternalNW_EnterpriseCaCertificate(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterpriseCaCertificate();
+        } else if (strcmp(key, "extNWEnterpriseClientCertificate") == 0) {
+            settings->SetExternalNW_EnterpriseClientCertificate(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterpriseClientCertificate();
+        } else if (strcmp(key, "extNWEnterpriseClientPrivateKey") == 0) {
+            settings->SetExternalNW_EnterpriseClientPrivateKey(doc["value"].as<String>());
+            response["value"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
+        } else if (strcmp(key, "DNSEnabled") == 0) {
+            settings->SetDNSEnabled(doc["value"].as<bool>());
+            response["value"] = settings->DNSEnabled();
+        } else if (strcmp(key, "isSoundEnabled") == 0) {
+            bool enabled = doc["value"].as<bool>();
+            app->SetIsSoundEnabled(enabled);
+            response["value"] = enabled;
+        } else {
+            Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown setting key: %s", key);
+            return;
+        }
 
-    Settings* settings = Settings::GetInstance();
-    GoalfinderApp* app = GoalfinderApp::GetInstance();
-    
-    JsonDocument response;
-    response["type"] = "setting_ack";
-    response["key"] = key;
-
-    if (strcmp(key, "deviceName") == 0) {
-        settings->SetDeviceName(doc["value"].as<String>());
-        response["value"] = settings->GetDeviceName();
-    } else if (strcmp(key, "wifiPassword") == 0) {
-        if (!doc["value"].isNull()) {
-            settings->SetWifiPassword(doc["value"].as<String>());
-        }
-    } else if (strcmp(key, "devicePassword") == 0) {
-        if (!doc["value"].isNull()) {
-            settings->SetDevicePassword(doc["value"].as<String>());
-        }
-    } else if (strcmp(key, "vibrationSensorSensitivity") == 0) {
-        settings->SetVibrationSensorSensitivity(doc["value"].as<int>());
-        response["value"] = settings->GetVibrationSensorSensitivity();
-    } else if (strcmp(key, "ballHitDetectionDistance") == 0) {
-        settings->SetBallHitDetectionDistance(doc["value"].as<int>());
-        response["value"] = settings->GetBallHitDetectionDistance();
-    } else if (strcmp(key, "distanceOnlyHitDetection") == 0) {
-        settings->SetDistanceOnlyHitDetection(doc["value"].as<bool>());
-        response["value"] = settings->GetDistanceOnlyHitDetection();
-    } else if (strcmp(key, "volume") == 0) {
-        settings->SetVolume(doc["value"].as<int>());
-        response["value"] = settings->GetVolume();
-    } else if (strcmp(key, "metronomeSound") == 0) {
-        settings->SetMetronomeSound(doc["value"].as<int>());
-        response["value"] = settings->GetMetronomeSound();
-    } else if (strcmp(key, "hitSound") == 0) {
-        settings->SetHitSound(doc["value"].as<int>());
-        response["value"] = settings->GetHitSound();
-    } else if (strcmp(key, "waitingSound") == 0) {
-        settings->SetWaitingSound(doc["value"].as<int>());
-        response["value"] = settings->GetWaitingSound();
-    } else if (strcmp(key, "missSound") == 0) {
-        settings->SetMissSound(doc["value"].as<int>());
-        response["value"] = settings->GetMissSound();
-    } else if (strcmp(key, "metSoundDelay") == 0) {
-        settings->SetMetronomeTiming(doc["value"].as<int>());
-        response["value"] = settings->GetMetronomeTiming();
-    } else if (strcmp(key, "ledMode") == 0) {
-        settings->SetLedMode((LedMode)doc["value"].as<int>());
-        response["value"] = (int)settings->GetLedMode();
-    } else if (strcmp(key, "ledBrightness") == 0) {
-        settings->SetLedBrightness(doc["value"].as<int>());
-        response["value"] = settings->GetLedBrightness();
-    } else if (strcmp(key, "afterHitTimeout") == 0) {
-        settings->SetAfterHitTimeout(doc["value"].as<int>());
-        response["value"] = settings->GetAfterHitTimeout();
-    } else if (strcmp(key, "advancedSettingsEnabled") == 0) {
-        settings->SetAdvancedSettingsEnabled(doc["value"].as<bool>());
-        response["value"] = settings->AdvancedSettingsEnabled();
-    } else if (strcmp(key, "extNW") == 0 || strcmp(key, "useExternalNW") == 0) {
-        settings->SetUseExternalNW(doc["value"].as<bool>());
-        response["value"] = settings->GetUseExternalNW();
-    } else if (strcmp(key, "extNWSSID") == 0) {
-        settings->SetExternalNW_SSID(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_SSID();
-    } else if (strcmp(key, "extNWUseDHCP") == 0) {
-        settings->SetExternalNWE_UseDHCP(doc["value"].as<bool>());
-        response["value"] = settings->GetExternalNWE_UseDHCP();
-    } else if (strcmp(key, "extNWIP") == 0) {
-        settings->SetExternalNW_IP(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_IP();
-    } else if (strcmp(key, "extNWSNM") == 0) {
-        settings->SetExternalNW_SNM(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_SNM();
-    } else if (strcmp(key, "extNWDFG") == 0) {
-        settings->SetExternalNW_DFG(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_DFG();
-    } else if (strcmp(key, "extNWDNSIP") == 0) {
-        settings->SetExternalNW_DNSIP(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_DNSIP();
-    } else if (strcmp(key, "extNWPWD") == 0) {
-        settings->SetExternalNW_PWD(doc["value"].as<String>());
-    } else if (strcmp(key, "extNWAuthMode") == 0) {
-        settings->SetExternalNW_AuthMode(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_AuthMode();
-    } else if (strcmp(key, "extNWEnterpriseIdentity") == 0) {
-        settings->SetExternalNW_EnterpriseIdentity(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterpriseIdentity();
-    } else if (strcmp(key, "extNWEnterpriseUsername") == 0) {
-        settings->SetExternalNW_EnterpriseUsername(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterpriseUsername();
-    } else if (strcmp(key, "extNWEnterpriseAnonymousIdentity") == 0) {
-        settings->SetExternalNW_EnterpriseAnonymousIdentity(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterpriseAnonymousIdentity();
-    } else if (strcmp(key, "extNWEnterprisePassword") == 0) {
-        if (!doc["value"].isNull()) {
-            settings->SetExternalNW_EnterprisePassword(doc["value"].as<String>());
-        }
-    } else if (strcmp(key, "extNWEnterprisePhase2Method") == 0) {
-        settings->SetExternalNW_EnterprisePhase2Method(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterprisePhase2Method();
-    } else if (strcmp(key, "extNWEnterpriseCaCertificate") == 0) {
-        settings->SetExternalNW_EnterpriseCaCertificate(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterpriseCaCertificate();
-    } else if (strcmp(key, "extNWEnterpriseClientCertificate") == 0) {
-        settings->SetExternalNW_EnterpriseClientCertificate(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterpriseClientCertificate();
-    } else if (strcmp(key, "extNWEnterpriseClientPrivateKey") == 0) {
-        settings->SetExternalNW_EnterpriseClientPrivateKey(doc["value"].as<String>());
-        response["value"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
-    } else if (strcmp(key, "DNSEnabled") == 0) {
-        settings->SetDNSEnabled(doc["value"].as<bool>());
-        response["value"] = settings->DNSEnabled();
-    } else if (strcmp(key, "isSoundEnabled") == 0) {
-        bool enabled = doc["value"].as<bool>();
-        app->SetIsSoundEnabled(enabled);
-        response["value"] = enabled;
-    } else {
-        Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown setting key: %s", key);
-        return;
+        Logger::Log("WebSocket", Logger::LogLevel::INFO, "Setting '%s' updated", key);
+        SendJson(clientId, response);
     }
-
-    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Setting '%s' updated", key);
-    SendJson(clientId, response);
 }
 
 void GFWebSocket::HandleStart(uint8_t clientId) {
@@ -388,66 +391,67 @@ void GFWebSocket::HandleAuth(uint8_t clientId, JsonDocument& doc) {
     unsigned long now = millis();
     JsonDocument response;
     response["type"] = "auth_result";
+    bool timedOut = false;
 
+    // Update timeout status
     if (authTimedOut) {
         if (now - authTimeoutStart < AUTH_TIMEOUT_MS) {
             response["success"] = false;
             response["error"] = "Too many attempts. Please wait.";
             response["timeout"] = true;
             SendJson(clientId, response);
-            return;
+            timedOut = true;
         } else {
             authTimedOut = false;
             authAttemptCount = 0;
         }
     }
 
-    int validAttempts = 0;
-    for (int i = 0; i < authAttemptCount; i++) {
-        if (now - authAttempts[i] < AUTH_TIMEOUT_MS) {
-            authAttempts[validAttempts++] = authAttempts[i];
+    if (!timedOut) {
+        int validAttempts = 0;
+        for (int i = 0; i < authAttemptCount; i++) {
+            if (now - authAttempts[i] < AUTH_TIMEOUT_MS) {
+                authAttempts[validAttempts++] = authAttempts[i];
+            }
+        }
+        authAttemptCount = validAttempts;
+
+        if (authAttemptCount >= MAX_AUTH_ATTEMPTS) {
+            authTimedOut = true;
+            authTimeoutStart = now;
+            response["success"] = false;
+            response["error"] = "Too many attempts. Please wait.";
+            response["timeout"] = true;
+            SendJson(clientId, response);
+        } else {
+            authAttempts[authAttemptCount++] = now;
+
+            const char* passwordHash = doc["passwordHash"];
+            if (!passwordHash) {
+                response["success"] = false;
+                response["error"] = "Password hash required";
+                SendJson(clientId, response);
+            } else {
+                String correctPassword = Settings::GetInstance()->GetDevicePassword();
+                String expectedHash;
+                if (!ComputeSha256Hex(correctPassword, expectedHash)) {
+                    Logger::Log("WebSocket", Logger::LogLevel::ERROR, "Failed to compute password hash");
+                    response["success"] = false;
+                    response["error"] = "Authentication unavailable";
+                    SendJson(clientId, response);
+                } else {
+                    if (String(passwordHash).equalsIgnoreCase(expectedHash)) {
+                        response["success"] = true;
+                    } else {
+                        response["success"] = false;
+                        response["error"] = "Invalid password";
+                    }
+
+                    SendJson(clientId, response);
+                }
+            }
         }
     }
-    authAttemptCount = validAttempts;
-
-    if (authAttemptCount >= MAX_AUTH_ATTEMPTS) {
-        authTimedOut = true;
-        authTimeoutStart = now;
-        response["success"] = false;
-        response["error"] = "Too many attempts. Please wait.";
-        response["timeout"] = true;
-        SendJson(clientId, response);
-        return;
-    }
-
-    authAttempts[authAttemptCount++] = now;
-
-    const char* passwordHash = doc["passwordHash"];
-    if (!passwordHash) {
-        response["success"] = false;
-        response["error"] = "Password hash required";
-        SendJson(clientId, response);
-        return;
-    }
-
-    String correctPassword = Settings::GetInstance()->GetDevicePassword();
-    String expectedHash;
-    if (!ComputeSha256Hex(correctPassword, expectedHash)) {
-        Logger::Log("WebSocket", Logger::LogLevel::ERROR, "Failed to compute password hash");
-        response["success"] = false;
-        response["error"] = "Authentication unavailable";
-        SendJson(clientId, response);
-        return;
-    }
-
-    if (String(passwordHash).equalsIgnoreCase(expectedHash)) {
-        response["success"] = true;
-    } else {
-        response["success"] = false;
-        response["error"] = "Invalid password";
-    }
-
-    SendJson(clientId, response);
 }
 
 void GFWebSocket::HandleIsAuth(uint8_t clientId) {
