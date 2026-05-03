@@ -475,6 +475,7 @@ watch(
         :show-label="$t('word.show')"
         :hide-label="$t('word.hide')"
         :submit-aria-label="$t('settings.submit_secret')"
+        :show-submit-button="false"
         input-name="externalNetworkPassword"
         autocomplete="new-password"
         @update:modelValue="onExternalPasswordUpdated"
