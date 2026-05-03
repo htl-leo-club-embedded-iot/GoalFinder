@@ -23,6 +23,7 @@
 
 Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
 QueueHandle_t Logger::logQueue = nullptr;
+QueueHandle_t Logger::webLogQueue = nullptr;
 
 void Logger::Begin(unsigned long baudRate) {
     Serial.begin(baudRate);
@@ -31,6 +32,11 @@ void Logger::Begin(unsigned long baudRate) {
     logQueue = xQueueCreate(50, sizeof(LogEntry*));
     if (logQueue == nullptr) {
         Serial.println("[ERROR][Logger] failed to create log queue");
+    }
+
+    webLogQueue = xQueueCreate(50, sizeof(String*));
+    if (webLogQueue == nullptr) {
+        Serial.println("[ERROR][Logger] failed to create web log queue");
     }
 }
 
@@ -100,14 +106,34 @@ void Logger::Loop() {
     }
 }
 
+void Logger::DrainWebLogQueue() {
+    if (webLogQueue != nullptr) {
+        String* messagePtr = nullptr;
+        while (xQueueReceive(webLogQueue, &messagePtr, 0) == pdTRUE) {
+            if (messagePtr != nullptr) {
+                GFWebSocket& ws = GoalfinderApp::GetInstance()->GetWebSocket();
+                ws.SendWebLog(*messagePtr);
+                delete messagePtr;
+                messagePtr = nullptr;
+            }
+        }
+    }
+}
+
 void Logger::PrintNow(const LogEntry &entry) {
     String out = String("[") + LevelToString(entry.level) + "]";
     if (!entry.file.isEmpty()) {
         out += String("[") + entry.file + "]";
     }
     out += " " + entry.message;
-    GFWebSocket ws = GoalfinderApp::GetInstance()->GetWebSocket();
-    ws.SendWebLog(out);
+
+    if (webLogQueue != nullptr) {
+        String* outPtr = new String(out);
+        if (xQueueSend(webLogQueue, &outPtr, 0) != pdTRUE) {
+            delete outPtr;
+        }
+    }
+
     Serial.println(out);
 }
 

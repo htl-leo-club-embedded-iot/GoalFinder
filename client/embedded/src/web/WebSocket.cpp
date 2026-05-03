@@ -77,6 +77,7 @@ void GFWebSocket::Begin() {
 
 void GFWebSocket::Loop() {
     wsServer.loop();
+    Logger::DrainWebLogQueue();
 }
 
 void GFWebSocket::Task(void* pvParameters) {
@@ -363,6 +364,7 @@ void GFWebSocket::SendWebLog(String message) {
         JsonDocument doc;
         doc["type"] = "log";
         doc["message"] = message;
+        BroadcastJson(doc);
     }
 }
 
