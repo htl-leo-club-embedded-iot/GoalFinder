@@ -189,7 +189,8 @@ void HttpServer::Begin() {
         if (!handled && server.method() == HTTP_OPTIONS) {
             server.sendHeader("Access-Control-Allow-Origin", "*");
             server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+            server.sendHeader("Access-Control-Allow-Headers", "Content-Type");            
+            server.sendHeader("Cache-Control", "max-age=604800");
             server.send(200);
             handled = true;
         }
