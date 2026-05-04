@@ -54,7 +54,7 @@ const openLogs = () => {
         <div>{{ settings.deviceName }}</div>
       </div>
       <div>
-        <div class="property-title">{{ $t("word.curr_version") }}</div>
+        <div class="property-title">{{ $t("word.version") }}</div>
         <div>{{ settings.version }}</div>
       </div>
 
