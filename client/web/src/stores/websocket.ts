@@ -17,7 +17,7 @@
 import { defineStore } from "pinia";
 import { ref, watch } from "vue";
 
-export type EventCallback = () => void;
+export type EventCallback = (data?: any) => void;
 
 export const useWebSocketStore = defineStore("websocket", () => {
     let ws: WebSocket | null = null;
@@ -515,8 +515,11 @@ export const useWebSocketStore = defineStore("websocket", () => {
         eventListeners.get(event)?.delete(callback);
     }
 
-    function emit(event: string, _data?: any): void {
-        eventListeners.get(event)?.forEach((cb) => cb());
+    function emit(event: string, data?: any): void {
+        const listeners = eventListeners.get(event);
+        if (listeners) {
+            listeners.forEach((cb) => cb(data));
+        }
     }
 
 

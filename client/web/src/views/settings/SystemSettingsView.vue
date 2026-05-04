@@ -20,16 +20,22 @@ import Button from "@/components/Button.vue";
 import Checkbox from "@/components/Checkbox.vue";
 import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
+import {useRouter} from "vue-router";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
 import {APP_VERSION} from "@/version";
 
 const settings = useSettingsStore();
 const appVersion = APP_VERSION;
+const router = useRouter();
 
 const updateDialog = useTemplateRef<typeof SoftwareUpdateModal>("updateDialog");
 
 const openUpdateDialog = () => {
   updateDialog.value?.show();
+};
+
+const openLogs = () => {
+  router.push('/settings/logs');
 };
 </script>
 
@@ -69,6 +75,9 @@ const openUpdateDialog = () => {
     <h3>{{ $t("word.advanced") }}</h3>
     <Checkbox v-model="settings.advancedSettingsEnabled" label="settings.advanced" @change="settings.scheduleSave()" />
     <p class="greyed">{{ $t("settings.advanced_desc") }}</p>
+    <div id="logs-button-wrapper" v-show="settings.advancedSettingsEnabled">
+      <Button @click="openLogs" primary>{{ $t("settings.logs") }}</Button>
+    </div>
 
     <h3 id="visit">{{ $t("settings.info") }}</h3>
     <p id="visit-text">{{ $t("settings.more_info") }}<a href="https://goalfinder.github.io/user">{{ $t("settings.doc") }}</a></p>
@@ -105,6 +114,16 @@ h4 {
   align-items: center;
   width: 100%;
   margin-bottom: 0;
+}
+
+#logs-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 0;
+  top: 0;
+  margin-bottom: 1rem;
 }
 
 #device-info {
