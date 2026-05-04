@@ -22,10 +22,8 @@ import {useTemplateRef} from "vue";
 import {useSettingsStore} from "@/stores/settings";
 import {useRouter} from "vue-router";
 import WebAppManager from "@/components/settings/WebAppManager.vue";
-import {APP_VERSION} from "@/version";
 
 const settings = useSettingsStore();
-const appVersion = APP_VERSION;
 const router = useRouter();
 
 const updateDialog = useTemplateRef<typeof SoftwareUpdateModal>("updateDialog");
@@ -59,10 +57,7 @@ const openLogs = () => {
         <div class="property-title">{{ $t("word.curr_version") }}</div>
         <div>{{ settings.version }}</div>
       </div>
-      <div>
-        <div class="property-title">{{ $t("word.web_app_version") }}</div>
-        <div>{{ appVersion }}</div>
-      </div>
+
       <div>
         <div class="property-title">{{ $t("word.mac_address") }}</div>
         <div>{{ settings.macAddress }}</div>

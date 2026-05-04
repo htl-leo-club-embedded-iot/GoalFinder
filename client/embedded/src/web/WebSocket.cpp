@@ -18,7 +18,7 @@
 #include <GoalfinderApp.h>
 #include <mbedtls/sha256.h>
 #include "Settings.h"
-#include "version.h"
+#include "Version.h"
 
 namespace {
 bool ComputeSha256Hex(const String& input, String& output) {
