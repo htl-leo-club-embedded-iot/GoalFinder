@@ -25,11 +25,23 @@ import { useWebSocketStore } from "@/stores/websocket";
  * @component
  */
 const wsStore = useWebSocketStore();
-const logLines = ref<string[]>([]);
+type LogLevel = "ok" | "debug" | "info" | "warn" | "error" | "unknown";
+type LogLine = { text: string; level: LogLevel };
+
+const logLines = ref<LogLine[]>([]);
 const logPanel = ref<HTMLElement | null>(null);
 const MAX_LOG_ENTRIES = 500;
+const isColoringEnabled = ref(true);
 
-function appendLogLine(line: string): void {
+const LOG_LEVEL_MAP: Record<string, LogLevel> = {
+  OK: "ok",
+  DEBUG: "debug",
+  INFO: "info",
+  WARN: "warn",
+  ERROR: "error",
+};
+
+function appendLogLine(line: LogLine): void {
   logLines.value.push(line);
 
   if (logLines.value.length > MAX_LOG_ENTRIES) {
@@ -57,6 +69,31 @@ function normalizeLogMessage(msg: unknown): string {
   return line;
 }
 
+function parseLogLine(line: string): LogLine {
+  let level: LogLevel = "unknown";
+  const match = /^\[([A-Z]+)\]/.exec(line);
+
+  if (match && match[1]) {
+    const normalized = match[1].toUpperCase();
+    const mappedLevel = LOG_LEVEL_MAP[normalized];
+    if (mappedLevel) {
+      level = mappedLevel;
+    }
+  }
+
+  return { text: line, level };
+}
+
+function lineClass(line: LogLine): string {
+  let className = "log-line";
+
+  if (isColoringEnabled.value) {
+    className += ` log-line--${line.level}`;
+  }
+
+  return className;
+}
+
 function setWebLogging(enabled: boolean): void {
   wsStore
     .sendAndWait(
@@ -65,14 +102,14 @@ function setWebLogging(enabled: boolean): void {
       3000
     )
     .catch((error) => {
-      console.warn("[LogView] Failed to toggle log relay:", error);
+      console.warn("Failed to toggle log relay:", error);
     });
 }
 
 function handleLogMessage(msg?: unknown): void {
   const line = normalizeLogMessage(msg);
   if (line) {
-    appendLogLine(line);
+    appendLogLine(parseLogLine(line));
   }
 }
 
@@ -104,9 +141,28 @@ onUnmounted(() => {
 
 <template>
   <Page :title="$t('settings.logs')" class="page">
-      <pre ref="logPanel" class="log-output">{{
-        logLines.length ? logLines.join("\n") : $t("settings.logs_waiting")
-      }}</pre>
+    <div class="log-view">
+      <div ref="logPanel" class="log-output">
+        <div v-if="!logLines.length" class="log-line log-line--empty">
+          {{ $t("settings.logs_waiting") }}
+        </div>
+        <template v-else>
+          <div
+            v-for="(line, index) in logLines"
+            :key="index"
+            :class="lineClass(line)"
+          >
+            {{ line.text }}
+          </div>
+        </template>
+      </div>
+      <div class="log-controls">
+        <label class="log-toggle">
+          <input v-model="isColoringEnabled" type="checkbox" />
+          {{ $t("settings.logs_coloring") }}
+        </label>
+      </div>
+    </div>
   </Page>
 </template>
 
@@ -131,12 +187,20 @@ onUnmounted(() => {
   background: transparent;
 }
 
-.log-output {
-  height: 80vh;
+.log-view {
   width: 90vw;
   margin: 0 auto;
-  background: #000000;
-  color: #e6e6e6;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.log-output {
+  height: 80vh;
+  width: 100%;
+  background: var(--log-background-color);
+  color: var(--log-foreground-color);
   font-family: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Monaco,
     Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.85rem;
@@ -146,5 +210,47 @@ onUnmounted(() => {
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.log-line {
+  white-space: pre-wrap;
+  color: var(--log-foreground-color);
+}
+
+.log-line--empty {
+  color: var(--text-color-secondary);
+}
+
+.log-line--ok {
+  color: var(--log-level-ok);
+}
+
+.log-line--debug {
+  color: var(--log-level-debug);
+}
+
+.log-line--info {
+  color: var(--log-level-info);
+}
+
+.log-line--warn {
+  color: var(--log-level-warn);
+}
+
+.log-line--error {
+  color: var(--log-level-error);
+}
+
+.log-controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.log-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
 }
 </style>
