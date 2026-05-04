@@ -72,7 +72,7 @@ void GFWebSocket::Begin() {
     wsServer.onEvent([this](uint8_t clientId, WStype_t type, uint8_t* payload, size_t length) {
         this->OnEvent(clientId, type, payload, length);
     });
-    Logger::Log("WebSocket", Logger::LogLevel::INFO, "WebSocket server started");
+    Logger::Log("WebSocket", Logger::LogLevel::OK, "WebSocket server started");
 }
 
 void GFWebSocket::Loop() {
@@ -109,9 +109,9 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
 
         case WStype_ERROR:
             if (payload && length > 0) {
-                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
+                Logger::Log("WebSocket", Logger::LogLevel::ERROR, "Client %u socket error: %.*s", clientId, static_cast<int>(length), reinterpret_cast<const char*>(payload));
             } else {
-                Logger::Log("WebSocket", Logger::LogLevel::WARN, "Client %u socket error", clientId);
+                Logger::Log("WebSocket", Logger::LogLevel::ERROR, "Client %u socket error", clientId);
             }
             break;
 
@@ -490,7 +490,6 @@ void GFWebSocket::HandlePing(uint8_t clientId) {
 void GFWebSocket::HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc) {
     bool value = doc["value"].as<bool>();
     webLogFlag = value;
-    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Flag set to %s", webLogFlag ? "true" : "false");
 
     JsonDocument response;
     response["type"] = "set_web_logging_ack";

@@ -96,7 +96,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
         outerIdentity.length(), username.length(), password.length(), caCertificate.length(), clientCertificate.length(), clientPrivateKey.length());
 
     if (username.isEmpty() || password.isEmpty()) {
-        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
             "Enterprise mode requires username and password (usernameEmpty=%s, passwordEmpty=%s)",
             username.isEmpty() ? "true" : "false",
             password.isEmpty() ? "true" : "false");
@@ -104,7 +104,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
     }
 
     if (isConfigured && (hasClientCertificate != hasClientPrivateKey)) {
-        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
             "Enterprise client certificate and private key must be provided together");
         isConfigured = false;
     }
@@ -116,7 +116,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
             reinterpret_cast<const unsigned char*>(outerIdentity.c_str()),
             outerIdentity.length());
         if (result != ESP_OK) {
-            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                 "Failed to set enterprise identity (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
             isConfigured = false;
         }
@@ -126,7 +126,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 reinterpret_cast<const unsigned char*>(username.c_str()),
                 username.length());
             if (result != ESP_OK) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Failed to set enterprise username (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
@@ -137,7 +137,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 reinterpret_cast<const unsigned char*>(password.c_str()),
                 password.length());
             if (result != ESP_OK) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Failed to set enterprise password (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
@@ -148,7 +148,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 reinterpret_cast<const unsigned char*>(caCertificate.c_str()),
                 caCertificate.length() + 1);
             if (result != ESP_OK) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Failed to set enterprise CA certificate (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
@@ -163,7 +163,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 nullptr,
                 0);
             if (result != ESP_OK) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Failed to set enterprise client cert/key (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
@@ -173,7 +173,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
             result = esp_wifi_sta_wpa2_ent_set_ttls_phase2_method(
                 ResolveEnterprisePhase2Method(phase2Method));
             if (result != ESP_OK) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Failed to set enterprise phase2 method (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                 isConfigured = false;
             }
@@ -181,17 +181,17 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
 
         if (isConfigured) {
                 if (!caCertificate.isEmpty() && !LooksLikePem(caCertificate)) {
-                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                         "CA certificate does not appear to be PEM-formatted");
                     isConfigured = false;
                 }
                 if (hasClientCertificate && !LooksLikePem(clientCertificate)) {
-                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                         "Client certificate does not appear to be PEM-formatted");
                     isConfigured = false;
                 }
                 if (hasClientPrivateKey && !LooksLikePem(clientPrivateKey)) {
-                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                         "Client private key does not appear to be PEM-formatted");
                     isConfigured = false;
                 }
@@ -199,7 +199,7 @@ bool ConfigureEnterpriseAuthentication(Settings* settings) {
                 if (isConfigured) {
                     result = esp_wifi_sta_wpa2_ent_enable();
                     if (result != ESP_OK) {
-                        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                             "Failed to enable enterprise auth (err=%d, %s)", static_cast<int>(result), esp_err_to_name(result));
                         isConfigured = false;
                     }
@@ -306,7 +306,7 @@ void WiFiManager::SetupAccessPoint() {
     WiFi.setSleep(false);
 
     dnsServer.start(53, "*", WiFi.softAPIP());
-    Logger::Log("WiFiManager", Logger::LogLevel::INFO, "AP started - SSID: %s, IP: %s",
+    Logger::Log("WiFiManager", Logger::LogLevel::OK, "AP started - SSID: %s, IP: %s",
         ssid.c_str(), WiFi.softAPIP().toString().c_str());
 }
 
@@ -325,13 +325,13 @@ void WiFiManager::SetupExternalNetwork() {
         authMode != EXTERNAL_NETWORK_AUTH_MODE_WPA2_PERSONAL &&
         authMode != EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE
     ) {
-        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
             "Unknown external auth mode '%s', defaulting to WPA2 personal", authMode.c_str());
         authMode = EXTERNAL_NETWORK_AUTH_MODE_WPA2_PERSONAL;
     }
 
     if (ssid.isEmpty()) {
-        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+        Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
             "External SSID is empty, falling back to AP mode");
         fallbackToAccessPoint = true;
     } else {
@@ -356,11 +356,11 @@ void WiFiManager::SetupExternalNetwork() {
             const bool hasDnsServer = ParseIpAddress(settings->GetExternalNW_DNSIP(), dnsServer);
 
             if (!hasStaticIp || !hasSubnetMask || !hasDefaultGateway || !hasDnsServer) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Invalid static external network config (IP/Gateway/Subnet/DNS), falling back to AP mode");
                 fallbackToAccessPoint = true;
             } else if (!WiFi.config(staticIp, defaultGateway, subnetMask, dnsServer)) {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Failed to apply static external network config, falling back to AP mode");
                 fallbackToAccessPoint = true;
             } else {
@@ -389,17 +389,17 @@ void WiFiManager::SetupExternalNetwork() {
                 int ch = WiFi.channel(foundIndex);
                 int rssi = WiFi.RSSI(foundIndex);
                 int enc = WiFi.encryptionType(foundIndex);
-                Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+                Logger::Log("WiFiManager", Logger::LogLevel::OK,
                     "Found SSID '%s' in scan: channel=%d, rssi=%d, enc=%d",
                     ssid.c_str(), ch, rssi, enc);
                 // Channels > 14 indicate 5GHz band on typical WiFi chips.
                 if (ch > 14) {
-                    Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                    Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                         "Target SSID appears to be on 5GHz channel %d; device requires 2.4GHz or a dual-band SSID", ch);
                     fallbackToAccessPoint = true;
                 }
             } else {
-                Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                     "Target SSID '%s' not found in scan results; proceeding (may be hidden)", ssid.c_str());
             }
             WiFi.scanDelete();
@@ -410,7 +410,7 @@ void WiFiManager::SetupExternalNetwork() {
 
                 if (enterpriseMode) {
                     if (!ConfigureEnterpriseAuthentication(settings)) {
-                        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+                        Logger::Log("WiFiManager", Logger::LogLevel::ERROR,
                             "Failed to configure enterprise authentication, falling back to AP mode");
                         fallbackToAccessPoint = true;
                     }

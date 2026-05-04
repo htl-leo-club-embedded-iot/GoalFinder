@@ -44,7 +44,7 @@ void LedController::SetMode(LedMode mode)
         this->mode = mode;
         lastStepTimeMs = 0;
         lastAppliedDuty = 0xFFFF;
-        Logger::Log("LedController", Logger::LogLevel::INFO, "%4.3f: LED mode set to '%d'", millis() / 1000.0, this->mode);
+        Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED mode set to '%d'", millis() / 1000.0, this->mode);
     }
 }
 

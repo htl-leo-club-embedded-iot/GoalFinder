@@ -246,7 +246,7 @@ void HttpServer::Begin() {
     server.onNotFound(webFallbackHandler);
 
     server.begin();
-    Logger::Log("HttpServer", Logger::LogLevel::INFO, "HTTP server started");
+    Logger::Log("HttpServer", Logger::LogLevel::OK, "HTTP server started");
 }
 
 void HttpServer::Loop()
