@@ -44,6 +44,7 @@ onMounted(() => {
   originalDeviceName.value = settings.deviceName || "";
   originalWifiPassword.value = settings.wifiPassword || "";
   originalDevicePassword.value = settings.devicePassword || "";
+  deviceNameDraft.value = settings.deviceName || "";
   wifiPasswordDraft.value = settings.wifiPassword || "";
   devicePasswordDraft.value = settings.devicePassword || "";
   const stored = localStorage.getItem('connectionWarningDontShow');
@@ -57,6 +58,7 @@ watch(
       originalDeviceName.value = deviceName;
       originalWifiPassword.value = wifiPassword;
       originalDevicePassword.value = devicePassword;
+      deviceNameDraft.value = deviceName;
       wifiPasswordDraft.value = wifiPassword;
       devicePasswordDraft.value = devicePassword;
     }
