@@ -19,7 +19,7 @@
 #define ___VERSION_H
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "v0.5.2a"
+#define FIRMWARE_VERSION "0.6.0a"
 #endif
 
 #endif
