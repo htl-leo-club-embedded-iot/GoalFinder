@@ -143,6 +143,76 @@ class Settings : public Singleton<Settings>
         /** Sets the external network password. */
         void SetExternalNW_PWD(String pwd);
 
+        /** Returns if DHCP is to be used for external networks */
+        bool GetExternalNWE_UseDHCP();
+        /** Sets if DHCP is to be used for external networks */
+        void SetExternalNWE_UseDHCP(bool useDHCP);
+
+        /** Returns the manually configured ip address for external networks */
+        String GetExternalNW_IP();
+        /** Sets the manually configured ip address for external networks */
+        void SetExternalNW_IP(String ip);
+
+        /** Returns the manually configured subnet mask for external networks */
+        String GetExternalNW_SNM();
+        /** Sets the manually configured subnet mask for external networks */
+        void SetExternalNW_SNM(String snm);
+
+        /** Returns the manually configured default gateway for external networks */
+        String GetExternalNW_DFG();
+        /** Sets the manually configured default gateway for external networks */
+        void SetExternalNW_DFG(String dfg);
+
+        /** Returns the manually configured DNS server address for external networks */
+        String GetExternalNW_DNSIP();
+        /** Sets the manually configured DNS server address for external networks */
+        void SetExternalNW_DNSIP(String dnsIP);
+
+        /** Returns the external network authentication mode. */
+        String GetExternalNW_AuthMode();
+        /** Sets the external network authentication mode. */
+        void SetExternalNW_AuthMode(String authMode);
+
+        /** Returns the enterprise identity for external network authentication. */
+        String GetExternalNW_EnterpriseIdentity();
+        /** Sets the enterprise identity for external network authentication. */
+        void SetExternalNW_EnterpriseIdentity(String identity);
+
+        /** Returns the enterprise username for external network authentication. */
+        String GetExternalNW_EnterpriseUsername();
+        /** Sets the enterprise username for external network authentication. */
+        void SetExternalNW_EnterpriseUsername(String username);
+
+        /** Returns the enterprise anonymous identity for external network authentication. */
+        String GetExternalNW_EnterpriseAnonymousIdentity();
+        /** Sets the enterprise anonymous identity for external network authentication. */
+        void SetExternalNW_EnterpriseAnonymousIdentity(String anonymousIdentity);
+
+        /** Returns the enterprise password for external network authentication. */
+        String GetExternalNW_EnterprisePassword();
+        /** Sets the enterprise password for external network authentication. */
+        void SetExternalNW_EnterprisePassword(String password);
+
+        /** Returns the enterprise phase 2 method for external network authentication. */
+        String GetExternalNW_EnterprisePhase2Method();
+        /** Sets the enterprise phase 2 method for external network authentication. */
+        void SetExternalNW_EnterprisePhase2Method(String phase2Method);
+
+        /** Returns the enterprise CA certificate for external network authentication. */
+        String GetExternalNW_EnterpriseCaCertificate();
+        /** Sets the enterprise CA certificate for external network authentication. */
+        void SetExternalNW_EnterpriseCaCertificate(String caCertificate);
+
+        /** Returns the enterprise client certificate for external network authentication. */
+        String GetExternalNW_EnterpriseClientCertificate();
+        /** Sets the enterprise client certificate for external network authentication. */
+        void SetExternalNW_EnterpriseClientCertificate(String clientCertificate);
+
+        /** Returns the enterprise client private key for external network authentication. */
+        String GetExternalNW_EnterpriseClientPrivateKey();
+        /** Sets the enterprise client private key for external network authentication. */
+        void SetExternalNW_EnterpriseClientPrivateKey(String clientPrivateKey);
+
         /** Returns the configured device IP address. */
         String GetDeviceIpAddress();
         /** Sets the configured device IP address. */
@@ -232,8 +302,50 @@ class Settings : public Singleton<Settings>
         static const char* keyExternalNW_PWD;
         static const String defaultExternalNW_PWD;
 
-        static const char* keyDeviceIpAddress;
-        static const String defaultDeviceIpAddress;
+        static const char* keyExternalNW_UseDHCP;
+        static const bool defaultExternalNW_UseDHCP;
+
+        static const char* keyExternalNW_IP;
+        static const String defaultExternalNW_IP;
+        
+        static const char* keyExternalNW_SNM;
+        static const String defaultExternalNW_SNM;
+
+        static const char* keyExternalNW_DFG;
+        static const String defaultExternalNW_DFG;
+
+        static const char* keyExternalNW_DNSIP;
+        static const String defaultExternalNW_DNSIP;
+
+        static const char* keyExternalNW_AuthMode;
+        static const String defaultExternalNW_AuthMode;
+
+        static const char* keyExternalNW_EnterpriseIdentity;
+        static const String defaultExternalNW_EnterpriseIdentity;
+
+        static const char* keyExternalNW_EnterpriseUsername;
+        static const String defaultExternalNW_EnterpriseUsername;
+
+        static const char* keyExternalNW_EnterpriseAnonymousIdentity;
+        static const String defaultExternalNW_EnterpriseAnonymousIdentity;
+
+        static const char* keyExternalNW_EnterprisePassword;
+        static const String defaultExternalNW_EnterprisePassword;
+
+        static const char* keyExternalNW_EnterprisePhase2Method;
+        static const String defaultExternalNW_EnterprisePhase2Method;
+
+        static const char* keyExternalNW_EnterpriseCaCertificate;
+        static const String defaultExternalNW_EnterpriseCaCertificate;
+
+        static const char* keyExternalNW_EnterpriseClientCertificate;
+        static const String defaultExternalNW_EnterpriseClientCertificate;
+
+        static const char* keyExternalNW_EnterpriseClientPrivateKey;
+        static const String defaultExternalNW_EnterpriseClientPrivateKey;
+
+        static const char* keyDeviceIP;
+        static const String defaultDeviceIP;
 
         static const char* keySubnetMask;
         static const String defaultSubnetMask;

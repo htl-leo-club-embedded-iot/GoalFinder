@@ -17,7 +17,7 @@
 import { defineStore } from "pinia";
 import { ref, watch } from "vue";
 
-export type EventCallback = () => void;
+export type EventCallback = (data?: any) => void;
 
 export const useWebSocketStore = defineStore("websocket", () => {
     let ws: WebSocket | null = null;
@@ -36,6 +36,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const WS_CONNECT_TIMEOUT_IP_MS = 1400;
     const WS_DNS_FALLBACK_MS = 1200;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
+    const GET_SETTINGS_STRIPPED_KEYS = new Set(["devicePassword", "extNWPWD", "externalNetworkPassword", "extNWEnterprisePassword"]);
+    const SETTINGS_KEY_ALIASES: Record<string, string[]> = {
+        extNW: ["useExternalNW"],
+        extNWUseDHCP: ["extNW_UseDHCP"],
+        extNWIP: ["extNW_IP"],
+        extNWSNM: ["extNW_SNM"],
+        extNWDFG: ["extNW_DFG"],
+        extNWDNSIP: ["extNW_DNSIP"],
+    };
 
     const MAX_RECONNECT_DELAY = 5000;
     const BASE_RECONNECT_DELAY = 500;
@@ -460,8 +469,11 @@ export const useWebSocketStore = defineStore("websocket", () => {
         eventListeners.get(event)?.delete(callback);
     }
 
-    function emit(event: string, _data?: any): void {
-        eventListeners.get(event)?.forEach((cb) => cb());
+    function emit(event: string, data?: any): void {
+        const listeners = eventListeners.get(event);
+        if (listeners) {
+            listeners.forEach((cb) => cb(data));
+        }
     }
 
 

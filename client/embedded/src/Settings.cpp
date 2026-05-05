@@ -85,8 +85,50 @@ const String Settings::defaultExternalNW_SSID = emptyString;
 const char* Settings::keyExternalNW_PWD = "extNWPWD";
 const String Settings::defaultExternalNW_PWD = emptyString;
 
-const char* Settings::keyDeviceIpAddress = "deviceIP";
-const String Settings::defaultDeviceIpAddress = "192.168.4.1";
+const char* Settings::keyExternalNW_UseDHCP = "extNWUseDHCP";
+const bool Settings::defaultExternalNW_UseDHCP = true;
+
+const char* Settings::keyExternalNW_IP = "extNWIP";
+const String Settings::defaultExternalNW_IP = "192.168.4.1";
+
+const char* Settings::keyExternalNW_SNM = "extNWSNM";
+const String Settings::defaultExternalNW_SNM = "255.255.0.0";
+
+const char* Settings::keyExternalNW_DFG = "extNWDFG";
+const String Settings::defaultExternalNW_DFG = "192.168.0.0";
+
+const char* Settings::keyExternalNW_DNSIP = "extNWDNSIP";
+const String Settings::defaultExternalNW_DNSIP = "192.168.0.1";
+
+const char* Settings::keyExternalNW_AuthMode = "extNWAuthMode";
+const String Settings::defaultExternalNW_AuthMode = "wpa2-personal";
+
+const char* Settings::keyExternalNW_EnterpriseIdentity = "extNWIdent";
+const String Settings::defaultExternalNW_EnterpriseIdentity = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseUsername = "extNWUser";
+const String Settings::defaultExternalNW_EnterpriseUsername = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseAnonymousIdentity = "extNWAnonId";
+const String Settings::defaultExternalNW_EnterpriseAnonymousIdentity = emptyString;
+
+const char* Settings::keyExternalNW_EnterprisePassword = "extNWEntPWD";
+const String Settings::defaultExternalNW_EnterprisePassword = emptyString;
+
+const char* Settings::keyExternalNW_EnterprisePhase2Method = "extNWEntPhase2";
+const String Settings::defaultExternalNW_EnterprisePhase2Method = "auto";
+
+const char* Settings::keyExternalNW_EnterpriseCaCertificate = "extNWEntCACert";
+const String Settings::defaultExternalNW_EnterpriseCaCertificate = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseClientCertificate = "extNWClientCrt";
+const String Settings::defaultExternalNW_EnterpriseClientCertificate = emptyString;
+
+const char* Settings::keyExternalNW_EnterpriseClientPrivateKey = "extNWClientKey";
+const String Settings::defaultExternalNW_EnterpriseClientPrivateKey = emptyString;
+
+const char* Settings::keyDeviceIP = "deviceIP";
+const String Settings::defaultDeviceIP = "192.168.4.1";
 
 const char* Settings::keySubnetMask = "subnetMask";
 const String Settings::defaultSubnetMask = "255.255.255.0";
@@ -102,6 +144,46 @@ int ClampSoundIndex(int value, int soundCount) {
 	int maxIndex = max(soundCount - 1, 0);
 	return max(min(value, maxIndex), 0);
 }
+
+bool IsValidExternalNetworkAuthMode(const String& authMode) {
+	bool isValid =
+		authMode == "open" ||
+		authMode == "wpa2-personal" ||
+		authMode == "wpa2-enterprise";
+
+	return isValid;
+}
+
+bool IsValidExternalNetworkPhase2Method(const String& phase2Method) {
+	bool isValid =
+		phase2Method == "auto" ||
+		phase2Method == "mschapv2" ||
+		phase2Method == "gtc";
+
+	return isValid;
+}
+
+String NormalizeExternalNetworkAuthMode(String authMode) {
+	authMode.trim();
+	authMode.toLowerCase();
+
+	if (!IsValidExternalNetworkAuthMode(authMode)) {
+		authMode = "wpa2-personal";
+	}
+
+	return authMode;
+}
+
+String NormalizeExternalNetworkPhase2Method(String phase2Method) {
+	phase2Method.trim();
+	phase2Method.toLowerCase();
+
+	if (!IsValidExternalNetworkPhase2Method(phase2Method)) {
+		phase2Method = "auto";
+	}
+
+	return phase2Method;
+}
 }
 	
 Settings::Settings() :
@@ -113,9 +195,9 @@ Settings::Settings() :
 		return;
 	}
 
-	if (!store.IsKey(keyDeviceIpAddress)) {
-		store.PutString(keyDeviceIpAddress, defaultDeviceIpAddress);
-		Logger::Log("Settings", Logger::LogLevel::WARN, "Missing key '%s'. Using default '%s'", keyDeviceIpAddress, defaultDeviceIpAddress.c_str());
+	if (!store.IsKey(keyDeviceIP)) {
+		store.PutString(keyDeviceIP, defaultDeviceIP);
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Missing key '%s'. Using default '%s'", keyDeviceIP, defaultDeviceIP.c_str());
 	}
 
 	if (!store.IsKey(keySubnetMask)) {
@@ -220,14 +302,19 @@ String Settings::GetDevicePassword() {
 }
 
 void Settings::SetDevicePassword(String devicePassword) {
+	devicePassword.trim();
+
 	if(devicePassword.isEmpty()) {
 		if (store.IsKey(keyDevicePassword)) {
 			store.Remove(keyDevicePassword);
+			SetModified();
 		}
-	} else {
+	} else if (devicePassword.length() >= 8 && devicePassword.length() < 63) {
 		store.PutString(keyDevicePassword, devicePassword);
+		SetModified();
+	} else {
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid device password length. Expected 8-63 characters.");
 	}
-	SetModified();
 }
 
 String Settings::GetWifiPassword() {
@@ -384,27 +471,193 @@ void Settings::SetExternalNW_PWD(String pwd) {
 String Settings::GetDeviceIpAddress() {
 	String ip;
 
-	if (!store.IsKey(keyDeviceIpAddress)) {
+	if (!store.IsKey(keyDeviceIP)) {
 	    Logger::Log("Settings", Logger::LogLevel::WARN,
 	        "Missing key '%s'. Using default '%s'",
-	        keyDeviceIpAddress, defaultDeviceIpAddress.c_str());
+	        keyDeviceIP, defaultDeviceIP.c_str());
 	} else {
-	    ip = store.GetString(keyDeviceIpAddress, defaultDeviceIpAddress);
+	    ip = store.GetString(keyDeviceIP, defaultDeviceIP);
 	    ip.trim();
 	    if (ip.isEmpty()) {
 	        Logger::Log("Settings", Logger::LogLevel::WARN,
 	            "Invalid empty value for '%s'. Using default '%s'",
-	            keyDeviceIpAddress, defaultDeviceIpAddress.c_str());
+	            keyDeviceIP, defaultDeviceIP.c_str());
 	    }
 	}
 
-	const String result = ip.isEmpty() ? defaultDeviceIpAddress : ip;
+	const String result = ip.isEmpty() ? defaultDeviceIP : ip;
 
-	if (result == defaultDeviceIpAddress) {
-	    store.PutString(keyDeviceIpAddress, defaultDeviceIpAddress);
+	if (result == defaultDeviceIP) {
+	    store.PutString(keyDeviceIP, defaultDeviceIP);
 	}
 
 	return result;
+}
+
+void Settings::SetExternalNWE_UseDHCP(bool useDHCP) {
+	store.PutInt(keyExternalNW_UseDHCP, (int)useDHCP);
+	SetModified();
+}
+
+bool Settings::GetExternalNWE_UseDHCP() {
+	return (bool)store.GetInt(keyExternalNW_UseDHCP, (int)defaultExternalNW_UseDHCP);
+}
+
+String Settings::GetExternalNW_IP() {
+	return store.IsKey(keyExternalNW_IP) ? store.GetString(keyExternalNW_IP, defaultExternalNW_IP) : defaultExternalNW_IP;
+}
+
+void Settings::SetExternalNW_IP(String ip) {
+	store.PutString(keyExternalNW_IP, ip);
+	SetModified();
+}
+
+String Settings::GetExternalNW_SNM() {
+	return store.IsKey(keyExternalNW_SNM) ? store.GetString(keyExternalNW_SNM, defaultExternalNW_SNM) : defaultExternalNW_SNM;
+}
+
+void Settings::SetExternalNW_SNM(String snm) {
+	store.PutString(keyExternalNW_SNM, snm);
+	SetModified();
+}
+
+String Settings::GetExternalNW_DFG() {
+	return store.IsKey(keyExternalNW_DFG) ? store.GetString(keyExternalNW_DFG, defaultExternalNW_DFG) : defaultExternalNW_DFG;
+}
+
+void Settings::SetExternalNW_DFG(String dfg) {
+	store.PutString(keyExternalNW_DFG, dfg);
+	SetModified();
+}
+
+String Settings::GetExternalNW_DNSIP() {
+	return store.IsKey(keyExternalNW_DNSIP) ? store.GetString(keyExternalNW_DNSIP, defaultExternalNW_DNSIP) : defaultExternalNW_DNSIP;
+}
+
+void Settings::SetExternalNW_DNSIP(String dnsIP) {
+	store.PutString(keyExternalNW_DNSIP, dnsIP);
+	SetModified();
+}
+
+String Settings::GetExternalNW_AuthMode() {
+	String authMode = store.IsKey(keyExternalNW_AuthMode)
+		? store.GetString(keyExternalNW_AuthMode, defaultExternalNW_AuthMode)
+		: defaultExternalNW_AuthMode;
+
+	return NormalizeExternalNetworkAuthMode(authMode);
+}
+
+void Settings::SetExternalNW_AuthMode(String authMode) {
+	store.PutString(keyExternalNW_AuthMode, NormalizeExternalNetworkAuthMode(authMode));
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseIdentity() {
+	return store.IsKey(keyExternalNW_EnterpriseIdentity)
+		? store.GetString(keyExternalNW_EnterpriseIdentity, defaultExternalNW_EnterpriseIdentity)
+		: defaultExternalNW_EnterpriseIdentity;
+}
+
+void Settings::SetExternalNW_EnterpriseIdentity(String identity) {
+	identity.trim();
+	store.PutString(keyExternalNW_EnterpriseIdentity, identity);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseUsername() {
+	return store.IsKey(keyExternalNW_EnterpriseUsername)
+		? store.GetString(keyExternalNW_EnterpriseUsername, defaultExternalNW_EnterpriseUsername)
+		: defaultExternalNW_EnterpriseUsername;
+}
+
+void Settings::SetExternalNW_EnterpriseUsername(String username) {
+	username.trim();
+	store.PutString(keyExternalNW_EnterpriseUsername, username);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseAnonymousIdentity() {
+	return store.IsKey(keyExternalNW_EnterpriseAnonymousIdentity)
+		? store.GetString(keyExternalNW_EnterpriseAnonymousIdentity, defaultExternalNW_EnterpriseAnonymousIdentity)
+		: defaultExternalNW_EnterpriseAnonymousIdentity;
+}
+
+void Settings::SetExternalNW_EnterpriseAnonymousIdentity(String anonymousIdentity) {
+	anonymousIdentity.trim();
+	store.PutString(keyExternalNW_EnterpriseAnonymousIdentity, anonymousIdentity);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterprisePassword() {
+	return store.IsKey(keyExternalNW_EnterprisePassword)
+		? store.GetString(keyExternalNW_EnterprisePassword, defaultExternalNW_EnterprisePassword)
+		: defaultExternalNW_EnterprisePassword;
+}
+
+void Settings::SetExternalNW_EnterprisePassword(String password) {
+	password.trim();
+
+	if(password.isEmpty())
+	{
+		if (store.IsKey(keyExternalNW_EnterprisePassword)) {
+			store.Remove(keyExternalNW_EnterprisePassword);
+			SetModified();
+		}
+	} else if (password.length() >= 8 && password.length() < 64) {
+		store.PutString(keyExternalNW_EnterprisePassword, password);
+		SetModified();
+	} else {
+		Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid enterprise password length. Expected 8-63 characters.");
+	}
+}
+
+String Settings::GetExternalNW_EnterprisePhase2Method() {
+	String phase2Method = store.IsKey(keyExternalNW_EnterprisePhase2Method)
+		? store.GetString(keyExternalNW_EnterprisePhase2Method, defaultExternalNW_EnterprisePhase2Method)
+		: defaultExternalNW_EnterprisePhase2Method;
+
+	return NormalizeExternalNetworkPhase2Method(phase2Method);
+}
+
+void Settings::SetExternalNW_EnterprisePhase2Method(String phase2Method) {
+	store.PutString(keyExternalNW_EnterprisePhase2Method, NormalizeExternalNetworkPhase2Method(phase2Method));
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseCaCertificate() {
+	return store.IsKey(keyExternalNW_EnterpriseCaCertificate)
+		? store.GetString(keyExternalNW_EnterpriseCaCertificate, defaultExternalNW_EnterpriseCaCertificate)
+		: defaultExternalNW_EnterpriseCaCertificate;
+}
+
+void Settings::SetExternalNW_EnterpriseCaCertificate(String caCertificate) {
+	caCertificate.trim();
+	store.PutString(keyExternalNW_EnterpriseCaCertificate, caCertificate);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseClientCertificate() {
+	return store.IsKey(keyExternalNW_EnterpriseClientCertificate)
+		? store.GetString(keyExternalNW_EnterpriseClientCertificate, defaultExternalNW_EnterpriseClientCertificate)
+		: defaultExternalNW_EnterpriseClientCertificate;
+}
+
+void Settings::SetExternalNW_EnterpriseClientCertificate(String clientCertificate) {
+	clientCertificate.trim();
+	store.PutString(keyExternalNW_EnterpriseClientCertificate, clientCertificate);
+	SetModified();
+}
+
+String Settings::GetExternalNW_EnterpriseClientPrivateKey() {
+	return store.IsKey(keyExternalNW_EnterpriseClientPrivateKey)
+		? store.GetString(keyExternalNW_EnterpriseClientPrivateKey, defaultExternalNW_EnterpriseClientPrivateKey)
+		: defaultExternalNW_EnterpriseClientPrivateKey;
+}
+
+void Settings::SetExternalNW_EnterpriseClientPrivateKey(String clientPrivateKey) {
+	clientPrivateKey.trim();
+	store.PutString(keyExternalNW_EnterpriseClientPrivateKey, clientPrivateKey);
+	SetModified();
 }
 
 void Settings::SetDeviceIpAddress(String ip) {
@@ -414,7 +667,7 @@ void Settings::SetDeviceIpAddress(String ip) {
 		if (!parsedIp.fromString(ip)) {
 			Logger::Log("Settings", Logger::LogLevel::WARN, "Ignoring invalid device IP '%s'", ip.c_str());
 		} else {
-			store.PutString(keyDeviceIpAddress, ip);
+			store.PutString(keyDeviceIP, ip);
 			SetModified();
 		}
 	}

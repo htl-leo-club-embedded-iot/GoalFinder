@@ -19,7 +19,8 @@ import {ref} from "vue";
 import {useWebSocketStore} from "@/stores/websocket";
 
 const API_URL = "/api";
-const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword", "extNWPWD"]);
+const SECRET_SETTING_KEYS = new Set(["devicePassword", "wifiPassword", "extNWPWD", "extNWEnterprisePassword"]);
+const SECRET_PRESENT_PLACEHOLDER = "***";
 
 export const useSettingsStore = defineStore("settings", () => {
     let isLoading = false;
@@ -65,8 +66,23 @@ export const useSettingsStore = defineStore("settings", () => {
     const version = ref("");
     const advancedSettingsEnabled = ref(false);
     const dnsEnabled = ref(true);
+    const externalNetworkEnabled = ref(false);
     const externalNetworkSsid = ref("");
     const externalNetworkPassword = ref("");
+    const externalNetworkUseDhcp = ref(true);
+    const externalNetworkIp = ref("");
+    const externalNetworkSubnetMask = ref("");
+    const externalNetworkDefaultGateway = ref("");
+    const externalNetworkDnsIp = ref("");
+    const externalNetworkAuthMode = ref("wpa2-personal");
+    const externalNetworkEnterpriseIdentity = ref("");
+    const externalNetworkEnterpriseUsername = ref("");
+    const externalNetworkEnterpriseAnonymousIdentity = ref("");
+    const externalNetworkEnterprisePassword = ref("");
+    const externalNetworkEnterprisePhase2Method = ref("auto");
+    const externalNetworkEnterpriseCaCertificate = ref("");
+    const externalNetworkEnterpriseClientCertificate = ref("");
+    const externalNetworkEnterpriseClientPrivateKey = ref("");
 
     const refreshAvailableNetworks = () => {};
     const refreshAvailableBluetoothDevices = () => {};
@@ -92,14 +108,44 @@ export const useSettingsStore = defineStore("settings", () => {
             isSoundEnabled: isSoundEnabled.value,
             advancedSettingsEnabled: advancedSettingsEnabled.value,
             DNSEnabled: dnsEnabled.value,
+            extNW: externalNetworkEnabled.value,
             extNWSSID: externalNetworkSsid.value,
             extNWPWD: externalNetworkPassword.value,
+            extNWUseDHCP: externalNetworkUseDhcp.value,
+            extNWIP: externalNetworkIp.value,
+            extNWSNM: externalNetworkSubnetMask.value,
+            extNWDFG: externalNetworkDefaultGateway.value,
+            extNWDNSIP: externalNetworkDnsIp.value,
+            extNWAuthMode: externalNetworkAuthMode.value,
+            extNWEnterpriseIdentity: externalNetworkEnterpriseIdentity.value,
+            extNWEnterpriseUsername: externalNetworkEnterpriseUsername.value,
+            extNWEnterpriseAnonymousIdentity: externalNetworkEnterpriseAnonymousIdentity.value,
+            extNWEnterprisePassword: externalNetworkEnterprisePassword.value,
+            extNWEnterprisePhase2Method: externalNetworkEnterprisePhase2Method.value,
+            extNWEnterpriseCaCertificate: externalNetworkEnterpriseCaCertificate.value,
+            extNWEnterpriseClientCertificate: externalNetworkEnterpriseClientCertificate.value,
+            extNWEnterpriseClientPrivateKey: externalNetworkEnterpriseClientPrivateKey.value,
         };
     }
 
     /** Apply settings data from server response */
     function applySettingsData(json: Record<string, any>): void {
+        const hasWifiPassword = json["wifiPasswordSet"] === true;
+        const hasDevicePassword = json["devicePasswordSet"] === true;
+        const hasExternalNetworkPassword = json["extNWPasswordSet"] === true;
+        const hasEnterprisePassword = json["extNWEnterprisePasswordSet"] === true;
+
         deviceName.value = json["deviceName"] ?? deviceName.value;
+        if (Object.prototype.hasOwnProperty.call(json, "devicePassword")) {
+            devicePassword.value = json["devicePassword"] ?? devicePassword.value;
+        } else {
+            devicePassword.value = hasDevicePassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
+        if (Object.prototype.hasOwnProperty.call(json, "wifiPassword")) {
+            wifiPassword.value = json["wifiPassword"] ?? wifiPassword.value;
+        } else {
+            wifiPassword.value = hasWifiPassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
         volume.value = json["volume"] ?? volume.value;
         metronomeSound.value = json["metronomeSound"] ?? metronomeSound.value;
         hitSound.value = json["hitSound"] ?? hitSound.value;
@@ -117,7 +163,31 @@ export const useSettingsStore = defineStore("settings", () => {
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
         advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
         dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
+        externalNetworkEnabled.value = json["extNW"] ?? json["useExternalNW"] ?? externalNetworkEnabled.value;
         externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
+        if (Object.prototype.hasOwnProperty.call(json, "extNWPWD")) {
+            externalNetworkPassword.value = json["extNWPWD"] ?? externalNetworkPassword.value;
+        } else {
+            externalNetworkPassword.value = hasExternalNetworkPassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
+        externalNetworkUseDhcp.value = json["extNWUseDHCP"] ?? externalNetworkUseDhcp.value;
+        externalNetworkIp.value = json["extNWIP"] ?? externalNetworkIp.value;
+        externalNetworkSubnetMask.value = json["extNWSNM"] ?? externalNetworkSubnetMask.value;
+        externalNetworkDefaultGateway.value = json["extNWDFG"] ?? externalNetworkDefaultGateway.value;
+        externalNetworkDnsIp.value = json["extNWDNSIP"] ?? externalNetworkDnsIp.value;
+        externalNetworkAuthMode.value = json["extNWAuthMode"] ?? externalNetworkAuthMode.value;
+        externalNetworkEnterpriseIdentity.value = json["extNWEnterpriseIdentity"] ?? externalNetworkEnterpriseIdentity.value;
+        externalNetworkEnterpriseUsername.value = json["extNWEnterpriseUsername"] ?? externalNetworkEnterpriseUsername.value;
+        externalNetworkEnterpriseAnonymousIdentity.value = json["extNWEnterpriseAnonymousIdentity"] ?? externalNetworkEnterpriseAnonymousIdentity.value;
+        if (Object.prototype.hasOwnProperty.call(json, "extNWEnterprisePassword")) {
+            externalNetworkEnterprisePassword.value = json["extNWEnterprisePassword"] ?? externalNetworkEnterprisePassword.value;
+        } else {
+            externalNetworkEnterprisePassword.value = hasEnterprisePassword ? SECRET_PRESENT_PLACEHOLDER : "";
+        }
+        externalNetworkEnterprisePhase2Method.value = json["extNWEnterprisePhase2Method"] ?? externalNetworkEnterprisePhase2Method.value;
+        externalNetworkEnterpriseCaCertificate.value = json["extNWEnterpriseCaCertificate"] ?? externalNetworkEnterpriseCaCertificate.value;
+        externalNetworkEnterpriseClientCertificate.value = json["extNWEnterpriseClientCertificate"] ?? externalNetworkEnterpriseClientCertificate.value;
+        externalNetworkEnterpriseClientPrivateKey.value = json["extNWEnterpriseClientPrivateKey"] ?? externalNetworkEnterpriseClientPrivateKey.value;
 
         // Update LED mode string
         const ledModeMapping: { [key: number]: string } = {
@@ -303,7 +373,22 @@ export const useSettingsStore = defineStore("settings", () => {
         updateFirmware,
         advancedSettingsEnabled,
         dnsEnabled,
+        externalNetworkEnabled,
         externalNetworkSsid,
-        externalNetworkPassword
+        externalNetworkPassword,
+        externalNetworkUseDhcp,
+        externalNetworkIp,
+        externalNetworkSubnetMask,
+        externalNetworkDefaultGateway,
+        externalNetworkDnsIp,
+        externalNetworkAuthMode,
+        externalNetworkEnterpriseIdentity,
+        externalNetworkEnterpriseUsername,
+        externalNetworkEnterpriseAnonymousIdentity,
+        externalNetworkEnterprisePassword,
+        externalNetworkEnterprisePhase2Method,
+        externalNetworkEnterpriseCaCertificate,
+        externalNetworkEnterpriseClientCertificate,
+        externalNetworkEnterpriseClientPrivateKey,
     };
 });

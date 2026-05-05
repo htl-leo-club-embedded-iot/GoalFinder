@@ -32,7 +32,7 @@
     padding: 0.5rem;
     border-radius: var(--corner-radius);
     border: 2px solid var(--border-color);
-    background: transparent;
+    background: var(--surface-transparent);
     font-size: inherit;
     transition: 0.4s;
     color: var(--text-color);
@@ -47,8 +47,8 @@
 
   .primary {
     background: var(--accent-color);
-    color: white;
-    border: 2px solid transparent;
+    color: var(--accent-contrast-color);
+    border: 2px solid var(--surface-transparent);
   }
 
   .primary:hover {
