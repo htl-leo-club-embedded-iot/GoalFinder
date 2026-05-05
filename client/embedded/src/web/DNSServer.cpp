@@ -214,11 +214,7 @@ void GFDNSServer::HandlePacket() {
                         _udp.write(rsp, rLen);
                         _udp.endPacket();
 
-                        if (isKnownHost) {
-                            Logger::Log("DNSServer", Logger::LogLevel::INFO,
-                                "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(),
-                                _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
-                        }
+                        Logger::Log("DNSServer", Logger::LogLevel::OK, "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(), _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
                     } else if (isKnownHost && isClassIN) {
                         // Return NOERROR/NODATA for non-A queries (e.g. AAAA/HTTPS)
                         // so mobile resolvers quickly continue with A lookups.

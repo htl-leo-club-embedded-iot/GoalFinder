@@ -73,14 +73,6 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
-      - name: Upload Coverage Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: embedded-function-coverage
-          path: |
-            client/embedded/coverage-functions.txt
-            client/embedded/coverage-summary.json
-
       - name: Build Firmware
         run: pio run -t mergebin -e wemos_d1_mini32
 
@@ -95,9 +87,3 @@ jobs:
         with:
           files: |
             client/embedded/.pio/build/wemos_d1_mini32/system.gfpkg
-
-      #- name: Upload Firmware
-       # uses: actions/upload-artifact@v4
-        #with:
-         # path: .pio/build/wemos_d1_mini32/firmware.bin
-          #name: firmware

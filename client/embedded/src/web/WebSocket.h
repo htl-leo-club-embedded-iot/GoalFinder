@@ -43,13 +43,18 @@ public:
     /** Send a miss event to all connected clients */
     void SendMissEvent();
 
+    /** Send a websocket relaid log message */
+    void SendWebLog(String message);
+
     /** FreeRTOS task entry point */
     static void Task(void* pvParameters);
 
 private:
     WebSocketsServer wsServer;
 
-    // Rate limiting for auth
+    bool webLogFlag;
+
+    /** Rate limiting for auth */
     static const int MAX_AUTH_ATTEMPTS = 5;
     static const unsigned long AUTH_TIMEOUT_MS = 60000;
     unsigned long authAttempts[MAX_AUTH_ATTEMPTS];
@@ -79,6 +84,7 @@ private:
     void HandleAuth(uint8_t clientId, JsonDocument& doc);
     void HandleIsAuth(uint8_t clientId);
     void HandlePing(uint8_t clientId);
+    void HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc);
 };
 
 #endif

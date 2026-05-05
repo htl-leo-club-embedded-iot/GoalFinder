@@ -49,10 +49,12 @@ public:
     static void LogExtra(const char *file, LogLevel level, const char *fmt, ...);
 
     static void Loop();
+    static void DrainWebLogQueue();
 
 private:
     static LogLevel currentLevel;
     static QueueHandle_t logQueue;
+    static QueueHandle_t webLogQueue;
 
     static const char* LevelToString(LogLevel level);
     static void PrintNow(const LogEntry &entry);

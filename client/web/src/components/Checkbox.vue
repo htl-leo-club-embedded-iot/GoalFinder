@@ -13,7 +13,7 @@
  * All trademarks used in this document are property of their respective owners.
  * ===============================================================================
  */
-
+ 
 <script setup lang="ts">
 defineProps<{
   modelValue: boolean;
@@ -44,6 +44,7 @@ defineEmits<{
 .checkbox-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
   user-select: none;

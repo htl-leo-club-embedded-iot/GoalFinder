@@ -84,6 +84,11 @@ const router = createRouter({
           name: "system",
           component: () => import('@/views/settings/SystemSettingsView.vue')
         },
+        {
+          path: "logs",
+          name: "logs",
+          component: () => import('@/components/settings/LogSettingsView.vue')
+        },
       ]
     },
     {
