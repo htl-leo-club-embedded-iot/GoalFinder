@@ -60,10 +60,23 @@ function applyTheme(theme: 'auto' | 'light' | 'dark') {
   selectedTheme.value = theme;
   localStorage.setItem('theme', theme);
   if (theme === 'auto') {
-    document.documentElement.removeAttribute('data-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const effectiveTheme = prefersDark ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
   } else {
     document.documentElement.setAttribute('data-theme', theme);
   }
+}
+
+function setupSystemThemeListener() {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const handleSystemThemeChange = (e: MediaQueryListEvent | MediaQueryList) => {
+    if (selectedTheme.value === 'auto') {
+      const effectiveTheme = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+    }
+  };
+  mediaQuery.addEventListener('change', handleSystemThemeChange);
 }
 
 function applyLanguage(lang: string) {
@@ -86,6 +99,10 @@ onMounted(() => {
   } else {
     selectedTheme.value = 'auto';
   }
+
+  applyTheme(selectedTheme.value);
+
+  setupSystemThemeListener();
 
   const savedLang = localStorage.getItem('language');
   if (savedLang) {

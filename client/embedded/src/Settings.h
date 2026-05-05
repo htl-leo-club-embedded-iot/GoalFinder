@@ -214,9 +214,9 @@ class Settings : public Singleton<Settings>
         void SetExternalNW_EnterpriseClientPrivateKey(String clientPrivateKey);
 
         /** Returns the configured device IP address. */
-        String GetDeviceAPIPAddress();
+        String GetDeviceIpAddress();
         /** Sets the configured device IP address. */
-        void SetDeviceAPIPAddress(String ip);
+        void SetDeviceIpAddress(String ip);
 
         /** Returns the configured subnet mask. */
         String GetSubnetMask();

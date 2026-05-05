@@ -17,6 +17,7 @@
 #include "HttpServer.h"
 #include <WiFi.h>
 #include <LittleFS.h>
+#include <ctype.h>
 #include <uri/UriGlob.h>
 #include "Settings.h"
 
@@ -33,6 +34,7 @@ namespace {
         int q = uri.indexOf('?');
         int h = uri.indexOf('#');
         int cut = -1;
+        String result = uri;
 
         if (q >= 0 && h >= 0) {
             cut = q < h ? q : h;
@@ -42,11 +44,24 @@ namespace {
             cut = h;
         }
 
-        return cut < 0 ? uri : uri.substring(0, cut);
+        if (cut >= 0) {
+            result = uri.substring(0, cut);
+        }
+
+        return result;
     }
 
     String StripPortFromHost(const String& host) {
-        return host.indexOf(':') > 0 && host.indexOf(':') == host.lastIndexOf(':') ? host.substring(0, host.indexOf(':')) : host;
+        // Keep IPv6 literals (multiple ':') untouched; only strip host:port patterns.
+        int firstColon = host.indexOf(':');
+        int lastColon = host.lastIndexOf(':');
+        String strippedHost = host;
+
+        if (firstColon > 0 && firstColon == lastColon) {
+            strippedHost = host.substring(0, firstColon);
+        }
+
+        return strippedHost;
     }
 
     bool ShouldTryCompressedVariant(const String& filePath) {
@@ -71,11 +86,75 @@ namespace {
             host.remove(host.length() - 1);
         }
 
-        return host;
+        String normalizedHost = host;
+        return normalizedHost;
     }
 
-    bool IsAllowedPortalHost(const String& normalizedHost, const String& apIp) {
-        return normalizedHost.isEmpty() || normalizedHost == apIp || normalizedHost == "goalfinder.local" || normalizedHost.endsWith(".goalfinder.local");
+    String BuildAliasHostFromDeviceName(String deviceName) {
+        String label;
+        String aliasHost;
+        label.reserve(deviceName.length());
+        bool lastWasSeparator = false;
+
+        for (size_t i = 0; i < deviceName.length(); ++i) {
+            unsigned char c = static_cast<unsigned char>(deviceName.charAt(i));
+
+            if (isalnum(c)) {
+                label += static_cast<char>(tolower(c));
+                lastWasSeparator = false;
+                continue;
+            }
+
+            bool isSeparator = c == ' ' || c == '-' || c == '_' || c == '.';
+            if (isSeparator && !lastWasSeparator && !label.isEmpty()) {
+                label += '-';
+                lastWasSeparator = true;
+            }
+        }
+
+        while (label.endsWith("-")) {
+            label.remove(label.length() - 1);
+        }
+
+        if (!label.isEmpty()) {
+            aliasHost = label + ".local";
+        }
+
+        return aliasHost;
+    }
+
+    bool IsHostMatch(const String& normalizedHost, const String& expectedHost) {
+        bool isMatch = false;
+
+        if (!expectedHost.isEmpty()) {
+            if (normalizedHost == expectedHost) {
+                isMatch = true;
+            } else {
+                String hostSuffix = "." + expectedHost;
+                isMatch = normalizedHost.endsWith(hostSuffix);
+            }
+        }
+
+        return isMatch;
+    }
+
+    bool IsAllowedPortalHost(const String& normalizedHost, const String& apIp, const String& deviceAliasHost) {
+        bool isAllowed = normalizedHost.isEmpty() ||
+                         normalizedHost == apIp ||
+                         IsHostMatch(normalizedHost, "goalfinder.local") ||
+                         IsHostMatch(normalizedHost, deviceAliasHost);
+
+        return isAllowed;
+    }
+
+    String ResolvePortalRedirectHost(const String& normalizedHost, const String& apIp, const String& deviceAliasHost) {
+        String redirectHost = "goalfinder.local";
+
+        if (!normalizedHost.isEmpty() && IsAllowedPortalHost(normalizedHost, apIp, deviceAliasHost)) {
+            redirectHost = normalizedHost;
+        }
+
+        return redirectHost;
     }
 }
 
@@ -133,13 +212,21 @@ void HttpServer::Begin() {
     });
 
     auto redirectHandler = [this]() {
-        String url = "http://" + WiFi.softAPIP().toString() + "/games";
+        String host = NormalizeHostForPortal(server.hostHeader());
+        String apIp = WiFi.softAPIP().toString();
+        String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
+        String redirectHost = ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
+        String url = "http://" + redirectHost + "/games";
         server.sendHeader("Location", url, true);
         server.send(302, "text/plain", "");
     };
 
     auto htmlHandler = [this]() {
-        String url = "http://" + WiFi.softAPIP().toString() + "/games";
+        String host = NormalizeHostForPortal(server.hostHeader());
+        String apIp = WiFi.softAPIP().toString();
+        String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
+        String redirectHost = ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
+        String url = "http://" + redirectHost + "/games";
         String html = "<!DOCTYPE html><html><head>"
                       "<meta http-equiv='refresh' content='0; url=" + url + "'>"
                       "</head><body>"
@@ -178,8 +265,9 @@ void HttpServer::Begin() {
         // Captive portal: redirect requests from non-AP hosts
         String host = NormalizeHostForPortal(server.hostHeader());
         String apIp = WiFi.softAPIP().toString();
-        if ((WiFi.getMode() & WIFI_AP) && !IsAllowedPortalHost(host, apIp)) {
-            String url = "http://" + apIp + "/games";
+        String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
+        if ((WiFi.getMode() & WIFI_AP) && !IsAllowedPortalHost(host, apIp, deviceAliasHost)) {
+            String url = "http://" + ResolvePortalRedirectHost(host, apIp, deviceAliasHost) + "/games";
             server.sendHeader("Location", url, true);
             server.send(302, "text/plain", "");
             handled = true;

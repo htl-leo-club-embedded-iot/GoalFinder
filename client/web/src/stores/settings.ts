@@ -66,7 +66,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const version = ref("");
     const advancedSettingsEnabled = ref(false);
     const dnsEnabled = ref(true);
-    const useExternalNetwork = ref(false);
+    const externalNetworkEnabled = ref(false);
     const externalNetworkSsid = ref("");
     const externalNetworkPassword = ref("");
     const externalNetworkUseDhcp = ref(true);
@@ -108,7 +108,7 @@ export const useSettingsStore = defineStore("settings", () => {
             isSoundEnabled: isSoundEnabled.value,
             advancedSettingsEnabled: advancedSettingsEnabled.value,
             DNSEnabled: dnsEnabled.value,
-            extNW: useExternalNetwork.value,
+            extNW: externalNetworkEnabled.value,
             extNWSSID: externalNetworkSsid.value,
             extNWPWD: externalNetworkPassword.value,
             extNWUseDHCP: externalNetworkUseDhcp.value,
@@ -163,7 +163,7 @@ export const useSettingsStore = defineStore("settings", () => {
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;
         advancedSettingsEnabled.value = json["advancedSettingsEnabled"] ?? false;
         dnsEnabled.value = json["DNSEnabled"] ?? dnsEnabled.value;
-        useExternalNetwork.value = json["extNW"] ?? useExternalNetwork.value;
+        externalNetworkEnabled.value = json["extNW"] ?? json["useExternalNW"] ?? externalNetworkEnabled.value;
         externalNetworkSsid.value = json["extNWSSID"] ?? externalNetworkSsid.value;
         if (Object.prototype.hasOwnProperty.call(json, "extNWPWD")) {
             externalNetworkPassword.value = json["extNWPWD"] ?? externalNetworkPassword.value;
@@ -373,7 +373,7 @@ export const useSettingsStore = defineStore("settings", () => {
         updateFirmware,
         advancedSettingsEnabled,
         dnsEnabled,
-        useExternalNetwork,
+        externalNetworkEnabled,
         externalNetworkSsid,
         externalNetworkPassword,
         externalNetworkUseDhcp,

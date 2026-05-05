@@ -33,6 +33,9 @@ const char* EXTERNAL_NETWORK_AUTH_MODE_WPA2_ENTERPRISE = "wpa2-enterprise";
 const char* EXTERNAL_NETWORK_PHASE2_METHOD_AUTO = "auto";
 const char* EXTERNAL_NETWORK_PHASE2_METHOD_MSCHAPV2 = "mschapv2";
 
+const char* kDefaultApIp = "192.168.4.1";
+const char* kDefaultSubnetMask = "255.255.255.0";
+
 bool ParseIpAddress(const String& rawValue, IPAddress& outAddress) {
     String value = rawValue;
     value.trim();
@@ -216,7 +219,6 @@ const unsigned long WiFiManager::reconnectIntervalMs = 10000;
 WiFiManager::WiFiManager()
     : useExternalNW(false),
       connected(false),
-            wsClientConnectedThisPowerCycle(false),
       lastReconnectAttemptMs(0),
       wifiMutex(nullptr)
 {}
@@ -230,8 +232,6 @@ void WiFiManager::Init() {
     }
 
     useExternalNW = settings->GetUseExternalNW();
-    connected = false;
-    wsClientConnectedThisPowerCycle = false;
 
     // Register lightweight WiFi event handler for additional diagnostics
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -270,8 +270,6 @@ void WiFiManager::Loop() {
     if (xSemaphoreTake(wifiMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
         if (useExternalNW) {
             MonitorConnection();
-        } else {
-            dnsServer.processNextRequest();
         }
         xSemaphoreGive(wifiMutex);
     }
@@ -281,22 +279,38 @@ bool WiFiManager::IsExternalNetwork() const {
     return useExternalNW;
 }
 
-void WiFiManager::NotifyWebSocketClientConnected() {
-    if (wifiMutex != nullptr && xSemaphoreTake(wifiMutex, 0) == pdTRUE) {
-        wsClientConnectedThisPowerCycle = true;
-        xSemaphoreGive(wifiMutex);
-    } else {
-        wsClientConnectedThisPowerCycle = true;
-    }
-}
-
 void WiFiManager::SetupAccessPoint() {
     Settings* settings = Settings::GetInstance();
     String ssid = settings->GetDeviceName();
     String wifiPassword = settings->GetWifiPassword();
+    String configuredIp = settings->GetDeviceIpAddress();
+    String configuredMask = settings->GetSubnetMask();
+
+    IPAddress apIp;
+    if (!apIp.fromString(configuredIp)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Invalid device IP '%s'. Falling back to %s", configuredIp.c_str(), kDefaultApIp);
+        configuredIp = kDefaultApIp;
+        apIp.fromString(configuredIp);
+        settings->SetDeviceIpAddress(configuredIp);
+    }
+
+    IPAddress subnetMask;
+    if (!subnetMask.fromString(configuredMask)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Invalid subnet mask '%s'. Falling back to %s", configuredMask.c_str(), kDefaultSubnetMask);
+        configuredMask = kDefaultSubnetMask;
+        subnetMask.fromString(configuredMask);
+        settings->SetSubnetMask(configuredMask);
+    }
 
     ClearEnterpriseAuthenticationState();
     WiFi.mode(WIFI_AP);
+
+    if (!WiFi.softAPConfig(apIp, apIp, subnetMask)) {
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Failed to apply AP config IP=%s Mask=%s", configuredIp.c_str(), configuredMask.c_str());
+    }
 
     if (wifiPassword.isEmpty()) {
         WiFi.softAP(ssid);
@@ -305,7 +319,6 @@ void WiFiManager::SetupAccessPoint() {
     }
     WiFi.setSleep(false);
 
-    dnsServer.start(53, "*", WiFi.softAPIP());
     Logger::Log("WiFiManager", Logger::LogLevel::OK, "AP started - SSID: %s, IP: %s",
         ssid.c_str(), WiFi.softAPIP().toString().c_str());
 }
@@ -473,15 +486,36 @@ void WiFiManager::SetupExternalNetwork() {
         }
     }
 
-    if (fallbackToAccessPoint) {
+    WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
+
+    if (pwd.isEmpty()) {
+        WiFi.begin(ssid.c_str());
+    } else {
+        WiFi.begin(ssid.c_str(), pwd.c_str());
+    }
+
+    Logger::Log("WiFiManager", Logger::LogLevel::INFO,
+        "Connecting to external network '%s'...", ssid.c_str());
+
+    // Wait for initial connection with timeout
+    unsigned long startMs = millis();
+    const unsigned long timeoutMs = 15000;
+    while (WiFi.status() != WL_CONNECTED && (millis() - startMs) < timeoutMs) {
+        delay(250);
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        connected = true;
+        Logger::Log("WiFiManager", Logger::LogLevel::OK,
+            "Connected to '%s', IP: %s",
+            ssid.c_str(), WiFi.localIP().toString().c_str());
+    } else {
         connected = false;
-        useExternalNW = false;
-        if (settings->GetUseExternalNW()) {
-            settings->SetUseExternalNW(false);
-            Logger::Log("WiFiManager", Logger::LogLevel::WARN,
-                "Reverted extNW to false due failed external network setup");
-        }
+        Logger::Log("WiFiManager", Logger::LogLevel::WARN,
+            "Failed to connect to '%s', falling back to AP mode", ssid.c_str());
         WiFi.disconnect();
+        useExternalNW = false;
         SetupAccessPoint();
     }
 }

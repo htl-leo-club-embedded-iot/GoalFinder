@@ -157,8 +157,6 @@ const i18n = createI18n({
             },
             word : {
                 on: "On",
-                show: "Show",
-                hide: "Hide",
                 welcome_back: "Welcome back",
                 save: "Save",
                 open: "Open",
@@ -366,8 +364,6 @@ const i18n = createI18n({
             },
             word : {
                 on: "Ein",
-                show: "Anzeigen",
-                hide: "Verbergen",
                 welcome_back: "Willkommen zurück",
                 save: "Speichern",
                 open: "Öffnen",

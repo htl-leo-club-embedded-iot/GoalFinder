@@ -20,7 +20,7 @@
 
 
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "v0.4.0-dev"
+#define FIRMWARE_VERSION "v0.5.2a"
 #endif
 
 #endif

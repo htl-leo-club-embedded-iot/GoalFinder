@@ -17,8 +17,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import Button from "@/components/Button.vue";
-import EyeIcon from "@/components/icons/EyeIcon.vue";
-import EyeOffIcon from "@/components/icons/EyeOffIcon.vue";
+import EyeOpenIcon from "@/components/icons/EyeOpenIcon.vue";
+import EyeClosedIcon from "@/components/icons/EyeClosedIcon.vue";
 import KeyEnterIcon from "@/components/icons/KeyEnterIcon.vue";
 
 /**
@@ -136,8 +136,8 @@ watch(() => props.modelValue, (value) => {
         :aria-label="showSecretValue ? hideLabel : showLabel"
         @click="onToggleVisibility"
       >
-        <EyeOffIcon v-if="showSecretValue" class="password-toggle-icon" />
-        <EyeIcon v-else class="password-toggle-icon" />
+        <EyeClosedIcon v-if="showSecretValue" class="password-toggle-icon" />
+        <EyeOpenIcon v-else class="password-toggle-icon" />
       </Button>
 
       <Button

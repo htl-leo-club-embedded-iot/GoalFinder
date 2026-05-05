@@ -23,6 +23,7 @@ import {useSettingsStore} from "@/stores/settings";
 import {useWebSocketStore} from "@/stores/websocket";
 import {onMounted, onUnmounted, ref, computed, watch} from "vue";
 import {useRouter, useRoute} from "vue-router";
+import {useI18n} from "vue-i18n";
 
 const settingsStore = useSettingsStore();
 const wsStore = useWebSocketStore();
@@ -30,6 +31,7 @@ const connectionModal = ref<InstanceType<typeof Modal> | null>(null);
 const router = useRouter();
 const route = useRoute();
 const dontShowAgain = ref(false);
+const { locale } = useI18n();
 
 const isAuthPage = computed(() => route.name === 'auth');
 
@@ -50,6 +52,30 @@ function closeConnectionModal() {
   connectionModal.value?.closeDialog();
 }
 
+function applySavedAccentColor(): void {
+  const savedColor = localStorage.getItem("accent-color");
+  if (savedColor) {
+    document.documentElement.style.setProperty("--accent-color", savedColor);
+  }
+}
+
+function applySavedTheme(): void {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "light" || savedTheme === "dark") {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  } else {    
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", prefersDark ? "dark" : "light");
+  }
+}
+
+function applySavedLanguage(): void {
+  const savedLang = localStorage.getItem("language");
+  if (savedLang) {
+    locale.value = savedLang;
+  }
+}
+
 // Watch WebSocket connection state to show/hide modal
 const stopWatcher = watch(() => wsStore.isConnected, (connected) => {
   if (!connected && !isAuthPage.value) {
@@ -58,6 +84,10 @@ const stopWatcher = watch(() => wsStore.isConnected, (connected) => {
 });
 
 onMounted(() => {
+  applySavedAccentColor();
+  applySavedTheme();
+  applySavedLanguage();
+
   wsStore.connect();
   settingsStore.getSettings();
 

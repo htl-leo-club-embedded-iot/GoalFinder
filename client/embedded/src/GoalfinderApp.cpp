@@ -105,10 +105,27 @@ void GoalfinderApp::Init() {
 
         xMutex = xSemaphoreCreateMutex();    
 
+        Settings* settings = Settings::GetInstance();
+        String configuredDeviceIp = settings->GetDeviceIpAddress();
         IPAddress deviceIP;
-        deviceIP.fromString(Settings::GetInstance()->GetDeviceAPIPAddress());
-        dnsServer.Begin(deviceIP);
-        dnsServer.IsRunning = Settings::GetInstance()->DNSEnabled();
+        if (!deviceIP.fromString(configuredDeviceIp)) {
+            Logger::Log("GoalfinderApp", Logger::LogLevel::WARN,
+                "Configured device IP '%s' is invalid. Falling back to 192.168.4.1",
+                configuredDeviceIp.c_str());
+            configuredDeviceIp = "192.168.4.1";
+            deviceIP.fromString(configuredDeviceIp);
+            settings->SetDeviceIpAddress(configuredDeviceIp);
+        }
+
+        if ((WiFi.getMode() & WIFI_AP) != 0) {
+            IPAddress apIp = WiFi.softAPIP();
+            if (apIp != IPAddress(static_cast<uint32_t>(0))) {
+                deviceIP = apIp;
+            }
+        }
+
+        dnsServer.Begin(deviceIP, settings->GetDeviceName());
+        dnsServer.IsRunning = settings->DNSEnabled();
 
         xTaskCreatePinnedToCore(TaskAudio,          "Audio",     8192, this,           3, &TaskAudioHandle,     1);
         xTaskCreatePinnedToCore(TaskDetection,      "Detection", 8192, this,           2, &TaskDetectionHandle, 1);
@@ -368,8 +385,4 @@ void GoalfinderApp::Process() {
 
 void GoalfinderApp::SetDNSEnabled(bool enable) {
     dnsServer.IsRunning = enable;
-}
-
-void GoalfinderApp::NotifyWebSocketClientConnected() {
-    wifiManager.NotifyWebSocketClientConnected();
 }

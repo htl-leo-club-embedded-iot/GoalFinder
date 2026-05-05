@@ -21,6 +21,8 @@
 #include <AudioOutputI2S.h>
 #include <FileSystem.h>
 
+#define AUDIO_BUFFER_TIMEOUT 100
+
 /**
  * @file AudioPlayer.h
  * @brief Simple MP3 playback wrapper for the ESP audio library.

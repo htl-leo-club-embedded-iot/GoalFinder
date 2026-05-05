@@ -253,7 +253,7 @@ const canApplyNetworkConfiguration = computed(() => {
 });
 
 function syncDraftsFromSettings(): void {
-  externalNetworkEnabledDraft.value = settings.useExternalNetwork;
+  externalNetworkEnabledDraft.value = settings.externalNetworkEnabled;
   externalNetworkSsidDraft.value = settings.externalNetworkSsid;
   externalNetworkUseDhcpDraft.value = settings.externalNetworkUseDhcp;
   externalNetworkIpDraft.value = settings.externalNetworkIp;
@@ -334,7 +334,7 @@ function onAuthModeSelected(mode: string): void {
 }
 
 function applyDraftsToStore(): void {
-  settings.useExternalNetwork = externalNetworkEnabledDraft.value;
+  settings.externalNetworkEnabled = externalNetworkEnabledDraft.value;
   settings.externalNetworkSsid = externalNetworkSsidDraft.value;
   settings.externalNetworkUseDhcp = externalNetworkUseDhcpDraft.value;
   settings.externalNetworkIp = externalNetworkIpDraft.value;
@@ -411,8 +411,8 @@ onMounted(() => {
 
 watch(
   () => [
-    settings.useExternalNetwork,
-    settings.externalNetworkSsid,
+    settings.externalNetworkEnabled,
+      settings.externalNetworkSsid,
     settings.externalNetworkUseDhcp,
     settings.externalNetworkIp,
     settings.externalNetworkSubnetMask,

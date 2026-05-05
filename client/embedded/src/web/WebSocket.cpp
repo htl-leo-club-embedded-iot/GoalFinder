@@ -94,7 +94,6 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
             {
                 IPAddress remoteIp = wsServer.remoteIP(clientId);
                 Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
-                GoalfinderApp::GetInstance()->NotifyWebSocketClientConnected();
             }
             {
                 JsonDocument doc;

@@ -2,11 +2,11 @@
 import InputForm from "@/components/InputForm.vue";
 import Modal from "@/components/Modal.vue";
 import Button from "@/components/Button.vue";
-import EyeIcon from "@/components/icons/EyeIcon.vue";
-import EyeOffIcon from "@/components/icons/EyeOffIcon.vue";
+import EyeClosedIcon from "@/components/icons/EyeClosedIcon.vue";
+import EyeOpenIcon from "@/components/icons/EyeOpenIcon.vue";
 import KeyEnterIcon from "@/components/icons/KeyEnterIcon.vue";
 import { useSettingsStore } from "@/stores/settings";
-import { computed, ref, onMounted, useTemplateRef, watch } from "vue";
+import { ref, onMounted, useTemplateRef, watch, computed } from "vue";
 
 const settings = useSettingsStore();
 
@@ -19,7 +19,6 @@ const connectionModal = useTemplateRef<any>("connectionModal");
 const dontShowAgain = ref(false);
 const originalDeviceName = ref("");
 const originalWifiPassword = ref("");
-const originalDevicePassword = ref("");
 const hasUserEditedConnectionSettings = ref(false);
 const showWifiPasswordInput = ref(false);
 const showWifiPassword = ref(false);
@@ -31,6 +30,7 @@ const canSubmitWifiPassword = computed(() => {
 const showDevicePasswordInput = ref(false);
 const showDevicePassword = ref(false);
 const devicePasswordDraft = ref("");
+const originalDevicePassword = ref("");
 const devicePasswordPresent = computed(() => originalDevicePassword.value !== "" && !showDevicePasswordInput.value);
 const canSubmitDevicePassword = computed(() => {
   return devicePasswordDraft.value.length >= PASSWORD_MIN_LENGTH && devicePasswordDraft.value.length <= PASSWORD_MAX_LENGTH;
@@ -44,6 +44,7 @@ onMounted(() => {
   originalDeviceName.value = settings.deviceName || "";
   originalWifiPassword.value = settings.wifiPassword || "";
   originalDevicePassword.value = settings.devicePassword || "";
+  deviceNameDraft.value = settings.deviceName || "";
   wifiPasswordDraft.value = settings.wifiPassword || "";
   devicePasswordDraft.value = settings.devicePassword || "";
   const stored = localStorage.getItem('connectionWarningDontShow');
@@ -57,6 +58,7 @@ watch(
       originalDeviceName.value = deviceName;
       originalWifiPassword.value = wifiPassword;
       originalDevicePassword.value = devicePassword;
+      deviceNameDraft.value = deviceName;
       wifiPasswordDraft.value = wifiPassword;
       devicePasswordDraft.value = devicePassword;
     }
@@ -115,7 +117,6 @@ function submitDevicePassword() {
     onPrimaryEnter();
   }
 }
-
 function openConnectionModal() {
   connectionModal.value?.openDialog();
 }
@@ -146,11 +147,9 @@ function closeConnectionModal(restart: boolean) {
 function onPrimaryEnter() {
   const currentDeviceName = settings.deviceName || "";
   const currentWifiPassword = settings.wifiPassword || "";
-  const currentDevicePassword = settings.devicePassword || "";
   const hasConnectionChanges =
     currentDeviceName !== originalDeviceName.value ||
-    currentWifiPassword !== originalWifiPassword.value ||
-    currentDevicePassword !== originalDevicePassword.value;
+    currentWifiPassword !== originalWifiPassword.value;
   if (dontShowAgain.value) {
     settings.restartDevice();
   } else if (hasConnectionChanges) {
@@ -209,8 +208,8 @@ function onPrimaryEnter() {
         <Button class="control-btn password-toggle-btn"
           type="button" :aria-label="showWifiPassword ? $t('word.hide') : $t('word.show')"
           @click="toggleWifiPasswordVisibility">
-            <EyeOffIcon v-if="showWifiPassword" key="hide" class="password-toggle-icon" />
-            <EyeIcon v-else key="show" class="password-toggle-icon" />
+            <EyeOpenIcon v-if="showWifiPassword" key="hide" class="password-toggle-icon" />
+            <EyeClosedIcon v-else key="show" class="password-toggle-icon" />
         </Button>
         
         <Button
@@ -248,8 +247,8 @@ function onPrimaryEnter() {
         <Button class="control-btn password-toggle-btn"
           type="button" :aria-label="showDevicePassword ? $t('word.hide') : $t('word.show')"
           @click="toggleDevicePasswordVisibility">
-            <EyeOffIcon v-if="showDevicePassword" key="device-hide" class="password-toggle-icon" />
-            <EyeIcon v-else key="device-show" class="password-toggle-icon" />
+            <EyeOpenIcon v-if="showDevicePassword" key="device-hide" class="password-toggle-icon" />
+            <EyeClosedIcon v-else key="device-show" class="password-toggle-icon" />
         </Button>
 
         <Button
