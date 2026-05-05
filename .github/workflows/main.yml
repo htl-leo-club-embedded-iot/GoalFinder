@@ -46,6 +46,7 @@ jobs:
           echo "Git hash: $HASH"
       
       - name: Update version files
+        working-directory: client/embedded
         run: |
           python ./update-version.py ${{ steps.version.outputs.version }} ${{ steps.git_hash.outputs.hash }}
 
