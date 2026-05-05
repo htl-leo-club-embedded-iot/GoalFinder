@@ -16,14 +16,14 @@ Example:
 
 import sys
 import re
-import os
 from pathlib import Path
 
-VERSION_FILE = "../../client/embedded/src/Version.h"
+SCRIPT_DIR = Path(__file__).resolve().parent
+VERSION_FILE = SCRIPT_DIR / "src" / "Version.h"
 
 def read_current_version():
     """Read the current FIRMWARE_VERSION from Version.h"""
-    if not os.path.exists(VERSION_FILE):
+    if not VERSION_FILE.exists():
         return None
     
     with open(VERSION_FILE, 'r') as f:
@@ -34,7 +34,7 @@ def read_current_version():
 
 def update_version(new_version):
     """Update FIRMWARE_VERSION in Version.h with the new version"""
-    if not os.path.exists(VERSION_FILE):
+    if not VERSION_FILE.exists():
         print(f"Error: {VERSION_FILE} not found")
         sys.exit(1)
     
