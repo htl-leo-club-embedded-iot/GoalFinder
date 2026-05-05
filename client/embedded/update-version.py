@@ -19,7 +19,7 @@ import re
 import os
 from pathlib import Path
 
-VERSION_FILE = "src/Version.h"
+VERSION_FILE = "../../client/embedded/src/Version.h"
 
 def read_current_version():
     """Read the current FIRMWARE_VERSION from Version.h"""
