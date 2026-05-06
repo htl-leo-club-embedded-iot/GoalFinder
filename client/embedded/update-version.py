@@ -20,16 +20,15 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 VERSION_FILE = SCRIPT_DIR / "src" / "Version.h"
+VERSION_PATTERN = re.compile(r'^[ \t]*#\s*define\s+FIRMWARE_VERSION\s+"([^"]+)"', re.MULTILINE)
 
 def read_current_version():
     """Read the current FIRMWARE_VERSION from Version.h"""
     if not VERSION_FILE.exists():
         return None
     
-    with open(VERSION_FILE, 'r') as f:
-        content = f.read()
-    
-    match = re.search(r'#define\s+FIRMWARE_VERSION\s+"([^"]+)"', content)
+    content = VERSION_FILE.read_text()
+    match = VERSION_PATTERN.search(content)
     return match.group(1) if match else None
 
 def update_version(new_version):
@@ -38,22 +37,14 @@ def update_version(new_version):
         print(f"Error: {VERSION_FILE} not found")
         sys.exit(1)
     
-    with open(VERSION_FILE, 'r') as f:
-        content = f.read()
+    content = VERSION_FILE.read_text()
+    updated_content, count = VERSION_PATTERN.subn(rf'\1"{new_version}"', content, count=1)
     
-    # Replace the version string
-    updated_content = re.sub(
-        r'(#define\s+FIRMWARE_VERSION\s+)"[^"]+"',
-        rf'\1"{new_version}"',
-        content
-    )
-    
-    if updated_content == content:
+    if count == 0:
         print(f"Warning: No FIRMWARE_VERSION definition found in {VERSION_FILE}")
         return False
     
-    with open(VERSION_FILE, 'w') as f:
-        f.write(updated_content)
+    VERSION_FILE.write_text(updated_content)
     
     return True
 
