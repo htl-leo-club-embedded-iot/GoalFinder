@@ -14,6 +14,8 @@
  * =============================================================================== */
 
 #include "Logger.h"
+#include "../GoalfinderApp.h"
+#include "../web/WebSocket.h"
 
 
 Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
