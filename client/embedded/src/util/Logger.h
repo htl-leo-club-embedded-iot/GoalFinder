@@ -19,6 +19,10 @@
 #include <WString.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include <Arduino.h>
+#include "../Settings.h"
+#include "../GoalfinderApp.h"
+#include "../web/WebSocket.h"
 
 class Logger
 {

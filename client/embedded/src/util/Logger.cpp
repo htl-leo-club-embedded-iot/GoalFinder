@@ -13,13 +13,8 @@
  * All trademarks used in this document are property of their respective owners.
  * =============================================================================== */
 
- #include "Logger.h"
-#include <Arduino.h>
-#include "../Settings.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "../GoalFinderApp.h"
-#include "../web/WebSocket.h"
+#include "Logger.h"
+
 
 Logger::LogLevel Logger::currentLevel = Logger::LogLevel::DEBUG;
 QueueHandle_t Logger::logQueue = nullptr;
