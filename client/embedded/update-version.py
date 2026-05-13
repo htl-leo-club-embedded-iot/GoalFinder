@@ -16,46 +16,49 @@ Example:
 
 import sys
 import re
-import os
 from pathlib import Path
 
-VERSION_FILE = "src/Version.h"
+SCRIPT_DIR = Path(__file__).resolve().parent
+VERSION_FILE = SCRIPT_DIR / "src" / "Version.h"
+VERSION_PATTERN = re.compile(
+    r'^([ \t]*#\s*define\s+FIRMWARE_VERSION\s+")([^"]+)(")',
+    re.MULTILINE,
+)
 
 def read_current_version():
     """Read the current FIRMWARE_VERSION from Version.h"""
-    if not os.path.exists(VERSION_FILE):
-        return None
-    
-    with open(VERSION_FILE, 'r') as f:
-        content = f.read()
-    
-    match = re.search(r'#define\s+FIRMWARE_VERSION\s+"([^"]+)"', content)
-    return match.group(1) if match else None
+    current_version = None
+
+    if VERSION_FILE.exists():
+        content = VERSION_FILE.read_text()
+        match = VERSION_PATTERN.search(content)
+        if match:
+            current_version = match.group(2)
+
+    return current_version
 
 def update_version(new_version):
     """Update FIRMWARE_VERSION in Version.h with the new version"""
-    if not os.path.exists(VERSION_FILE):
+    updated = False
+
+    if VERSION_FILE.exists():
+        content = VERSION_FILE.read_text()
+        updated_content, count = VERSION_PATTERN.subn(
+            lambda match: f"{match.group(1)}{new_version}{match.group(3)}",
+            content,
+            count=1,
+        )
+
+        if count == 0:
+            print(f"Warning: No FIRMWARE_VERSION definition found in {VERSION_FILE}")
+        else:
+            VERSION_FILE.write_text(updated_content)
+            updated = True
+    else:
         print(f"Error: {VERSION_FILE} not found")
         sys.exit(1)
-    
-    with open(VERSION_FILE, 'r') as f:
-        content = f.read()
-    
-    # Replace the version string
-    updated_content = re.sub(
-        r'(#define\s+FIRMWARE_VERSION\s+)"[^"]+"',
-        rf'\1"{new_version}"',
-        content
-    )
-    
-    if updated_content == content:
-        print(f"Warning: No FIRMWARE_VERSION definition found in {VERSION_FILE}")
-        return False
-    
-    with open(VERSION_FILE, 'w') as f:
-        f.write(updated_content)
-    
-    return True
+
+    return updated
 
 def main():
     """Main entry point"""

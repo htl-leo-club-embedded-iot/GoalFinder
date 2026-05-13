@@ -24,7 +24,7 @@
 #include <FileSystem.h>
 #include <AudioPlayer.h>
 #include <LedController.h>
-#include <util/Logger.h>  // logger task
+#include <util/Logger.h> 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"

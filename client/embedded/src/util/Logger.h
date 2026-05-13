@@ -19,6 +19,8 @@
 #include <WString.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include <Arduino.h>
+#include "../Settings.h"
 
 class Logger
 {
