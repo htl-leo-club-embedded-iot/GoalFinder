@@ -50,6 +50,11 @@ jobs:
         run: |
           python ./update-version.py ${{ steps.version.outputs.version }} ${{ steps.git_hash.outputs.hash }}
 
+      - name: Generate Device Keys
+        working-directory: client/embedded
+        run: |
+          bash ./scripts/generate_device_keys.sh
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
