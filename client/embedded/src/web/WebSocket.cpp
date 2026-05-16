@@ -19,14 +19,13 @@
 #include <mbedtls/sha256.h>
 #include "Settings.h"
 #include "Version.h"
-#include "DevicePrivateKey.h.h"
+#include "DevicePrivateKey.h"
 #include <mbedtls/pk.h>
 #include <mbedtls/rsa.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/base64.h>
 
-namespace {
 bool ComputeSha256Hex(const String& input, String& output) {
     unsigned char hash[32];
     mbedtls_sha256_context ctx;
