@@ -15,6 +15,7 @@
  */
 
 import { DEVICE_PUBLIC_KEY_PEM } from "../config/devicePublicKey";
+import * as forge from "node-forge";
 
 function pemToArrayBuffer(pem: string): ArrayBuffer {
     const b64 = pem.replace(/-----BEGIN PUBLIC KEY-----/g, "")
@@ -52,24 +53,61 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
     return btoa(binary);
 }
 
+function isWebCryptoAvailable(): boolean {
+    let available = false;
+    if (typeof window !== "undefined") {
+        if (window.crypto && window.crypto.subtle) {
+            available = true;
+        }
+    }
+    return available;
+}
+
+function encryptWithForge(plaintext: string, pem: string): string {
+    let encrypted = "";
+    const publicKey = forge.pki.publicKeyFromPem(pem);
+    const encryptedBytes = publicKey.encrypt(plaintext, "RSA-OAEP", {
+        md: forge.md.sha256.create(),
+        mgf1: { md: forge.md.sha256.create() },
+    });
+    encrypted = forge.util.encode64(encryptedBytes);
+    return encrypted;
+}
+
+/**
+ * Encrypts plaintext with the device public key using RSA-OAEP (SHA-256).
+ * Uses WebCrypto when available; falls back to node-forge for non-secure contexts.
+ */
 export async function encryptWithDevicePublicKey(plaintext: string): Promise<string> {
+    let encrypted = "";
     if (!DEVICE_PUBLIC_KEY_PEM || DEVICE_PUBLIC_KEY_PEM.includes("REPLACE_WITH")) {
         throw new Error("Device public key not configured");
     }
 
-    const key = await importPublicKey(DEVICE_PUBLIC_KEY_PEM);
-    const encoded = new TextEncoder().encode(plaintext);
-    const cipher = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, encoded);
-    return arrayBufferToBase64(cipher);
+    if (isWebCryptoAvailable()) {
+        const key = await importPublicKey(DEVICE_PUBLIC_KEY_PEM);
+        const encoded = new TextEncoder().encode(plaintext);
+        const cipher = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, encoded);
+        encrypted = arrayBufferToBase64(cipher);
+    } else {
+        encrypted = encryptWithForge(plaintext, DEVICE_PUBLIC_KEY_PEM);
+    }
+
+    return encrypted;
 }
 
+/**
+ * Encrypts plaintext when possible, prefixing the payload with "RSA:".
+ * Falls back to plaintext to avoid blocking UI updates.
+ */
 export async function encryptIfAvailable(plaintext: string): Promise<string> {
+    let result = plaintext;
     try {
         const b64 = await encryptWithDevicePublicKey(plaintext);
-        return `RSA:${b64}`;
+        result = `RSA:${b64}`;
     } catch (err) {
         // If encryption fails, return plaintext so UX is not blocked.
         console.warn("encryptIfAvailable: failed to encrypt, sending plaintext", err);
-        return plaintext;
     }
+    return result;
 }
