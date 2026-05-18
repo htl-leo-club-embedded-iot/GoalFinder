@@ -372,6 +372,7 @@ function persistDontShowAgainPreference(): void {
 function onApplyNetworkConfiguration(): void {
   if (canApplyNetworkConfiguration.value) {
     applyDraftsToStore();
+    settings.scheduleSave();
 
     if (hasNetworkPendingChanges.value) {
       if (dontShowAgain.value) {
@@ -395,6 +396,7 @@ function closeNetworkModal(restart: boolean): void {
   networkModal.value?.closeDialog();
 
   if (restart) {
+    settings.scheduleSave();
     settings.restartDevice();
   } else {
     settings.scheduleSave();
