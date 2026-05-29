@@ -72,8 +72,7 @@ bool TryDecryptIfEncrypted(const String& input, String& output) {
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
-    auto cleanup = [&pk, &ctr_drbg, &entropy]() {
-        mbedtls_pk_free(&pk);
+    auto cleanup = [&pk, &ctr_drbg, &entropy]() {   mbedtls_pk_free(&pk);
         mbedtls_ctr_drbg_free(&ctr_drbg);
         mbedtls_entropy_free(&entropy);
     };

@@ -97,7 +97,7 @@ void GoalfinderApp::Init() {
         httpServer.Begin();
         webSocket.Begin();
         sntp.Init();
-        sw420Sensor.Init();
+        sw420Sensor.Init(Settings::GetInstance()->GetVibrationSensorSensitivity());
         tofSensor.Init(pinTofScl, pinTofSda);
         ledController.SetMode(LedMode::Flash);
 

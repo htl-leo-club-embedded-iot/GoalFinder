@@ -41,16 +41,18 @@ class SW420 {
      * before performing any measurements.
      *
      * @param pin Digital input pin number to which the SW-420 is connected.
+     * @param sensitivity The sensitivity of the sensor (1-100)
      */
-    void Init(uint8_t pin);
+    void Init(uint8_t pin, uint8_t sensitivity);
 
     /**
      * @brief Initialize the vibration sensor hardware on the default pin.
      *
      * This overload exists for backwards compatibility and simply calls
      * Init(13).
+     * @param sensitivity The sensitivity of the sensor (1-100)
      */
-    void Init();
+    void Init(uint8_t sensitivity);
 
     /**
      * @brief Perform a vibration measurement.
@@ -70,9 +72,12 @@ class SW420 {
      *
      * @param sensitivity 0 (low) to 100 (high).
      */
-    void SetSensitivity(int sensitivity);
+    void SetSensitivity(uint8_t sensitivity);
 
   private:
-  /** GPIO pin number used for the sensor. */
-    int vs; 
+    /** GPIO pin number used for the sensor. */
+    uint8_t sensPin; 
+
+    /** The sensitivity of the sensor */
+    uint8_t sensitivity;
 };

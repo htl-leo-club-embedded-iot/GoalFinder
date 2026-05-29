@@ -53,13 +53,12 @@ namespace {
             if (isalnum(c)) {
                 label += static_cast<char>(tolower(c));
                 lastWasSeparator = false;
-                continue;
-            }
-
-            bool isSeparator = c == ' ' || c == '-' || c == '_' || c == '.';
-            if (isSeparator && !lastWasSeparator && !label.isEmpty()) {
-                label += '-';
-                lastWasSeparator = true;
+            } else {
+                bool isSeparator = c == ' ' || c == '-' || c == '_' || c == '.';
+                if (isSeparator && !lastWasSeparator && !label.isEmpty()) {
+                    label += '-';
+                    lastWasSeparator = true;
+                }
             }
         }
 
@@ -67,11 +66,7 @@ namespace {
             label.remove(label.length() - 1);
         }
 
-        if (label.isEmpty()) {
-            return String();
-        }
-
-        return label + ".local";
+        return label.isEmpty() ? String() : label + ".local";
     }
     
     void SendNoErrorNoAnswer(WiFiUDP& udp,
