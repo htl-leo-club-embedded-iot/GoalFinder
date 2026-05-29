@@ -77,7 +77,7 @@ void SW420::Init(uint8_t sensitivity) {
  *         timeout expired.
  */
 long SW420::Vibration(uint64_t measureTimeUs) {
-    long measurement = pulseIn(sensPin, HIGH, measureTimeUs);
+    long measurement = pulseIn(sensPin, LOW, measureTimeUs);
     return measurement;
 }
 
