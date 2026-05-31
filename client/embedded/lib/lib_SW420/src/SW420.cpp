@@ -28,72 +28,21 @@
  * currently unused.
  */
 
-/**
- * @brief Destructor for SW420.
- *
- * No dynamic resources are managed so this is a no-op.
- */
 SW420::~SW420() {}
 
- /**
- * @brief Initialize the vibration sensor hardware.
- *
- * Configures the default GPIO pin and sets its mode. Must be called
- * before performing any measurements.
- * @param pin The pin from which to read
- */
-void SW420::Init(uint8_t pin, uint8_t sensitivity) {
+void SW420::Init(uint8_t pin) {
     sensPin = pin;
-    this->sensitivity = sensitivity < 1
-        ? 1
-        : (sensitivity > 100
-            ? 100
-            : sensitivity);
     pinMode(sensPin, INPUT);
 }
 
- /**
- * @brief Initialize the vibration sensor hardware.
- *
- * Configures the default GPIO pin and sets its mode. Must be called
- * before performing any measurements.
- * @note Overloaded for backwards compatibility using 13 as the default pin
- */
-void SW420::Init(uint8_t sensitivity) {
-    this->sensitivity = sensitivity < 1
-        ? 1
-        : (sensitivity > 100
-            ? 100
-            : sensitivity);
+void SW420::Init() {
     sensPin = 13;
     pinMode(sensPin, INPUT);
 }
 
-/**
- * @brief Perform a vibration measurement.
- *
- * @param measureTimeUs Maximum time to wait for a pulse, in microseconds.
- * @return long Length of the LOW pulse in microseconds, or 0 if the
- *         timeout expired.
- */
-long SW420::Vibration(uint64_t measureTimeUs) {
-    long measurement = pulseIn(sensPin, LOW, measureTimeUs);
-    return measurement;
+
+
+bool SW420::GetState() {
+    return digitalRead(sensPin) == HIGH;
 }
 
-/**
- * @brief Set the (software) sensitivity level.
- *
- * The value is clamped to the 0–100 range. At present the sensitivity
- * parameter is not used by the sensor code; it exists for future
- * expansion or for callers that wish to track a desired threshold.
- *
- * @param sensitivity 0 (low) to 100 (high).
- */
-void SW420::SetSensitivity(uint8_t sensitivity) {
-    this->sensitivity = sensitivity < 1
-        ? 1
-        : (sensitivity > 100
-            ? 100
-            : sensitivity);
-}
