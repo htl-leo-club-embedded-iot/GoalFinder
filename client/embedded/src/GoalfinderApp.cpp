@@ -65,7 +65,7 @@ GoalfinderApp::GoalfinderApp() :
     announcingUntilMs(0),
     lastMetronomeTickTime(0),
     announcement(Announcement::None),
-    lastShockTime(0),
+    lastShookTime(0),
     lastHitTime(0),
     afterHitTimeoutMs(5000),
     isSoundEnabled(true),
@@ -186,7 +186,7 @@ void GoalfinderApp::TaskDetection(void *pvParameters) {
     GoalfinderApp* app = (GoalfinderApp*)pvParameters;
     while (app->loop) {
         app->UpdateSettings();
-        app->DetectShot();
+        app->DetectHit();
         app->ProcessAnnouncement();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
@@ -246,19 +246,20 @@ void GoalfinderApp::TickMetronome() {
         waitingSoundIndex = max(min(waitingSoundIndex, waitingClipCount - 1), 0);
         metronomeSoundIndex = max(min(metronomeSoundIndex, tickClipCount - 1), 0);
 
-        bool useWaitingSound = (lastShockTime > 0);
+        bool useWaitingSound = (lastShookTime > 0);
         const char* clipName = useWaitingSound ? waitingClips[waitingSoundIndex] : tickClips[metronomeSoundIndex];
         PlaySound(clipName);
     }
 }
 
-void GoalfinderApp::DetectShot() {
+void GoalfinderApp::DetectHit() {
     if (announcing && (millis() > announcingUntilMs || !audioPlayer.IsPlaying())) {
         announcing = false;
     }
 
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
         int distance = tofSensor.ReadSingleMillimeters();
+
         if (distanceOnlyHitDetection) {
             if (!(announcing && audioPlayer.IsPlaying())) {
                 announcing = false;
@@ -268,35 +269,39 @@ void GoalfinderApp::DetectShot() {
                 }
             }
         } else {
-            if (lastShockTime == 0) {
+            if (lastShookTime <= 0) {
                 if (!(announcing && audioPlayer.IsPlaying())) {
                     announcing = false;
                     long vibration = sw420Sensor.Vibration(10000);
                     if (vibration > shotVibrationThreshold) {
-                        lastShockTime = millis();
+                        lastShookTime = millis();
                         Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
                     }
                 }
-            }
+            } else {
+                unsigned long diff = millis() - lastShookTime;
 
-            unsigned long currentTime = millis();
-
-            if (lastShockTime > 0 && (currentTime - lastShockTime) < maxShotDurationMs) {
-                int distance = tofSensor.ReadSingleMillimeters();
-                if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
-                    AnnounceHit();
-                    lastShockTime = 0;
-                    lastHitTime = millis();
+                if (diff < maxShotDurationMs) {
+                    int distance = tofSensor.ReadSingleMillimeters();
+                    if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
+                        AnnounceHit();
+                    }
+                } else {
+                    AnnounceMiss();
                 }
-            }
-
-            if (lastShockTime > 0 && (currentTime - lastShockTime) > maxShotDurationMs) {
-                AnnounceMiss();
-                lastShockTime = 0;
+                
                 lastHitTime = millis();
+                lastShookTime = 0;
             }
         }
     }
+}
+
+bool GoalfinderApp::ReadHit() {
+    bool result = false;
+
+
+    return result;
 }
 
 void GoalfinderApp::ProcessAnnouncement() {

@@ -51,7 +51,7 @@ public:
     void Process();
 
     void TickMetronome();
-    void DetectShot();
+    void DetectHit();
     void ProcessAnnouncement();
 
     // Public members
@@ -99,7 +99,7 @@ private:
     /** Singleton constructor */
     GoalfinderApp();
 
-    // Private methods 
+    // Private functions 
     void OnShotDetected();
     void AnnounceHit();
     void AnnounceMiss();
@@ -108,6 +108,7 @@ private:
     void UpdateSettings(bool force = false);
     void WiFiSetup();
     void ApplyDeviceNameByScan();
+    bool ReadHit();
 
     // Internal objects
     FileSystem fileSystem;
@@ -125,7 +126,7 @@ private:
     unsigned long announcingUntilMs;
     bool distanceOnlyHitDetection;
     unsigned long lastMetronomeTickTime;
-    unsigned long lastShockTime;
+    unsigned long lastShookTime;
     unsigned long lastHitTime;
     unsigned long afterHitTimeoutMs;
 
