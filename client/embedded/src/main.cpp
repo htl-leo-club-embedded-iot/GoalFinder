@@ -21,10 +21,10 @@
 void setup() 
 {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
-    GoalfinderApp::GetInstance()->Init();
+    GoalFinderApp::GetInstance()->Init();
 }
 
 void loop() 
 {
-    GoalfinderApp::GetInstance()->Process();
+    GoalFinderApp::GetInstance()->Process();
 }

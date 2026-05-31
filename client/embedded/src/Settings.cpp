@@ -727,6 +727,6 @@ bool Settings::DNSEnabled() {
 
 void Settings::SetDNSEnabled(bool enable) {
 	store.PutInt(keyEnableDNS, (int)enable);
-	GoalfinderApp::GetInstance()->SetDNSEnabled(enable);
+	GoalFinderApp::GetInstance()->SetDNSEnabled(enable);
 	SetModified();
 }

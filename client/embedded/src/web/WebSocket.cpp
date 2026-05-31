@@ -272,7 +272,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["ledMode"] = (int)settings->GetLedMode();
     data["ledBrightness"] = settings->GetLedBrightness();
     data["macAddress"] = settings->GetMacAddress();
-    data["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
+    data["isSoundEnabled"] = GoalFinderApp::GetInstance()->IsSoundEnabled();
     data["version"] = FIRMWARE_VERSION;
     data["afterHitTimeout"] = settings->GetAfterHitTimeout();
     data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
@@ -302,7 +302,7 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     const char* key = doc["key"];
     if (key) {        
         Settings* settings = Settings::GetInstance();
-        GoalfinderApp* app = GoalfinderApp::GetInstance();
+        GoalFinderApp* app = GoalFinderApp::GetInstance();
         
         JsonDocument response;
         response["type"] = "setting_ack";
@@ -470,7 +470,7 @@ void GFWebSocket::SendWebLog(String message) {
 }
 
 void GFWebSocket::HandleStart(uint8_t clientId) {
-    GoalfinderApp::GetInstance()->SetIsSoundEnabled(true);
+    GoalFinderApp::GetInstance()->SetIsSoundEnabled(true);
     JsonDocument doc;
     doc["type"] = "started";
     SendJson(clientId, doc);
@@ -478,7 +478,7 @@ void GFWebSocket::HandleStart(uint8_t clientId) {
 }
 
 void GFWebSocket::HandleStop(uint8_t clientId) {
-    GoalfinderApp::GetInstance()->SetIsSoundEnabled(false);
+    GoalFinderApp::GetInstance()->SetIsSoundEnabled(false);
     JsonDocument doc;
     doc["type"] = "stopped";
     SendJson(clientId, doc);

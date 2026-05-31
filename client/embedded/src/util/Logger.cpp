@@ -108,7 +108,7 @@ void Logger::DrainWebLogQueue() {
         String* messagePtr = nullptr;
         while (xQueueReceive(webLogQueue, &messagePtr, 0) == pdTRUE) {
             if (messagePtr != nullptr) {
-                GFWebSocket& ws = GoalfinderApp::GetInstance()->GetWebSocket();
+                GFWebSocket& ws = GoalFinderApp::GetInstance()->GetWebSocket();
                 ws.SendWebLog(*messagePtr);
                 delete messagePtr;
                 messagePtr = nullptr;

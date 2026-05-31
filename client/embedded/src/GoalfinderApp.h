@@ -35,14 +35,14 @@
 #include "web/DNSServer.h"
 
 
-class GoalfinderApp : public Singleton<GoalfinderApp> {
+class GoalFinderApp : public Singleton<GoalFinderApp> {
 public:
     // Public functions
     void SetIsSoundEnabled(bool value);
     bool IsSoundEnabled();
 
     /** Destructor */
-    virtual ~GoalfinderApp();
+    virtual ~GoalFinderApp();
 
     /** Initializes the application. */
     void Init();
@@ -69,9 +69,6 @@ public:
 
     static const int ledPwmChannel;
 
-    static const int shotVibrationThreshold;
-    static const int maxShotDurationMs;
-
     static const char* hitClips[];
     static const char* tickClips[];
     static const char* missClips[];
@@ -95,9 +92,9 @@ public:
     GFWebSocket& GetWebSocket() { return webSocket; }
 
 private:
-    friend class Singleton<GoalfinderApp>;
+    friend class Singleton<GoalFinderApp>;
     /** Singleton constructor */
-    GoalfinderApp();
+    GoalFinderApp();
 
     // Private functions 
     void OnShotDetected();
@@ -108,7 +105,9 @@ private:
     void UpdateSettings(bool force = false);
     void WiFiSetup();
     void ApplyDeviceNameByScan();
+
     bool ReadHit();
+    unsigned int ReadHitISR();
 
     // Internal objects
     FileSystem fileSystem;
@@ -140,6 +139,11 @@ private:
         } Enum;
     };
     Announcement::Enum announcement;
+
+    static const int shotVibrationThreshold;
+    static const int maxShotDurationMs;
+    static const int shotReadTimeout;
+    static const int shotReadISRDuration;
 
     // FreeRTOS Handles
     static TaskHandle_t TaskAudioHandle;
