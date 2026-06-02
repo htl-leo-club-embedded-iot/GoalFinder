@@ -260,6 +260,9 @@ void GoalFinderApp::DetectHit() {
 
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
         int distance = tofSensor.ReadSingleMillimeters();
+        if (distance != -1) {
+            Logger::Log("GoalFinderApp", Logger::LogLevel::DEBUG, "Distance: %d", distance);
+        }
 
         
 

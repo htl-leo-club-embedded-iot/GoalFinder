@@ -63,8 +63,8 @@ int VL53L0X::ReadSingleMillimeters() {
     VL53L0X_RangingMeasurementData_t measure;
     sensor.rangingTest(&measure, false);
     return measure.RangeStatus != 4 
-        ? (measure.RangeMilliMeter < 8190
-            ? 8190
+        ? (measure.RangeMilliMeter < 8190 && measure.RangeMilliMeter > 0
+            ? measure.RangeMilliMeter
             : -1) 
         : -1;
 }
