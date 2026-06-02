@@ -20,13 +20,13 @@
 #include "util/Logger.h"
 
 // Hardware pins and constants
-const int GoalFinderApp::pinTofSda = 22;
-const int GoalFinderApp::pinTofScl = 21;
-const int GoalFinderApp::pinI2sBclk = 23;
-const int GoalFinderApp::pinI2sWclk = 5;
-const int GoalFinderApp::pinI2sDataOut = 19;
-const int GoalFinderApp::pinLedPwm = 17;
-const int GoalFinderApp::pinRandomSeed = 36;
+const int GoalFinderApp::pSda = 22;
+const int GoalFinderApp::pScl = 21;
+const int GoalFinderApp::pI2SBitClock = 23;
+const int GoalFinderApp::pI2SWordClock = 5;
+const int GoalFinderApp::pI2SDataOut = 19;
+const int GoalFinderApp::pLedPwm = 17;
+const int GoalFinderApp::pRadom = 36;
 
 const int GoalFinderApp::ledPwmChannel = 0;
 
@@ -34,6 +34,9 @@ const int GoalFinderApp::shotVibrationThreshold = 2000;
 const int GoalFinderApp::maxShotDurationMs = 5000;
 const int GoalFinderApp::shotReadTimeout = 20;
 const int GoalFinderApp::shotReadISRDuration = 20;
+const int GoalFinderApp::hitReadTimeout = 20;
+const int GoalFinderApp::hitReadISRDuration = 20;
+
 
 const char* GoalFinderApp::hitClips[] = { "/hit-1.mp3", "/hit-2.mp3", "/hit-3.mp3" };
 const char* GoalFinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3", "/tick-4.mp3" };
@@ -59,10 +62,10 @@ GoalFinderApp::GoalFinderApp() :
     httpServer(&fileSystem),
     webSocket(),
     sntp(),
-    audioPlayer(&fileSystem, pinI2sBclk, pinI2sWclk, pinI2sDataOut),
+    audioPlayer(&fileSystem, pI2SBitClock, pI2SWordClock, pI2SDataOut),
     tofSensor(),
     sw420Sensor(),
-    ledController(pinLedPwm, ledPwmChannel),
+    ledController(pLedPwm, ledPwmChannel),
     announcing(false),
     announcingUntilMs(0),
     lastMetronomeTickTime(0),
@@ -90,7 +93,7 @@ void GoalFinderApp::Init() {
     Serial.begin(115200);
     Logger::Begin(115200);
 
-    randomSeed(analogRead(pinRandomSeed));
+    randomSeed(analogRead(pRadom));
 
     if (fileSystem.Begin()) {
         wifiManager.Init();
@@ -100,7 +103,7 @@ void GoalFinderApp::Init() {
         webSocket.Begin();
         sntp.Init();
         sw420Sensor.Init();
-        tofSensor.Init(pinTofScl, pinTofSda);
+        tofSensor.Init(pScl, pSda);
         ledController.SetMode(LedMode::Flash);
 
         UpdateSettings(true);
@@ -259,12 +262,9 @@ void GoalFinderApp::DetectHit() {
     }
 
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
-        int distance = tofSensor.ReadSingleMillimeters();
-        if (distance != -1) {
-            Logger::Log("GoalFinderApp", Logger::LogLevel::DEBUG, "Distance: %d", distance);
-        }
-
-        
+        ReadHit();     
+        const char* hitStr = ReadHit() ? "true" : "false";
+        // Logger::Log("yGoalFindeApp", Logger::LogLevel::DEBUG, hitStr);
 
         // if (distanceOnlyHitDetection) {
         //     if (!(announcing && audioPlayer.IsPlaying())) {
@@ -303,20 +303,20 @@ void GoalFinderApp::DetectHit() {
     }
 }
 
-bool GoalFinderApp::ReadHit() {
+bool GoalFinderApp::ReadShot() {
     bool result = false;
     static unsigned long lastReadTime = 0;
 
     if (millis() - lastReadTime > shotReadTimeout) {
         // 100 Sensitivity will result in 1 edge required for shot to be detected. 0 Sensitivity will result in 5 edges required.
-        result = ReadHitISR() > 5 - Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
+        result = ReadShotISR() > 5 - Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
         lastReadTime = millis();
     }
 
     return result;
 }
 
-unsigned int GoalFinderApp::ReadHitISR() {
+unsigned int GoalFinderApp::ReadShotISR() {
     unsigned long isrBegin = millis();
     unsigned int edges = 0;
     bool lastState = sw420Sensor.GetState();
@@ -331,8 +331,34 @@ unsigned int GoalFinderApp::ReadHitISR() {
     }
     
     xTaskResumeAll();
-    Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Edges: %d", edges);
     return edges;
+}
+
+bool GoalFinderApp::ReadHit() {
+    bool result = false;
+    static unsigned long lastReadTime = 0;
+    int distance = tofSensor.ReadSingleMillimeters();
+    unsigned int distanceRequired = Settings::GetInstance()->GetBallHitDetectionDistance();
+    // Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Distance: %d", distance);
+
+    if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > distanceRequired - 30 && distance < distanceRequired + 30) {
+        result = ReadHitISR(distanceRequired) > 5 - Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
+        lastReadTime = millis();
+    }
+    return result;
+}
+
+unsigned int GoalFinderApp::ReadHitISR(unsigned int distanceRequired) {
+    unsigned long isrBegin = millis();
+    unsigned int hits = 0;
+    
+    while (millis() - isrBegin < hitReadISRDuration) {
+        int distance = tofSensor.ReadSingleMillimeters();
+        hits += distance != -1 && distance > distanceRequired - 30 && distance < distanceRequired + 30 ? 1 : 0;
+    }
+    
+    Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Reading Hits: %d", hits);
+    return hits;
 }
 
 void GoalFinderApp::ProcessAnnouncement() {

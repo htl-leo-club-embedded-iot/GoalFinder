@@ -62,6 +62,7 @@ void VL53L0X::Init(int sclPin, int sdaPin) {
 int VL53L0X::ReadSingleMillimeters() {
     VL53L0X_RangingMeasurementData_t measure;
     sensor.rangingTest(&measure, false);
+    Logger::Log("VL53L0X", Logger::LogLevel::ERROR, "Raw Dist Data: %d", measure.RangeStatus != 0 ? measure.RangeMilliMeter : -1);
     return measure.RangeStatus != 4 
         ? (measure.RangeMilliMeter < 8190 && measure.RangeMilliMeter > 0
             ? measure.RangeMilliMeter

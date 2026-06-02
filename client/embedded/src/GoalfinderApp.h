@@ -160,13 +160,13 @@ private:
 
     // Pin assignments
 
-    static const int pinTofSda;      /**< I2C data for VL53L0X ToF sensor. */
-    static const int pinTofScl;      /**< I2C clock for VL53L0X ToF sensor. */
-    static const int pinI2sBclk;     /**< I2S bit clock. */
-    static const int pinI2sWclk;     /**< I2S word (left/right) clock. */
-    static const int pinI2sDataOut;  /**< I2S serial data output. */
-    static const int pinLedPwm;      /**< LED indicator PWM output. */
-    static const int pinRandomSeed;  /**< Analog input for seeding random(). */
+    static const int pSda;      /**< I2C data for VL53L0X ToF sensor. */
+    static const int pScl;      /**< I2C clock for VL53L0X ToF sensor. */
+    static const int pI2SBitClock;     /**< I2S bit clock. */
+    static const int pI2SWordClock;     /**< I2S word (left/right) clock. */
+    static const int pI2SDataOut;  /**< I2S serial data output. */
+    static const int pLedPwm;      /**< LED indicator PWM output. */
+    static const int pRadom;  /**< Analog input for seeding random(). */
 
     static const int ledPwmChannel;  /**< LEDC channel used for the LED PWM pin. */
 
@@ -249,7 +249,7 @@ private:
      *
      * @return true if the edge count exceeds the sensitivity-derived threshold.
      */
-    bool ReadHit();
+    bool ReadShot();
 
     /**
      * Busy-waits on the vibration sensor GPIO for shotReadISRDuration ms,
@@ -258,7 +258,23 @@ private:
      *
      * @return Number of edges detected during the sampling window.
      */
-    unsigned int ReadHitISR();
+    unsigned int ReadShotISR();
+
+    /**
+     * Reads the distance sensor with a polling-based debounce.
+     *
+     * @return true if the required count of distance reading in a range of ±30 is reached.
+     */
+    bool ReadHit();
+
+    /**
+     * Busy-waits on the distance sensor GPIO for shotReadISRDuration ms,
+     * counting sensor reads within a ±30 range of the set hit detection distance.
+     *
+     * @param distanceRequired The distance ± 30 needed to trigger a hit
+     * @return Number of readings within the required threshold.
+     */
+    unsigned int ReadHitISR(unsigned int distanceRequired);
 
     // Internal subsystem objects
 
@@ -300,10 +316,12 @@ private:
     };
     Announcement::Enum announcement;
 
-    static const int shotVibrationThreshold;  /**< Minimum vibration edges to register a shot. */
-    static const int maxShotDurationMs;       /**< Max time after a shot to wait for a hit before declaring miss. */
-    static const int shotReadTimeout;         /**< Minimum interval between ReadHit() calls. */
-    static const int shotReadISRDuration;     /**< How long ReadHitISR() samples the vibration sensor (ms). */
+    static const int shotVibrationThreshold;    /**< Minimum vibration edges to register a shot. */
+    static const int maxShotDurationMs;         /**< Max time after a shot to wait for a hit before declaring miss. */
+    static const int shotReadTimeout;           /**< Minimum interval between ReadShot() calls. */
+    static const int shotReadISRDuration;       /**< How long ReadShotISR() samples the vibration sensor (ms). */
+    static const int hitReadTimeout;            /**< Minimum interval between ReadHit */
+    static const int hitReadISRDuration;        /**< How long ReadHitISR() samples the distance sensor (ms) */    
 
     // FreeRTOS handles (static)
 
