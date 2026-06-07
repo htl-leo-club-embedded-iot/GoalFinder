@@ -263,8 +263,8 @@ void GoalFinderApp::DetectHit() {
 
     if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
         ReadHit();     
-        const char* hitStr = ReadHit() ? "true" : "false";
-        // Logger::Log("yGoalFindeApp", Logger::LogLevel::DEBUG, hitStr);
+        // const char* hitStr = ReadHit() ? "true" : "false";
+        // Logger::Log("GoalFindeApp", Logger::LogLevel::DEBUG, hitStr);
 
         // if (distanceOnlyHitDetection) {
         //     if (!(announcing && audioPlayer.IsPlaying())) {
