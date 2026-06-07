@@ -68,6 +68,7 @@ GoalFinderApp::GoalFinderApp() :
     announcingUntilMs(0),
     lastMetronomeTickTime(0),
     announcement(Announcement::None),
+    state(IDLE),
     lastShookTime(0),
     lastHitTime(0),
     afterHitTimeoutMs(5000),
@@ -255,50 +256,32 @@ void GoalFinderApp::TickMetronome() {
 }
 
 void GoalFinderApp::DetectHit() {
-    if (announcing && (millis() > announcingUntilMs || !audioPlayer.IsPlaying())) {
-        announcing = false;
+    bool inCooldown = lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs;
+
+    if (!inCooldown) {
+        if (ReadHit()) {
+            lastHitTime = millis();
+            lastShookTime = 0;
+            state = IDLE;
+            AnnounceHit();
+        } else if (!distanceOnlyHitDetection) {
+            if (state == SHOT_DETECTED && millis() - lastShookTime > maxShotDurationMs) {
+                lastHitTime = millis();
+                lastShookTime = 0;
+                state = IDLE;
+                AnnounceMiss();
+            } else if (state == IDLE && ReadShot()) {
+                lastShookTime = millis();
+                state = SHOT_DETECTED;
+                OnShotDetected();
+            }
+        }
     }
+}
 
-    if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
-        ReadHit();     
-        // const char* hitStr = ReadHit() ? "true" : "false";
-        // Logger::Log("GoalFindeApp", Logger::LogLevel::DEBUG, hitStr);
-
-        // if (distanceOnlyHitDetection) {
-        //     if (!(announcing && audioPlayer.IsPlaying())) {
-        //         announcing = false;
-        //         if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
-        //             AnnounceHit();
-        //             lastHitTime = millis();
-        //         }
-        //     }
-        // } else {
-        //     if (lastShookTime <= 0) {
-        //         if (!(announcing && audioPlayer.IsPlaying())) {
-        //             announcing = false;
-        //             long vibration = sw420Sensor.Vibration(10000);
-        //             if (vibration > shotVibrationThreshold) {
-        //                 lastShookTime = millis();
-        //                 Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
-        //             }
-        //         }
-        //     } else {
-        //         unsigned long diff = millis() - lastShookTime;
-
-        //         if (diff < maxShotDurationMs) {
-        //             int distance = tofSensor.ReadSingleMillimeters();
-        //             if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
-        //                 AnnounceHit();
-        //             }
-        //         } else {
-        //             AnnounceMiss();
-        //         }
-                
-        //         lastHitTime = millis();
-        //         lastShookTime = 0;
-        //     }
-        // }
-    }
+void GoalFinderApp::OnShotDetected() {
+    announcement = Announcement::Shot;
+    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
 }
 
 bool GoalFinderApp::ReadShot() {
@@ -412,6 +395,7 @@ void GoalFinderApp::PlaySound(const char* soundFileName) {
         }
 
         if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+            audioPlayer.Stop();
             audioPlayer.PlayMP3(soundFileName);
 
             if (!audioPlayer.IsPlaying()) {
