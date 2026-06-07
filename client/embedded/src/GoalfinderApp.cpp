@@ -35,8 +35,6 @@ const int GoalFinderApp::maxShotDurationMs = 5000;
 const int GoalFinderApp::shotReadTimeout = 20;
 const int GoalFinderApp::shotReadISRDuration = 20;
 const int GoalFinderApp::hitReadTimeout = 20;
-const int GoalFinderApp::hitReadISRDuration = 20;
-
 
 const char* GoalFinderApp::hitClips[] = { "/hit-1.mp3", "/hit-2.mp3", "/hit-3.mp3" };
 const char* GoalFinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3", "/tick-4.mp3" };
@@ -339,26 +337,14 @@ bool GoalFinderApp::ReadHit() {
     static unsigned long lastReadTime = 0;
     int distance = tofSensor.ReadSingleMillimeters();
     unsigned int distanceRequired = Settings::GetInstance()->GetBallHitDetectionDistance();
-    // Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Distance: %d", distance);
-
-    if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > distanceRequired - 30 && distance < distanceRequired + 30) {
-        result = ReadHitISR(distanceRequired) > 5 - Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
+    
+    if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > distanceRequired / 8 && distance < distanceRequired + 30) {
+        result = true;        
         lastReadTime = millis();
     }
-    return result;
-}
 
-unsigned int GoalFinderApp::ReadHitISR(unsigned int distanceRequired) {
-    unsigned long isrBegin = millis();
-    unsigned int hits = 0;
-    
-    while (millis() - isrBegin < hitReadISRDuration) {
-        int distance = tofSensor.ReadSingleMillimeters();
-        hits += distance != -1 && distance > distanceRequired - 30 && distance < distanceRequired + 30 ? 1 : 0;
-    }
-    
-    Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Reading Hits: %d", hits);
-    return hits;
+    Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Hit: %s", result ? "true" : "false");
+    return result;
 }
 
 void GoalFinderApp::ProcessAnnouncement() {

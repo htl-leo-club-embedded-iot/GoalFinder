@@ -267,15 +267,6 @@ private:
      */
     bool ReadHit();
 
-    /**
-     * Busy-waits on the distance sensor GPIO for shotReadISRDuration ms,
-     * counting sensor reads within a ±30 range of the set hit detection distance.
-     *
-     * @param distanceRequired The distance ± 30 needed to trigger a hit
-     * @return Number of readings within the required threshold.
-     */
-    unsigned int ReadHitISR(unsigned int distanceRequired);
-
     // Internal subsystem objects
 
     FileSystem fileSystem;       /**< SPIFFS / LittleFS file system. */
@@ -321,7 +312,6 @@ private:
     static const int shotReadTimeout;           /**< Minimum interval between ReadShot() calls. */
     static const int shotReadISRDuration;       /**< How long ReadShotISR() samples the vibration sensor (ms). */
     static const int hitReadTimeout;            /**< Minimum interval between ReadHit */
-    static const int hitReadISRDuration;        /**< How long ReadHitISR() samples the distance sensor (ms) */    
 
     // FreeRTOS handles (static)
 
