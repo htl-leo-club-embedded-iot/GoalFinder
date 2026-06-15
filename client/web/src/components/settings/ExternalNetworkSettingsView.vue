@@ -672,7 +672,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  width: 100%;
   padding: 0.75rem;
   border-radius: var(--corner-radius);
   border: 2px solid var(--border-color);
