@@ -326,7 +326,6 @@ bool GoalFinderApp::ReadHit() {
         lastReadTime = millis();
     }
 
-    Logger::Log("GoalfinderApp", Logger::LogLevel::DEBUG, "Hit: %s", result ? "true" : "false");
     return result;
 }
 
