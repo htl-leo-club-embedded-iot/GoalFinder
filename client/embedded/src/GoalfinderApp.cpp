@@ -73,7 +73,8 @@ GoalFinderApp::GoalFinderApp() :
     lastHitTime(0),
     afterHitTimeoutMs(5000),
     isSoundEnabled(true),
-    distanceOnlyHitDetection(false)
+    distanceOnlyHitDetection(false),
+    waitingSoundPlayCount(0)
 {}
 
 GoalFinderApp::~GoalFinderApp() {}
@@ -235,22 +236,21 @@ void GoalFinderApp::TaskHttp(void *pvParameters) {
     }
 }
 
-// Play metronome sound
 void GoalFinderApp::TickMetronome() {
     unsigned long currentTime = millis();
     if ((currentTime - lastMetronomeTickTime) > Settings::GetInstance()->GetMetronomeTiming()) {
         lastMetronomeTickTime = currentTime;
-
-        int waitingSoundIndex = Settings::GetInstance()->GetWaitingSound();
-        int metronomeSoundIndex = Settings::GetInstance()->GetMetronomeSound();
-        int waitingClipCount = sizeof(waitingClips) / sizeof(waitingClips[0]);
-        int tickClipCount = sizeof(tickClips) / sizeof(tickClips[0]);
-
-        waitingSoundIndex = max(min(waitingSoundIndex, waitingClipCount - 1), 0);
-        metronomeSoundIndex = max(min(metronomeSoundIndex, tickClipCount - 1), 0);
+        const char* clipName = 0;
 
         bool useWaitingSound = (lastShookTime > 0);
-        const char* clipName = useWaitingSound ? waitingClips[waitingSoundIndex] : tickClips[metronomeSoundIndex];
+        if (useWaitingSound) {
+            if (waitingSoundPlayCount < 3) {
+                clipName = waitingClips[Settings::GetInstance()->GetWaitingSound()];
+                waitingSoundPlayCount++;
+            }
+        } else {
+            clipName = tickClips[Settings::GetInstance()->GetMetronomeSound()];
+        }
         PlaySound(clipName);
     }
 }
@@ -281,6 +281,7 @@ void GoalFinderApp::DetectHit() {
 
 void GoalFinderApp::OnShotDetected() {
     announcement = Announcement::Shot;
+    waitingSoundPlayCount = 0;
     Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
 }
 

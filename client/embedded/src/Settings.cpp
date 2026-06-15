@@ -34,7 +34,7 @@ const int Settings::defaultHitSound = 0;
 const char* Settings::keyMissSound = "missSound";
 const int Settings::defaultMissSound = 0;
 
-const char* Settings::keyWaitingSound = "missSound";
+const char* Settings::keyWaitingSound = "waitingSound";
 const int Settings::defaultWaitingSound = 0;
 
 const char* Settings::keyMetronomeTiming = "metSoundDelay";
@@ -249,14 +249,14 @@ void Settings::SetMissSound(int missSound) {
 	SetModified();
 }
 
+int Settings::GetMissSound() {
+	return ClampSoundIndex(store.GetInt(keyMissSound, defaultMissSound), nMissSounds);
+}
+
 void Settings::SetWaitingSound(int waitingSound) {
 	waitingSound = ClampSoundIndex(waitingSound, nWaitingSounds);
 	store.PutInt(keyWaitingSound, waitingSound);
 	SetModified();
-}
-
-int Settings::GetMissSound() {
-	return ClampSoundIndex(store.GetInt(keyMissSound, defaultMissSound), nMissSounds);
 }
 
 int Settings::GetWaitingSound() {

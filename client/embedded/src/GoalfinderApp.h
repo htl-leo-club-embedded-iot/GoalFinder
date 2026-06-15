@@ -288,6 +288,7 @@ private:
     unsigned long lastShookTime;       /**< millis() when shot vibration was last detected; 0 means no pending shot. */
     unsigned long lastHitTime;         /**< millis() of the last confirmed hit, used for post-hit cooldown. */
     unsigned long afterHitTimeoutMs;   /**< Duration in ms to suppress detection after a hit. */
+    uint8_t waitingSoundPlayCount; /**< The maximum number of waiting sound clips to play when waiting for a hit */
 
     /**
      * Announcement event type – set by DetectHit() and consumed by ProcessAnnouncement().
