@@ -282,6 +282,7 @@ void GoalFinderApp::DetectHit() {
 void GoalFinderApp::OnShotDetected() {
     announcement = Announcement::Shot;
     waitingSoundPlayCount = 0;
+    ledController.OnShotDetected();
     Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
 }
 
@@ -361,12 +362,14 @@ void GoalFinderApp::ProcessAnnouncement() {
 
 void GoalFinderApp::AnnounceHit() {
     announcement = Announcement::Hit;
+    ledController.OnHit();
     webSocket.SendHitEvent();
     Logger::Log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected");
 }
 
 void GoalFinderApp::AnnounceMiss() {
     announcement = Announcement::Miss;
+    ledController.OnMiss();
     webSocket.SendMissEvent();
     Logger::Log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected");
 }
