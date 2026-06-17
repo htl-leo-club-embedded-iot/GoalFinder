@@ -1,0 +1,1 @@
+import{a as e}from"./hLf6_Xws.js";function t(t,n,r,i){return e({get:t,set:e=>{n(Math.max(r,Math.min(i,e)))}})}export{t};

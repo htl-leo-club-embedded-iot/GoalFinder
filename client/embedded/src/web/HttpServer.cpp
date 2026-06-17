@@ -244,7 +244,7 @@ void HttpServer::Begin() {
     server.on("/gen_204", HTTP_GET, redirectHandler);
     server.on("/204", HTTP_GET, redirectHandler);
     server.on("/mobile/status.php", HTTP_GET, redirectHandler);
-    server.on("/hotspot-detect.html", HTTP_GET, htmlHandler);
+    server.on("/hotspot-detect.html", HTTP_GET, redirectHandler);
     server.on("/ncsi.txt", HTTP_GET, redirectHandler);
     server.on("/connecttest.txt", HTTP_GET, redirectHandler);
     server.on("/fwlink", HTTP_GET, redirectHandler);

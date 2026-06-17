@@ -322,7 +322,7 @@ bool GoalFinderApp::ReadHit() {
     int distance = tofSensor.ReadSingleMillimeters();
     unsigned int distanceRequired = Settings::GetInstance()->GetBallHitDetectionDistance();
     
-    if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > distanceRequired / 8 && distance < distanceRequired + 30) {
+    if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > distanceRequired / 8 && distance < distanceRequired) {
         result = true;        
         lastReadTime = millis();
     }
