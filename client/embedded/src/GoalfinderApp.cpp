@@ -192,7 +192,9 @@ void GoalFinderApp::TaskDetection(void *pvParameters) {
         app->UpdateSettings();
         app->DetectHit();
         app->ProcessAnnouncement();
-        vTaskDelay(pdMS_TO_TICKS(5));
+        if (app->state != SHOT_DETECTED) {
+            vTaskDelay(pdMS_TO_TICKS(5));
+        }
     }
 }
 
@@ -274,6 +276,12 @@ void GoalFinderApp::DetectHit() {
                 lastShookTime = millis();
                 state = SHOT_DETECTED;
                 OnShotDetected();
+                if (ReadHit()) {
+                    lastHitTime = millis();
+                    lastShookTime = 0;
+                    state = IDLE;
+                    AnnounceHit();
+                }
             }
         }
     }
@@ -292,7 +300,7 @@ bool GoalFinderApp::ReadShot() {
 
     if (millis() - lastReadTime > shotReadTimeout) {
         // 100 Sensitivity will result in 1 edge required for shot to be detected. 0 Sensitivity will result in 5 edges required.
-        result = ReadShotISR() > 5 - Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
+        result = ReadShotISR() > Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
         lastReadTime = millis();
     }
 
@@ -324,7 +332,7 @@ bool GoalFinderApp::ReadHit() {
     unsigned int distanceRequired = Settings::GetInstance()->GetBallHitDetectionDistance();
     unsigned int minDist = 100;
 
-    Logger::Log("GoalFinderApp", Logger::LogLevel::DEBUG, "Dist: %d Req: %d Min: %d", distance, distanceRequired, minDist);
+    // Logger::Log("GoalFinderApp", Logger::LogLevel::DEBUG, "Dist: %d Req: %d Min: %d", distance, distanceRequired, minDist);
     if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > minDist && distance < distanceRequired) {
         result = true;        
         lastReadTime = millis();
