@@ -19,6 +19,6 @@
     <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/>
     <path d="M8 1.5C5.5 3 4.5 5.5 4.5 8s1 5 3.5 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     <path d="M8 1.5C10.5 3 11.5 5.5 11.5 8s-1 5-3.5 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-    <path d="M1.5 8h13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M8 1.5v13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
   </svg>
 </template>

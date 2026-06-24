@@ -15,10 +15,14 @@
  */
 
 <script setup lang="ts">
+import BasketballIcon from "@/components/icons/BasketballIcon.vue";
 import Button from "@/components/Button.vue";
-import PowerIcon from "@/components/icons/PowerIcon.vue";
+import PauseIcon from "@/components/icons/PauseIcon.vue";
+import PlayIcon from "@/components/icons/PlayIcon.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import {useSettingsStore} from "@/stores/settings";
+import SettingsIcon from "./icons/SettingsIcon.vue";
+import InfoIcon from "./icons/InfoIcon.vue";
 
 const settings = useSettingsStore();
 
@@ -29,11 +33,14 @@ const settings = useSettingsStore();
     <div id="nav-bar">
       <RouterLink to="/"><h1>GoalFinder</h1></RouterLink>
       <div id="links-container">
-        <RouterLink to="/games"><Button class="link">{{ $t("header.games") }}</Button></RouterLink>
-        <RouterLink to="/settings"><Button class="link">{{ $t("header.settings") }}</Button></RouterLink>
-        <RouterLink to="/about"><Button class="link">{{ $t("header.about") }}</Button></RouterLink>
+        <RouterLink to="/games"><Button :title="$t('header.games')"><BasketballIcon class="nav-icon"/></Button></RouterLink>
+        <RouterLink to="/settings"><Button :title="$t('header.settings')"><SettingsIcon class="nav-icon"/></Button></RouterLink>
+        <RouterLink to="/about"><Button :title="$t('header.about')"><InfoIcon class="nav-icon"/></Button></RouterLink>
         <ToggleButton id="power-state-button" v-model="settings.isSoundEnabled">
-          <PowerIcon id="power-icon"/>
+          <Transition name="icon-fade" mode="out-in">
+            <PlayIcon v-if="settings.isSoundEnabled" key="play" class="power-icon"/>
+            <PauseIcon v-else key="pause" class="power-icon"/>
+          </Transition>
         </ToggleButton>
       </div>
     </div>
@@ -72,13 +79,14 @@ const settings = useSettingsStore();
     gap: 0.5rem;
   }
 
-  .link {
-    min-width: 6rem;
-    font-weight: bold;
-  }
-
   .router-link-active > Button {
     border-color: var(--accent-color);
+  }
+
+  .nav-icon {
+    width: 1.3rem;
+    height: 1.3rem;
+    display: block;
   }
 
   #power-state-button {
@@ -88,7 +96,17 @@ const settings = useSettingsStore();
     justify-content: center;
   }
 
-  #power-icon {
+  .power-icon {
     width: 1.4rem;
+  }
+
+  .icon-fade-enter-active,
+  .icon-fade-leave-active {
+    transition: opacity 0.15s ease;
+  }
+
+  .icon-fade-enter-from,
+  .icon-fade-leave-to {
+    opacity: 0;
   }
 </style>

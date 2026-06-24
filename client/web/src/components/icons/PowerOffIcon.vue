@@ -15,9 +15,9 @@
  */
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" stroke="currentColor" stroke-width="0.6"/>
-    <circle cx="8" cy="5.5" r="1.1"/>
-    <rect x="7.1" y="7.5" width="1.8" height="5" rx="0.9"/>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M7.5 1v7h1V1z"/>
+    <path d="M3 8.812a5 5 0 0 1 2.578-4.375l-.485-.874A6 6 0 1 0 11 3.616l-.501.865A5 5 0 1 1 3 8.812"/>
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.2" d="M1 1.5 15 14.5"/>
   </svg>
 </template>

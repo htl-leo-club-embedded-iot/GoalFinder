@@ -15,8 +15,8 @@
  */
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <rect x="3" y="2.5" width="3.5" height="11" rx="1"/>
-    <rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
+    <rect x="2.5" y="2" width="3.5" height="12" rx="1"/>
+    <rect x="10" y="2" width="3.5" height="12" rx="1"/>
   </svg>
 </template>
