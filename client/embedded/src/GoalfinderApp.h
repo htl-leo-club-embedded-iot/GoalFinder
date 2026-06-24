@@ -308,6 +308,8 @@ private:
     };
     Announcement::Enum announcement;
 
+    volatile int lastRawDistance;
+
     static const int shotVibrationThreshold;    /**< Minimum vibration edges to register a shot. */
     static const int maxShotDurationMs;         /**< Max time after a shot to wait for a hit before declaring miss. */
     static const int shotReadTimeout;           /**< Minimum interval between ReadShot() calls. */

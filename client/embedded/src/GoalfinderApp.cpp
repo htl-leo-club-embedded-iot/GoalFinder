@@ -276,11 +276,15 @@ void GoalFinderApp::DetectHit() {
                 lastShookTime = millis();
                 state = SHOT_DETECTED;
                 OnShotDetected();
-                if (ReadHit()) {
-                    lastHitTime = millis();
-                    lastShookTime = 0;
-                    state = IDLE;
-                    AnnounceHit();
+                for (int i = 0; i < 3; i++) {
+                    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Post-shot dist: %d", lastRawDistance);
+                    if (ReadHit()) {
+                        lastHitTime = millis();
+                        lastShookTime = 0;
+                        state = IDLE;
+                        AnnounceHit();
+                        break;
+                    }
                 }
             }
         }
@@ -299,7 +303,6 @@ bool GoalFinderApp::ReadShot() {
     static unsigned long lastReadTime = 0;
 
     if (millis() - lastReadTime > shotReadTimeout) {
-        // 100 Sensitivity will result in 1 edge required for shot to be detected. 0 Sensitivity will result in 5 edges required.
         result = ReadShotISR() > Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
         lastReadTime = millis();
     }
@@ -331,11 +334,13 @@ bool GoalFinderApp::ReadHit() {
     int distance = tofSensor.ReadSingleMillimeters();
     unsigned int distanceRequired = Settings::GetInstance()->GetBallHitDetectionDistance();
     unsigned int minDist = 100;
+    lastRawDistance = distance;
 
-    // Logger::Log("GoalFinderApp", Logger::LogLevel::DEBUG, "Dist: %d Req: %d Min: %d", distance, distanceRequired, minDist);
     if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > minDist && distance < distanceRequired) {
         result = true;        
         lastReadTime = millis();
+    } else if (state == SHOT_DETECTED) {
+        Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "SHOT_DETECTED ReadHit: dist=%d req=%d min=%d", distance, distanceRequired, minDist);
     }
 
     return result;
