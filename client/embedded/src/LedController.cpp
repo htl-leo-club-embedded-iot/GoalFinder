@@ -87,7 +87,7 @@ void LedController::OnHit()
     _eventBaseDuty = maxPwmDuty;
     lastStepTimeMs = 0;
     lastAppliedDuty = 0xFFFF;
-    Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED hit event started", millis() / 1000.0);
+    // Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED hit event started", millis() / 1000.0);
 }
 
 void LedController::OnMiss()
@@ -100,7 +100,7 @@ void LedController::OnMiss()
     _eventBaseDuty = maxPwmDuty;
     lastStepTimeMs = 0;
     lastAppliedDuty = 0xFFFF;
-    Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED miss event started", millis() / 1000.0);
+    // Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED miss event started", millis() / 1000.0);
 }
 
 void LedController::OnShotDetected()
@@ -114,7 +114,7 @@ void LedController::OnShotDetected()
         _eventBaseDuty = maxPwmDuty;
         lastStepTimeMs = 0;
         lastAppliedDuty = 0xFFFF;
-        Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED shot event started", millis() / 1000.0);
+        // Logger::Log("LedController", Logger::LogLevel::OK, "%4.3f: LED shot event started", millis() / 1000.0);
     }
 }
 

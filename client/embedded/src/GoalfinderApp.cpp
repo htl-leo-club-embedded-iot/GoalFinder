@@ -277,7 +277,6 @@ void GoalFinderApp::DetectHit() {
                 state = SHOT_DETECTED;
                 OnShotDetected();
                 for (int i = 0; i < 3; i++) {
-                    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Post-shot dist: %d", lastRawDistance);
                     if (ReadHit()) {
                         lastHitTime = millis();
                         lastShookTime = 0;
@@ -339,9 +338,9 @@ bool GoalFinderApp::ReadHit() {
     if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > minDist && distance < distanceRequired) {
         result = true;        
         lastReadTime = millis();
-    } else if (state == SHOT_DETECTED) {
+    } /* else if (state == SHOT_DETECTED) {
         Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "SHOT_DETECTED ReadHit: dist=%d req=%d min=%d", distance, distanceRequired, minDist);
-    }
+    } */
 
     return result;
 }
@@ -379,18 +378,18 @@ void GoalFinderApp::AnnounceHit() {
     announcement = Announcement::Hit;
     ledController.OnHit();
     webSocket.SendHitEvent();
-    Logger::Log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected");
+    // Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Hit detected");
 }
 
 void GoalFinderApp::AnnounceMiss() {
     announcement = Announcement::Miss;
     ledController.OnMiss();
     webSocket.SendMissEvent();
-    Logger::Log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected");
+    // Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Miss detected");
 }
 
 void GoalFinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {
-    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Announcing event '%s'", traceMsg);
+    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Event: '%s'", traceMsg);
     if (sound) {
         announcing = true;
         if (timeoutMs > 0) {
