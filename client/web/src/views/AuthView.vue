@@ -23,6 +23,7 @@ import { useWebSocketStore } from '@/stores/websocket';
 import Page from '@/components/Page.vue';
 import InputForm from '@/components/InputForm.vue';
 import Button from '@/components/Button.vue';
+import SpectateIcon from '@/components/icons/SpectateIcon.vue';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -79,6 +80,13 @@ async function authenticate() {
         {{ isLoading ? '...' : $t('auth.login') }}
       </Button>
     </form>
+
+    <div class="auth-spectate">
+      <RouterLink to="/spectate?origin=auth" class="spectate-link">
+        <SpectateIcon class="spectate-icon" />
+        {{ $t("spectator.spectate") }}
+      </RouterLink>
+    </div>
   </Page>
 </template>
 
@@ -101,5 +109,28 @@ async function authenticate() {
   text-align: center;
   margin: 0;
   font-weight: 500;
+}
+
+.auth-spectate {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.spectate-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-color-secondary);
+  font-size: 0.95rem;
+  transition: color 0.3s;
+}
+
+.spectate-link:hover {
+  color: var(--accent-color);
+}
+
+.spectate-icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 </style>

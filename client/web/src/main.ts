@@ -40,7 +40,8 @@ const i18n = createI18n({
                 about: "About",
                 game_card: "Create new game",
                 settings_card: "Configure device",
-                sessions_card: "Create new session"
+                sessions_card: "Create new session",
+                spectate: "Spectate"
             },
             games: {
                 shot_challenge: "Throw-Challenge",
@@ -243,6 +244,11 @@ const i18n = createI18n({
                 invalid_password: "Invalid password. Please try again.",
                 too_many_attempts: "Too many attempts. Please wait a minute and try again.",
                 error: "Authentication failed. Could not reach the device."
+            },
+            spectator: {
+                title: "Spectator",
+                no_game: "No game is currently active",
+                spectate: "Spectate"
             }
         },
         de : {
@@ -256,7 +262,8 @@ const i18n = createI18n({
                 about: "Über uns",
                 game_card: "Neues Spiel erstellen",
                 settings_card: "Einstellungen",
-                sessions_card: "Neue Sitzung erstellen"
+                sessions_card: "Neue Sitzung erstellen",
+                spectate: "Zuschauen"
             },
             games: {
                 shot_challenge: "Wurf-Challenge",
@@ -456,6 +463,11 @@ const i18n = createI18n({
                 invalid_password: "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
                 too_many_attempts: "Zu viele Versuche. Bitte warten Sie eine Minute und versuchen Sie es erneut.",
                 error: "Authentifizierung fehlgeschlagen. Das Gerät konnte nicht erreicht werden."
+            },
+            spectator: {
+                title: "Zuschauer",
+                no_game: "Derzeit ist kein Spiel aktiv",
+                spectate: "Zuschauen"
             }
         }
     }

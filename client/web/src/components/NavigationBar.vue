@@ -23,6 +23,7 @@ import ToggleButton from "@/components/ToggleButton.vue";
 import {useSettingsStore} from "@/stores/settings";
 import SettingsIcon from "./icons/SettingsIcon.vue";
 import InfoIcon from "./icons/InfoIcon.vue";
+import SpectateIcon from "./icons/SpectateIcon.vue";
 
 const settings = useSettingsStore();
 
@@ -35,6 +36,7 @@ const settings = useSettingsStore();
       <div id="links-container">
         <RouterLink to="/games"><Button :title="$t('header.games')"><BasketballIcon class="nav-icon"/></Button></RouterLink>
         <RouterLink to="/settings"><Button :title="$t('header.settings')"><SettingsIcon class="nav-icon"/></Button></RouterLink>
+        <RouterLink to="/spectate?origin=app"><Button :title="$t('header.spectate')"><SpectateIcon class="nav-icon"/></Button></RouterLink>
         <RouterLink to="/about"><Button :title="$t('header.about')"><InfoIcon class="nav-icon"/></Button></RouterLink>
         <ToggleButton id="power-state-button" v-model="settings.isSoundEnabled">
           <Transition name="icon-fade" mode="out-in">

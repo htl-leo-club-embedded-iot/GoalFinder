@@ -33,7 +33,12 @@ const route = useRoute();
 const dontShowAgain = ref(false);
 const { locale } = useI18n();
 
-const isAuthPage = computed(() => route.name === 'auth');
+const hideHeader = computed(() => {
+  if (route.name === 'auth' || route.name === 'spectator') return true;
+  if (wsStore.isAuthRequired === true && !sessionStorage.getItem('authenticated')) return true;
+  return false;
+});
+const skipConnectionChecks = computed(() => route.name === 'auth' || route.name === 'spectator');
 
 settingsStore.$subscribe(() => {
   settingsStore.scheduleSave();
@@ -76,9 +81,8 @@ function applySavedLanguage(): void {
   }
 }
 
-// Watch WebSocket connection state to show/hide modal
 const stopWatcher = watch(() => wsStore.isConnected, (connected) => {
-  if (!connected && !isAuthPage.value) {
+  if (!connected && !skipConnectionChecks.value) {
     showConnectionModal();
   }
 });
@@ -92,7 +96,7 @@ onMounted(() => {
   settingsStore.getSettings();
 
   setTimeout(() => {
-    if (!wsStore.isConnected && !isAuthPage.value) {
+    if (!wsStore.isConnected && !skipConnectionChecks.value) {
       showConnectionModal();
     }
   }, 3000);
@@ -106,7 +110,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header v-if="!isAuthPage">
+  <header v-if="!hideHeader">
     <NavigationBar/>
   </header>
   <main>
