@@ -216,7 +216,7 @@ void HttpServer::Begin() {
         String apIp = WiFi.softAPIP().toString();
         String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
         String redirectHost = ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
-        urlOut = "http://" + redirectHost + "/games";
+        urlOut = "http://" + redirectHost;
     };
 
     auto redirectHandler = [this, buildRedirectUrl]() {
@@ -272,7 +272,7 @@ void HttpServer::Begin() {
         String apIp = WiFi.softAPIP().toString();
         String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
         if ((WiFi.getMode() & WIFI_AP) && !IsAllowedPortalHost(host, apIp, deviceAliasHost)) {
-            String url = "http://" + ResolvePortalRedirectHost(host, apIp, deviceAliasHost) + "/games";
+            String url = "http://" + ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
             server.sendHeader("Location", url, true);
             server.send(302, "text/plain", "");
             handled = true;
