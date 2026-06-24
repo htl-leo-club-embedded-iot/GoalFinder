@@ -28,10 +28,10 @@ type DetectionPreset = {
 };
 
 const PRESETS: DetectionPreset[] = [
-  { ballHitDetectionDistance: 150, vibrationSensorSensitivity: 75, afterHitTimeout: 3 },
-  { ballHitDetectionDistance: 180, vibrationSensorSensitivity: 60, afterHitTimeout: 4 },
-  { ballHitDetectionDistance: 195, vibrationSensorSensitivity: 50, afterHitTimeout: 5 },
-  { ballHitDetectionDistance: 225, vibrationSensorSensitivity: 25, afterHitTimeout: 8 }
+  { ballHitDetectionDistance: 260, vibrationSensorSensitivity: 80, afterHitTimeout: 4 },
+  { ballHitDetectionDistance: 220, vibrationSensorSensitivity: 80, afterHitTimeout: 4 },
+  { ballHitDetectionDistance: 260, vibrationSensorSensitivity: 80, afterHitTimeout: 5 },
+  { ballHitDetectionDistance: 220, vibrationSensorSensitivity: 80, afterHitTimeout: 5 }
 ];
 
 function getModeKey(mode: number): string {
