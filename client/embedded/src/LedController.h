@@ -45,6 +45,13 @@ class LedController
         unsigned long _eventStartTime;
         uint16_t _eventBaseDuty;
 
+        uint8_t _eventFlashCount;
+        unsigned long _eventFlashOnMs;
+        unsigned long _eventFlashOffMs;
+        unsigned long _eventFadeDurationMs;
+        unsigned long _eventBreatheCycleMs;
+        float _eventBreatheMaxFraction;
+
     public:
         LedController(int ledPin, int ledChannel);
         ~LedController();

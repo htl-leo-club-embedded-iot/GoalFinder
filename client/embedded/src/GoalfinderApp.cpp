@@ -154,6 +154,7 @@ void GoalFinderApp::UpdateSettings(bool force) {
         ledController.SetMode(settings->GetLedMode());
         distanceOnlyHitDetection = settings->GetDistanceOnlyHitDetection();
         afterHitTimeoutMs = settings->GetAfterHitTimeout() * 1000UL;
+        settings->ClearModifiedState();
     }
 }
 
