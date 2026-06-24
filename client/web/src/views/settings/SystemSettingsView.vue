@@ -86,6 +86,7 @@ h4 {
 
 .greyed {
   margin-top: -0.2rem;
+  text-align: center;
   color: var(--text-color-secondary);
 }
 
@@ -122,23 +123,21 @@ h4 {
 }
 
 #device-info {
-  margin-top: 0;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
+  gap: 0.75rem;
+  width: fit-content;
   max-width: 500px;
-  margin-bottom: 0;
+  margin: 0 auto;
 }
 
 #device-info > div {
   display: flex;
-  flex-wrap: wrap;
   flex-direction: row;
-  gap: 0.5rem;
-  justify-content: center;
-  text-align: center;
+  gap: 0.75rem;
+  justify-content: flex-start;
+  width: auto;
 }
 
 #visit {
@@ -147,6 +146,7 @@ h4 {
 
 #visit-text {
   margin-top: 0;
+  text-align: center;
 }
 
 #visit-text a {
