@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { skipAuth: true }
     },
     {
+      path: '/spectate',
+      name: 'spectator',
+      component: () => import('@/views/SpectatorPanel.vue'),
+      meta: { skipAuth: true }
+    },
+    {
       path: '/',
       name: 'home',
       component: () => import('@/views/HomeView.vue')

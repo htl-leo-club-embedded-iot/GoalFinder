@@ -207,3 +207,6 @@ dist
 .vscode/ipch
 
 .idea
+
+keys/
+src/DevicePrivateKey.h

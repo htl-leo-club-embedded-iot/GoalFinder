@@ -16,6 +16,7 @@
 
 import { defineStore } from "pinia";
 import { ref, watch } from "vue";
+import { encryptIfAvailable } from "../utils/crypto";
 
 export type EventCallback = (data?: any) => void;
 
@@ -36,15 +37,18 @@ export const useWebSocketStore = defineStore("websocket", () => {
     const WS_CONNECT_TIMEOUT_IP_MS = 1400;
     const WS_DNS_FALLBACK_MS = 1200;
     const WS_LAST_URL_STORAGE_KEY = "goalfinder.ws.lastUrl";
-    const GET_SETTINGS_STRIPPED_KEYS = new Set(["devicePassword", "extNWPWD", "externalNetworkPassword", "extNWEnterprisePassword"]);
-    const SETTINGS_KEY_ALIASES: Record<string, string[]> = {
-        extNW: ["useExternalNW"],
-        extNWUseDHCP: ["extNW_UseDHCP"],
-        extNWIP: ["extNW_IP"],
-        extNWSNM: ["extNW_SNM"],
-        extNWDFG: ["extNW_DFG"],
-        extNWDNSIP: ["extNW_DNSIP"],
-    };
+
+    // Keys that have to be sent encrypted
+    const SENSITIVE_SEND_KEYS = new Set([
+        "wifiPassword",
+        "devicePassword",
+        "extNWPWD",
+        "externalNetworkPassword",
+        "extNWEnterprisePassword",
+        "extNWEnterpriseClientPrivateKey",
+    ]);
+
+    const isSensitiveKeyForSend = (key: string): boolean => !!key && SENSITIVE_SEND_KEYS.has(key);        
 
     const MAX_RECONNECT_DELAY = 5000;
     const BASE_RECONNECT_DELAY = 500;
@@ -540,12 +544,28 @@ export const useWebSocketStore = defineStore("websocket", () => {
     }
 
     function sendSetSetting(key: string, value: any): void {
-        send({ type: "set", key, value });
+        if (isSensitiveKeyForSend(key) && typeof value === "string") {
+            encryptIfAvailable(value)
+                .then((enc) => send({ type: "set", key, value: enc }))
+                .catch(() => send({ type: "set", key, value }));
+        } else {
+            send({ type: "set", key, value });
+        }
     }
 
-    function setSettingAndWait(key: string, value: any, timeoutMs = 5000): Promise<any> {
+    async function setSettingAndWait(key: string, value: any, timeoutMs = 5000): Promise<any> {
+        let sendValue = value;
+        if (isSensitiveKeyForSend(key) && typeof value === "string") {
+            try {
+                sendValue = await encryptIfAvailable(value);
+            } catch (e) {
+                console.warn("Failed to encrypt sensitive field, sending plaintext", e);
+                sendValue = value;
+            }
+        }
+
         return sendAndWait(
-            { type: "set", key, value },
+            { type: "set", key, value: sendValue },
             "setting_ack",
             timeoutMs,
             (msg: any) => msg?.key === key,

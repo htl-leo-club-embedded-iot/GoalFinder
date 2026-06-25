@@ -93,7 +93,7 @@ export class ShotChallengeGame extends Game {
 
     public _timer: number = 0;
     public hasEnded: boolean = false;
-    private timerIntervalId: number = -1;
+    private timerIntervalId: NodeJS.Timeout | number = -1;
     public selectedPlayerIndex: number = 0;
 
     public get timer(): number {
@@ -180,7 +180,7 @@ export class TimedShotsChallengeGame extends Game {
 
     public _timer: number = 0;
     public hasEnded: boolean = false;
-    private timerIntervalId: number = -1;
+    private timerIntervalId: NodeJS.Timeout | number = -1;
     public selectedPlayerIndex: number = 0;
 
     public get timer(): number {

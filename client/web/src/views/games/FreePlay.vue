@@ -21,6 +21,7 @@ import {useWebSocketStore} from "@/stores/websocket";
 import Page from "@/components/Page.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
 import Button from "@/components/Button.vue";
+import PauseIcon from "@/components/icons/PauseIcon.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
 
 const game = reactive(new FreePlayGame());
@@ -55,7 +56,10 @@ function onResetBtnClick() {
 
       <div class="buttons-container">
         <ToggleButton readonly id="game-state-button" v-model="game.isRunning" @click="onGameStartBtnClick">
-          <PlayIcon id="play-icon"/>
+          <Transition name="icon-fade" mode="out-in">
+            <PauseIcon v-if="game.isRunning" key="pause" class="play-icon"/>
+            <PlayIcon v-else key="play" class="play-icon"/>
+          </Transition>
         </ToggleButton>
         <Button @click="onResetBtnClick">{{ $t("word.restart") }}</Button>
       </div>
@@ -110,7 +114,17 @@ function onResetBtnClick() {
   min-width: auto;
 }
 
-#play-icon {
+.play-icon {
   width: 1rem;
+}
+
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.icon-fade-enter-from,
+.icon-fade-leave-to {
+  opacity: 0;
 }
 </style>

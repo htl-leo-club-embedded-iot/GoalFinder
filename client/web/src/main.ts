@@ -40,7 +40,8 @@ const i18n = createI18n({
                 about: "About",
                 game_card: "Create new game",
                 settings_card: "Configure device",
-                sessions_card: "Create new session"
+                sessions_card: "Create new session",
+                spectate: "Spectate"
             },
             games: {
                 shot_challenge: "Throw-Challenge",
@@ -73,6 +74,11 @@ const i18n = createI18n({
                 gameMode_description: "Select a game mode",
             },
             settings: {
+                basket_mode: "Basket Mode",
+                basket_mounted: "Mounted Basket",
+                basket_mounted_small: "Small Mounted Basket",
+                movable_basket: "Movable Basket",
+                movable_basket_small: "Movable Basket Small",
                 connection: "WiFi Connection",
                 connection_short: "Connection",
                 connection_general: "Name & Security",
@@ -238,6 +244,11 @@ const i18n = createI18n({
                 invalid_password: "Invalid password. Please try again.",
                 too_many_attempts: "Too many attempts. Please wait a minute and try again.",
                 error: "Authentication failed. Could not reach the device."
+            },
+            spectator: {
+                title: "Spectator",
+                no_game: "No game is currently active",
+                spectate: "Spectate"
             }
         },
         de : {
@@ -251,7 +262,8 @@ const i18n = createI18n({
                 about: "Über uns",
                 game_card: "Neues Spiel erstellen",
                 settings_card: "Einstellungen",
-                sessions_card: "Neue Sitzung erstellen"
+                sessions_card: "Neue Sitzung erstellen",
+                spectate: "Zuschauen"
             },
             games: {
                 shot_challenge: "Wurf-Challenge",
@@ -285,6 +297,11 @@ const i18n = createI18n({
                 gameModes_description: "Hier können Sie einen Spielmodus auswählen"
             },
             settings: {
+                basket_mode: "Korbart",
+                basket_mounted: "Montierter Korb",
+                basket_mounted_small: "Kleiner Montierter Korb",
+                movable_basket: "Beweglicher Korb",
+                movable_basket_small: "Beweglicher Korb Klein",
                 connection: "WiFi Verbindung",
                 connection_short: "Verbindung",
                 connection_general: "Name & Sicherheit",
@@ -294,6 +311,7 @@ const i18n = createI18n({
                 devices: "Geräte",
                 audio: "Audio",
                 system: "System",
+                sensors: "Sensoren",
                 logs: "Geräte-Log",
                 logs_waiting: "Warte auf Log-Nachrichten...",
                 logs_coloring: "Logs einfärben",
@@ -445,6 +463,11 @@ const i18n = createI18n({
                 invalid_password: "Ungültiges Passwort. Bitte versuchen Sie es erneut.",
                 too_many_attempts: "Zu viele Versuche. Bitte warten Sie eine Minute und versuchen Sie es erneut.",
                 error: "Authentifizierung fehlgeschlagen. Das Gerät konnte nicht erreicht werden."
+            },
+            spectator: {
+                title: "Zuschauer",
+                no_game: "Derzeit ist kein Spiel aktiv",
+                spectate: "Zuschauen"
             }
         }
     }

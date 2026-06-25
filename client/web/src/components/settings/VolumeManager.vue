@@ -29,6 +29,29 @@ const volume = useClampedValue(
   0, 100
 );
 
+function getVolumeKey(level: number): string {
+  switch (level) {
+    case 1: return 'word.off';
+    case 2: return 'word.low';
+    case 3: return 'word.medium';
+    case 4: return 'word.max';
+    default: return 'word.off';
+  }
+}
+
+const getSimplifiedVolumeLevel = (actualVolume: number): number =>
+  actualVolume === 0 ? 1 : (actualVolume <= 25 ? 2 : (actualVolume <= 50 ? 3 : 4));
+
+function setVolumeSimplified(simplifiedLevel: number) {
+  switch(simplifiedLevel) {
+    case 1: settings.volume = 0; break;
+    case 2: settings.volume = 25; break;
+    case 3: settings.volume = 50; break;
+    case 4: settings.volume = 100; break;
+    default: settings.volume = 50; break;
+  }
+}
+
 const setMetronomeSound = (value: number) => {
   settings.metronomeSound = value;
 }
@@ -59,7 +82,18 @@ const time = useClampedValue(
 <template>
   <div class="volume-slider-control">
     <h3>{{ $t("word.volume") }}</h3>
-    <div class="button-container">
+    <div class="button-container" v-show="!settings.advancedSettingsEnabled">
+      <button
+        v-for="volumeLevel in ([1, 2, 3, 4] as const)"
+        :key="volumeLevel"
+        type="button"
+        class="btn"
+        :class="{ active: getSimplifiedVolumeLevel(settings.volume) === volumeLevel }"
+        @click="setVolumeSimplified(volumeLevel)">
+        {{ $t(getVolumeKey(volumeLevel)) }}
+      </button>
+    </div>
+    <div class="button-container" v-show="settings.advancedSettingsEnabled">
       <InputForm type="number" class="button" v-model="volume" inputmode="numeric" min="0" max="100" step="5"></InputForm>
     </div>
   </div>
@@ -161,5 +195,26 @@ const time = useClampedValue(
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--corner-radius);
+  border: 2px solid var(--border-color);
+  background: var(--card-background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.btn:hover {
+  border-color: var(--accent-color);
+}
+
+.btn.active {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: #fff;
 }
 </style>

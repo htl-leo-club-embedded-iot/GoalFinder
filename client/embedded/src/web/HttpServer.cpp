@@ -211,24 +211,29 @@ void HttpServer::Begin() {
         server.send(200, "application/json", json);
     });
 
-    auto redirectHandler = [this]() {
+    auto buildRedirectUrl = [this](String& urlOut) {
         String host = NormalizeHostForPortal(server.hostHeader());
         String apIp = WiFi.softAPIP().toString();
         String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
         String redirectHost = ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
-        String url = "http://" + redirectHost + "/games";
+        urlOut = "http://" + redirectHost;
+    };
+
+    auto redirectHandler = [this, buildRedirectUrl]() {
+        String url;
+        buildRedirectUrl(url);
         server.sendHeader("Location", url, true);
         server.send(302, "text/plain", "");
     };
 
-    auto htmlHandler = [this]() {
-        String host = NormalizeHostForPortal(server.hostHeader());
-        String apIp = WiFi.softAPIP().toString();
-        String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
-        String redirectHost = ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
-        String url = "http://" + redirectHost + "/games";
+    auto portalHtmlHandler = [this, buildRedirectUrl]() {
+        String url;
+        buildRedirectUrl(url);
+        String escapedUrl = url;
+        escapedUrl.replace("'", "\\'");
         String html = "<!DOCTYPE html><html><head>"
                       "<meta http-equiv='refresh' content='0; url=" + url + "'>"
+                      "<script>window.location.replace('" + escapedUrl + "');</script>"
                       "</head><body>"
                       "<p>Redirecting to <a href='" + url + "'>GoalFinder</a>...</p>"
                       "</body></html>";
@@ -239,7 +244,7 @@ void HttpServer::Begin() {
     server.on("/gen_204", HTTP_GET, redirectHandler);
     server.on("/204", HTTP_GET, redirectHandler);
     server.on("/mobile/status.php", HTTP_GET, redirectHandler);
-    server.on("/hotspot-detect.html", HTTP_GET, htmlHandler);
+    server.on("/hotspot-detect.html", HTTP_GET, redirectHandler);
     server.on("/ncsi.txt", HTTP_GET, redirectHandler);
     server.on("/connecttest.txt", HTTP_GET, redirectHandler);
     server.on("/fwlink", HTTP_GET, redirectHandler);
@@ -267,7 +272,7 @@ void HttpServer::Begin() {
         String apIp = WiFi.softAPIP().toString();
         String deviceAliasHost = NormalizeHostForPortal(BuildAliasHostFromDeviceName(Settings::GetInstance()->GetDeviceName()));
         if ((WiFi.getMode() & WIFI_AP) && !IsAllowedPortalHost(host, apIp, deviceAliasHost)) {
-            String url = "http://" + ResolvePortalRedirectHost(host, apIp, deviceAliasHost) + "/games";
+            String url = "http://" + ResolvePortalRedirectHost(host, apIp, deviceAliasHost);
             server.sendHeader("Location", url, true);
             server.send(302, "text/plain", "");
             handled = true;

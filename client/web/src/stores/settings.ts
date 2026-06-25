@@ -101,7 +101,7 @@ export const useSettingsStore = defineStore("settings", () => {
             metSoundDelay: metronomeSoundDelay.value,
             ledMode: ledMode.value,
             ledBrightness: ledBrightness.value,
-            vibrationSensorSensitivity: vibrationSensorSensitivity.value,
+            vibrationSensorSensitivity: 100 - vibrationSensorSensitivity.value,
             ballHitDetectionDistance: ballHitDetectionDistance.value,
             distanceOnlyHitDetection: distanceOnlyHitDetection.value,
             afterHitTimeout: afterHitTimeout.value,
@@ -157,7 +157,9 @@ export const useSettingsStore = defineStore("settings", () => {
         macAddress.value = json["macAddress"] ?? macAddress.value;
         isSoundEnabled.value = json["isSoundEnabled"] ?? isSoundEnabled.value;
         version.value = json["version"] ?? version.value;
-        vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"] ?? vibrationSensorSensitivity.value;
+        vibrationSensorSensitivity.value = json["vibrationSensorSensitivity"] !== undefined
+          ? 100 - json["vibrationSensorSensitivity"]
+          : vibrationSensorSensitivity.value;
         ballHitDetectionDistance.value = json["ballHitDetectionDistance"] ?? ballHitDetectionDistance.value;
         distanceOnlyHitDetection.value = json["distanceOnlyHitDetection"] ?? false;
         afterHitTimeout.value = json["afterHitTimeout"] ?? 5;

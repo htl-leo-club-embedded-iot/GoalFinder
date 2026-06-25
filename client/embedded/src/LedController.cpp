@@ -29,7 +29,11 @@ constexpr float tau = 6.28318530718f;
 }
 
 LedController::LedController(int ledPin, int ledChannel) 
-    : mode(LedMode::Standard), channel(ledChannel), lastStepTimeMs(0), lastAppliedDuty(0)
+    : mode(LedMode::Standard), channel(ledChannel), lastStepTimeMs(0), lastAppliedDuty(0),
+      _eventActive(false), _eventType(EventEffect::None), _savedMode(LedMode::Standard),
+      _eventPhase(0), _eventStartTime(0), _eventBaseDuty(0),
+      _eventFlashCount(0), _eventFlashOnMs(0), _eventFlashOffMs(0),
+      _eventFadeDurationMs(0), _eventBreatheCycleMs(0), _eventBreatheMaxFraction(0.0f)
 {
     ledcSetup(channel, defaultFrequency, defaultResolution);
     ledcAttachPin(ledPin, channel);
@@ -41,6 +45,9 @@ LedController::~LedController() {}
 void LedController::SetMode(LedMode mode)
 {
     if (this->mode != mode) {
+        if (_eventActive) {
+            ClearEvent();
+        }
         this->mode = mode;
         lastStepTimeMs = 0;
         lastAppliedDuty = 0xFFFF;
@@ -53,35 +60,160 @@ LedMode LedController::GetMode()
     return mode;
 }
 
+void LedController::ClearEvent()
+{
+    _eventActive = false;
+    _eventType = EventEffect::None;
+    mode = _savedMode;
+    _eventPhase = 0;
+    _eventStartTime = 0;
+    lastStepTimeMs = 0;
+    lastAppliedDuty = 0xFFFF;
+}
+
+void LedController::OnHit()
+{
+    if (mode == LedMode::Off) return;
+
+    _savedMode = mode;
+    _eventActive = true;
+    _eventType = EventEffect::Hit;
+    _eventPhase = 0;
+    _eventStartTime = millis();
+    _eventBaseDuty = maxPwmDuty;
+    lastStepTimeMs = 0;
+    lastAppliedDuty = 0xFFFF;
+
+    switch (mode) {
+        case LedMode::Fade:
+            _eventFlashCount = 4;
+            _eventFlashOnMs = 200;
+            _eventFlashOffMs = 200;
+            break;
+        case LedMode::Flash:
+            _eventFlashCount = 5;
+            _eventFlashOnMs = 50;
+            _eventFlashOffMs = 50;
+            break;
+        case LedMode::Turbo:
+            _eventFlashCount = 1;
+            _eventFlashOnMs = 600;
+            _eventFlashOffMs = 0;
+            break;
+        default:
+            _eventFlashCount = 6;
+            _eventFlashOnMs = 80;
+            _eventFlashOffMs = 80;
+            break;
+    }
+}
+
+void LedController::OnMiss()
+{
+    if (mode == LedMode::Off) return;
+
+    _savedMode = mode;
+    _eventActive = true;
+    _eventType = EventEffect::Miss;
+    _eventPhase = 0;
+    _eventStartTime = millis();
+    _eventBaseDuty = maxPwmDuty;
+    lastStepTimeMs = 0;
+    lastAppliedDuty = 0xFFFF;
+
+    switch (mode) {
+        case LedMode::Fade:
+            _eventFadeDurationMs = 400;
+            break;
+        case LedMode::Flash:
+            _eventFadeDurationMs = 100;
+            break;
+        case LedMode::Turbo:
+            _eventFadeDurationMs = 800;
+            break;
+        default:
+            _eventFadeDurationMs = 900;
+            break;
+    }
+}
+
+void LedController::OnShotDetected()
+{
+    if (mode == LedMode::Off) return;
+
+    if (!_eventActive || _eventType != EventEffect::Shot) {
+        _savedMode = mode;
+        _eventActive = true;
+        _eventType = EventEffect::Shot;
+        _eventPhase = 0;
+        _eventStartTime = millis();
+        _eventBaseDuty = maxPwmDuty;
+        lastStepTimeMs = 0;
+        lastAppliedDuty = 0xFFFF;
+
+        switch (mode) {
+            case LedMode::Fade:
+                _eventBreatheCycleMs = 800;
+                _eventBreatheMaxFraction = 1.0f;
+                break;
+            case LedMode::Flash:
+                _eventBreatheCycleMs = 1400;
+                _eventBreatheMaxFraction = 0.7f;
+                break;
+            case LedMode::Turbo:
+                _eventBreatheCycleMs = 1600;
+                _eventBreatheMaxFraction = 0.6f;
+                break;
+            default:
+                _eventBreatheCycleMs = 1200;
+                _eventBreatheMaxFraction = 0.5f;
+                break;
+        }
+    }
+}
+
 void LedController::Loop() 
 {
-    if(mode == LedMode::Standard)
-    {
-        RenderPermanentStep(maxPwmDuty);
-    }
-    else if(mode == LedMode::Fade)
-    {
-        RenderFadeStep();
-    }
-    else if(mode == LedMode::Flash) 
-    {
-        RenderFlashStep();
-    }
-    else if (mode == LedMode::Turbo) 
-    {
-        RenderTurboStep();
-    }
-    else 
-    {
-        RenderPermanentStep(0);
+    if (_eventActive) {
+        if (_eventType == EventEffect::Hit) {
+            RenderHitFlash();
+        } else if (_eventType == EventEffect::Miss) {
+            RenderMissFade();
+        } else if (_eventType == EventEffect::Shot) {
+            RenderShotBreathing();
+        }
+    } else {
+        if(mode == LedMode::Standard)
+        {
+            RenderPermanentStep(maxPwmDuty);
+        }
+        else if(mode == LedMode::Fade)
+        {
+            RenderFadeStep();
+        }
+        else if(mode == LedMode::Flash) 
+        {
+            RenderFlashStep();
+        }
+        else if (mode == LedMode::Turbo) 
+        {
+            RenderTurboStep();
+        }
+        else 
+        {
+            RenderPermanentStep(0);
+        }
     }
 }
 
 uint16_t LedController::ScaleBrightness(uint16_t value) {
-    if (value == 0) return 0;
-    int ledBrightness = Settings::GetInstance()->GetLedBrightness();
-    ledBrightness = max(min(ledBrightness, 100), 0);
-    return (uint16_t)roundf(value * ledBrightness / 100.0f);
+    uint16_t scaled = 0;
+    if (value != 0) {
+        int ledBrightness = Settings::GetInstance()->GetLedBrightness();
+        ledBrightness = max(min(ledBrightness, 100), 0);
+        scaled = (uint16_t)roundf(value * ledBrightness / 100.0f);
+    }
+    return scaled;
 }
 
 void LedController::RenderPermanentStep(uint16_t brightness) {
@@ -165,5 +297,91 @@ void LedController::RenderTurboStep() {
         if (flashPhaseCount / 2 >= flashAmount) {
             activePhase = false;
         }
+    }
+}
+
+void LedController::RenderHitFlash() {
+    const unsigned long totalPhases = _eventFlashCount * 2;
+
+    unsigned long now = millis();
+    bool effectDone = false;
+
+    if (lastStepTimeMs == 0) {
+        lastStepTimeMs = _eventStartTime;
+        _eventPhase = 0;
+        uint16_t duty = _eventBaseDuty;
+        ledcWrite(channel, ScaleBrightness(duty));
+        lastAppliedDuty = duty;
+    } else if (_eventPhase >= totalPhases) {
+        effectDone = true;
+    } else {
+        unsigned long phaseDuration = (_eventPhase % 2 == 0) ? _eventFlashOnMs : _eventFlashOffMs;
+
+        if (now - lastStepTimeMs >= phaseDuration) {
+            _eventPhase++;
+            lastStepTimeMs = now;
+
+            if (_eventPhase >= totalPhases) {
+                ClearEvent();
+            } else {
+                uint16_t duty = (_eventPhase % 2 == 0) ? _eventBaseDuty : 0;
+                ledcWrite(channel, ScaleBrightness(duty));
+                lastAppliedDuty = duty;
+            }
+        }
+    }
+}
+
+void LedController::RenderMissFade() {
+    unsigned long now = millis();
+    bool effectDone = false;
+
+    if (lastStepTimeMs == 0) {
+        lastStepTimeMs = now;
+        _eventStartTime = now;
+        uint16_t scaled = ScaleBrightness(_eventBaseDuty);
+        ledcWrite(channel, scaled);
+        lastAppliedDuty = _eventBaseDuty;
+    } else {
+        unsigned long elapsedMs = now - _eventStartTime;
+        if (elapsedMs >= _eventFadeDurationMs) {
+            ledcWrite(channel, 0);
+            lastAppliedDuty = 0;
+            effectDone = true;
+        } else {
+            float fraction = 1.0f - (float)elapsedMs / (float)_eventFadeDurationMs;
+            uint16_t duty = (uint16_t)roundf((float)_eventBaseDuty * fraction);
+            uint16_t scaled = ScaleBrightness(duty);
+
+            if (scaled != lastAppliedDuty) {
+                lastAppliedDuty = scaled;
+                ledcWrite(channel, scaled);
+            }
+        }
+    }
+
+    if (effectDone) {
+        ClearEvent();
+    }
+}
+
+void LedController::RenderShotBreathing() {
+    unsigned long now = millis();
+    if (lastStepTimeMs == 0) {
+        lastStepTimeMs = now;
+        _eventStartTime = now;
+    }
+
+    const unsigned long elapsedMs = now - _eventStartTime;
+    const unsigned long phaseMs = elapsedMs % _eventBreatheCycleMs;
+    const float phase = (tau * phaseMs) / _eventBreatheCycleMs;
+    const float normalized = 0.5f - 0.5f * cosf(phase);
+    const float shotLevel = normalized * _eventBreatheMaxFraction;
+    const uint16_t dutyCycle = (uint16_t)roundf(shotLevel * maxPwmDuty);
+    const uint16_t scaledDuty = ScaleBrightness(dutyCycle);
+
+    if (scaledDuty != lastAppliedDuty) {
+        lastAppliedDuty = scaledDuty;
+        ledcWrite(channel, lastAppliedDuty);
     }
 }

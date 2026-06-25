@@ -24,7 +24,7 @@
 #include "util/Logger.h"
 
 // Forward declare
-class GoalfinderApp;
+class GoalFinderApp;
 
 class GFWebSocket {
 public:
