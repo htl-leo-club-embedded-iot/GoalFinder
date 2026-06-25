@@ -53,13 +53,12 @@ namespace {
             if (isalnum(c)) {
                 label += static_cast<char>(tolower(c));
                 lastWasSeparator = false;
-                continue;
-            }
-
-            bool isSeparator = c == ' ' || c == '-' || c == '_' || c == '.';
-            if (isSeparator && !lastWasSeparator && !label.isEmpty()) {
-                label += '-';
-                lastWasSeparator = true;
+            } else {
+                bool isSeparator = c == ' ' || c == '-' || c == '_' || c == '.';
+                if (isSeparator && !lastWasSeparator && !label.isEmpty()) {
+                    label += '-';
+                    lastWasSeparator = true;
+                }
             }
         }
 
@@ -67,11 +66,7 @@ namespace {
             label.remove(label.length() - 1);
         }
 
-        if (label.isEmpty()) {
-            return String();
-        }
-
-        return label + ".local";
+        return label.isEmpty() ? String() : label + ".local";
     }
     
     void SendNoErrorNoAnswer(WiFiUDP& udp,
@@ -214,7 +209,7 @@ void GFDNSServer::HandlePacket() {
                         _udp.write(rsp, rLen);
                         _udp.endPacket();
 
-                        Logger::Log("DNSServer", Logger::LogLevel::OK, "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(), _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
+                        Logger::LogExtra("DNSServer", Logger::LogLevel::OK, "Resolved %s -> %d.%d.%d.%d", normalizedQueryName.c_str(), _resolvedIP[0], _resolvedIP[1], _resolvedIP[2], _resolvedIP[3]);
                     } else if (isKnownHost && isClassIN) {
                         // Return NOERROR/NODATA for non-A queries (e.g. AAAA/HTTPS)
                         // so mobile resolvers quickly continue with A lookups.

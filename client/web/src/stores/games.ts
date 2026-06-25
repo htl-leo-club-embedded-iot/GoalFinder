@@ -60,7 +60,7 @@ export class ShotChallengeGame extends Game {
     private static readonly PLAY_DURATION: number = 60;
 
     private _timer: number = 0;
-    private timerIntervalId: number = -1;
+    private timerIntervalId: NodeJS.Timeout | number = -1;
     private selectedPlayerIndex: number = 0;
 
     public get timer(): number {

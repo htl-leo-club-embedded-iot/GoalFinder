@@ -1,0 +1,1 @@
+import{s as e}from"./B7-lfXyg.js";function t(t,n,r,i){return e({get:t,set:e=>{n(Math.max(r,Math.min(i,e)))}})}export{t};

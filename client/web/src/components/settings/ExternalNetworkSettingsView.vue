@@ -372,6 +372,7 @@ function persistDontShowAgainPreference(): void {
 function onApplyNetworkConfiguration(): void {
   if (canApplyNetworkConfiguration.value) {
     applyDraftsToStore();
+    settings.scheduleSave();
 
     if (hasNetworkPendingChanges.value) {
       if (dontShowAgain.value) {
@@ -395,6 +396,7 @@ function closeNetworkModal(restart: boolean): void {
   networkModal.value?.closeDialog();
 
   if (restart) {
+    settings.scheduleSave();
     settings.restartDevice();
   } else {
     settings.scheduleSave();
@@ -670,7 +672,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  width: 100%;
   padding: 0.75rem;
   border-radius: var(--corner-radius);
   border: 2px solid var(--border-color);

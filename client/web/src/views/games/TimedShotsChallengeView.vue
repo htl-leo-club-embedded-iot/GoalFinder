@@ -25,6 +25,7 @@ import Page from "@/components/Page.vue";
 import Button from "@/components/Button.vue";
 import InputForm from "@/components/InputForm.vue";
 import ToggleButton from "@/components/ToggleButton.vue";
+import PauseIcon from "@/components/icons/PauseIcon.vue";
 import PlayIcon from "@/components/icons/PlayIcon.vue";
 import IconButton from "@/components/IconButton.vue";
 
@@ -94,7 +95,10 @@ function onGameStartBtnClick() {
         <div class="buttons-container">
           <Button type="submit">{{ $t("word.add_person") }}</Button>
           <ToggleButton readonly id="game-state-button" v-model="game.isRunning" @click="onGameStartBtnClick">
-            <PlayIcon id="play-icon"/>
+            <Transition name="icon-fade" mode="out-in">
+              <PauseIcon v-if="game.isRunning" key="pause" class="play-icon"/>
+              <PlayIcon v-else key="play" class="play-icon"/>
+            </Transition>
           </ToggleButton>
         </div>
       </form>
@@ -233,8 +237,18 @@ function onGameStartBtnClick() {
   justify-content: center;
 }
 
-#play-icon {
+.play-icon {
   width: 1.4rem;
+}
+
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.icon-fade-enter-from,
+.icon-fade-leave-to {
+  opacity: 0;
 }
   
 .icon-buttons-container {

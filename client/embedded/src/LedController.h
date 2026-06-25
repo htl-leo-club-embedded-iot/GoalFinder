@@ -27,6 +27,10 @@ class LedController
         void RenderFadeStep();
         void RenderFlashStep();
         void RenderTurboStep();
+        void RenderHitFlash();
+        void RenderMissFade();
+        void RenderShotBreathing();
+        void ClearEvent();
         uint16_t ScaleBrightness(uint16_t value);
 
         int channel;
@@ -34,10 +38,27 @@ class LedController
         unsigned long lastStepTimeMs;
         uint16_t lastAppliedDuty;
 
+        bool _eventActive;
+        EventEffect _eventType;
+        LedMode _savedMode;
+        uint8_t _eventPhase;
+        unsigned long _eventStartTime;
+        uint16_t _eventBaseDuty;
+
+        uint8_t _eventFlashCount;
+        unsigned long _eventFlashOnMs;
+        unsigned long _eventFlashOffMs;
+        unsigned long _eventFadeDurationMs;
+        unsigned long _eventBreatheCycleMs;
+        float _eventBreatheMaxFraction;
+
     public:
         LedController(int ledPin, int ledChannel);
         ~LedController();
         void Loop();
         void SetMode(LedMode mode);
         LedMode GetMode();
+        void OnHit();
+        void OnMiss();
+        void OnShotDetected();
 };

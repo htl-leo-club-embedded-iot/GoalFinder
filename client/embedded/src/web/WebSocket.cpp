@@ -19,8 +19,13 @@
 #include <mbedtls/sha256.h>
 #include "Settings.h"
 #include "Version.h"
+#include "DevicePrivateKey.h"
+#include <mbedtls/pk.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/base64.h>
 
-namespace {
 bool ComputeSha256Hex(const String& input, String& output) {
     unsigned char hash[32];
     mbedtls_sha256_context ctx;
@@ -52,6 +57,69 @@ bool ComputeSha256Hex(const String& input, String& output) {
     output = String(hex);
     return true;
 }
+
+// Try to decrypt a value that was encoded as "RSA:<base64>" using the
+// device private key. Returns true on success and sets `output` to the
+// decrypted plaintext. Returns false if the input is not encrypted or
+// decryption failed.
+bool TryDecryptIfEncrypted(const String& input, String& output) {
+    bool result = false;
+    const char* prefix = "RSA:";
+    mbedtls_pk_context pk;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_pk_init(&pk);
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+
+    auto cleanup = [&pk, &ctr_drbg, &entropy]() {   mbedtls_pk_free(&pk);
+        mbedtls_ctr_drbg_free(&ctr_drbg);
+        mbedtls_entropy_free(&entropy);
+    };
+
+    if (input.startsWith(prefix)) {
+        String b64 = input.substring(strlen(prefix));
+
+        // Base64 decode
+        unsigned char encBuf[512];
+        size_t encLen = 0;
+        int r = mbedtls_base64_decode(encBuf, sizeof(encBuf), &encLen, (const unsigned char*)b64.c_str(), b64.length());
+        if (r == 0) {
+            const char* pers = "gf_ws_rsa";
+
+            if (mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char*)pers, strlen(pers)) == 0
+                && mbedtls_pk_parse_key(&pk, (const unsigned char*)DEVICE_PRIVATE_KEY_PEM, strlen(DEVICE_PRIVATE_KEY_PEM) + 1, NULL, 0) == 0) {
+
+                // Prefer RSA OAEP decryption when available
+                if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA) {
+                    mbedtls_rsa_context* rsa = mbedtls_pk_rsa(pk);
+                    mbedtls_rsa_set_padding(rsa, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256);
+
+                    unsigned char outBuf[512];
+                    size_t outLen = 0;
+                    int ret = mbedtls_rsa_rsaes_oaep_decrypt(rsa, mbedtls_ctr_drbg_random, &ctr_drbg,
+                                                            MBEDTLS_RSA_PRIVATE, NULL, 0, &outLen,
+                                                            encBuf, outBuf, sizeof(outBuf));
+                    if (ret == 0) {
+                        output = String((const char*)outBuf, outLen);
+                        result = true;
+                    }
+                } else {
+                    // Fallback to generic pk_decrypt
+                    unsigned char outBuf[512];
+                    size_t outLen = 0;
+                    int ret = mbedtls_pk_decrypt(&pk, encBuf, encLen, outBuf, &outLen, sizeof(outBuf), mbedtls_ctr_drbg_random, &ctr_drbg);
+                    if (ret == 0) {
+                        output = String((const char*)outBuf, outLen);
+                        result = true;
+                    }
+                }
+            }
+        }
+    }
+
+    cleanup();
+    return result;
 }
 
 GFWebSocket::GFWebSocket()
@@ -204,7 +272,7 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["ledMode"] = (int)settings->GetLedMode();
     data["ledBrightness"] = settings->GetLedBrightness();
     data["macAddress"] = settings->GetMacAddress();
-    data["isSoundEnabled"] = GoalfinderApp::GetInstance()->IsSoundEnabled();
+    data["isSoundEnabled"] = GoalFinderApp::GetInstance()->IsSoundEnabled();
     data["version"] = FIRMWARE_VERSION;
     data["afterHitTimeout"] = settings->GetAfterHitTimeout();
     data["advancedSettingsEnabled"] = settings->AdvancedSettingsEnabled();
@@ -234,7 +302,7 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
     const char* key = doc["key"];
     if (key) {        
         Settings* settings = Settings::GetInstance();
-        GoalfinderApp* app = GoalfinderApp::GetInstance();
+        GoalFinderApp* app = GoalFinderApp::GetInstance();
         
         JsonDocument response;
         response["type"] = "setting_ack";
@@ -245,11 +313,23 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
             response["value"] = settings->GetDeviceName();
         } else if (strcmp(key, "wifiPassword") == 0) {
             if (!doc["value"].isNull()) {
-                settings->SetWifiPassword(doc["value"].as<String>());
+                String v = doc["value"].as<String>();
+                String dec;
+                if (TryDecryptIfEncrypted(v, dec)) {
+                    settings->SetWifiPassword(dec);
+                } else {
+                    settings->SetWifiPassword(v);
+                }
             }
         } else if (strcmp(key, "devicePassword") == 0) {
             if (!doc["value"].isNull()) {
-                settings->SetDevicePassword(doc["value"].as<String>());
+                String v = doc["value"].as<String>();
+                String dec;
+                if (TryDecryptIfEncrypted(v, dec)) {
+                    settings->SetDevicePassword(dec);
+                } else {
+                    settings->SetDevicePassword(v);
+                }
             }
         } else if (strcmp(key, "vibrationSensorSensitivity") == 0) {
             settings->SetVibrationSensorSensitivity(doc["value"].as<int>());
@@ -312,7 +392,15 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
             settings->SetExternalNW_DNSIP(doc["value"].as<String>());
             response["value"] = settings->GetExternalNW_DNSIP();
         } else if (strcmp(key, "extNWPWD") == 0) {
-            settings->SetExternalNW_PWD(doc["value"].as<String>());
+            {
+                String v = doc["value"].as<String>();
+                String dec;
+                if (TryDecryptIfEncrypted(v, dec)) {
+                    settings->SetExternalNW_PWD(dec);
+                } else {
+                    settings->SetExternalNW_PWD(v);
+                }
+            }
         } else if (strcmp(key, "extNWAuthMode") == 0) {
             settings->SetExternalNW_AuthMode(doc["value"].as<String>());
             response["value"] = settings->GetExternalNW_AuthMode();
@@ -327,7 +415,13 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
             response["value"] = settings->GetExternalNW_EnterpriseAnonymousIdentity();
         } else if (strcmp(key, "extNWEnterprisePassword") == 0) {
             if (!doc["value"].isNull()) {
-                settings->SetExternalNW_EnterprisePassword(doc["value"].as<String>());
+                String v = doc["value"].as<String>();
+                String dec;
+                if (TryDecryptIfEncrypted(v, dec)) {
+                    settings->SetExternalNW_EnterprisePassword(dec);
+                } else {
+                    settings->SetExternalNW_EnterprisePassword(v);
+                }
             }
         } else if (strcmp(key, "extNWEnterprisePhase2Method") == 0) {
             settings->SetExternalNW_EnterprisePhase2Method(doc["value"].as<String>());
@@ -339,8 +433,16 @@ void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
             settings->SetExternalNW_EnterpriseClientCertificate(doc["value"].as<String>());
             response["value"] = settings->GetExternalNW_EnterpriseClientCertificate();
         } else if (strcmp(key, "extNWEnterpriseClientPrivateKey") == 0) {
-            settings->SetExternalNW_EnterpriseClientPrivateKey(doc["value"].as<String>());
-            response["value"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
+            {
+                String v = doc["value"].as<String>();
+                String dec;
+                if (TryDecryptIfEncrypted(v, dec)) {
+                    settings->SetExternalNW_EnterpriseClientPrivateKey(dec);
+                } else {
+                    settings->SetExternalNW_EnterpriseClientPrivateKey(v);
+                }
+                response["value"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
+            }
         } else if (strcmp(key, "DNSEnabled") == 0) {
             settings->SetDNSEnabled(doc["value"].as<bool>());
             response["value"] = settings->DNSEnabled();
@@ -368,7 +470,7 @@ void GFWebSocket::SendWebLog(String message) {
 }
 
 void GFWebSocket::HandleStart(uint8_t clientId) {
-    GoalfinderApp::GetInstance()->SetIsSoundEnabled(true);
+    GoalFinderApp::GetInstance()->SetIsSoundEnabled(true);
     JsonDocument doc;
     doc["type"] = "started";
     SendJson(clientId, doc);
@@ -376,7 +478,7 @@ void GFWebSocket::HandleStart(uint8_t clientId) {
 }
 
 void GFWebSocket::HandleStop(uint8_t clientId) {
-    GoalfinderApp::GetInstance()->SetIsSoundEnabled(false);
+    GoalFinderApp::GetInstance()->SetIsSoundEnabled(false);
     JsonDocument doc;
     doc["type"] = "stopped";
     SendJson(clientId, doc);

@@ -30,14 +30,14 @@
 class SW420 {
   public:
     /**
-     * @brief Destructor.
+     * @brief Destructor for SW420.
      */
     virtual ~SW420();
 
     /**
-     * @brief Initialize the vibration sensor hardware on a specific pin.
+     * @brief Initialize the vibration sensor hardware.
      *
-     * Configures the provided GPIO pin and sets its mode. Must be called
+     * Configures the given GPIO pin and sets its mode. Must be called
      * before performing any measurements.
      *
      * @param pin Digital input pin number to which the SW-420 is connected.
@@ -47,32 +47,18 @@ class SW420 {
     /**
      * @brief Initialize the vibration sensor hardware on the default pin.
      *
-     * This overload exists for backwards compatibility and simply calls
-     * Init(13).
+     * This overload uses pin 13 for backwards compatibility.
      */
     void Init();
 
     /**
-     * @brief Perform a vibration measurement.
+     * @brief Get the current digital state of the sensor pin.
      *
-     * @param measureTimeUs Maximum time to wait for a pulse, in microseconds.
-     * @return long Length of the HIGH pulse in microseconds, or 0 if the
-     *         timeout expired.
+     * @return true when the sensor pin is HIGH, false when it is LOW.
      */
-    long Vibration(uint64_t measureTimeUs);
-
-    /**
-     * @brief Set the (software) sensitivity level.
-     *
-     * The value is clamped to the 0–100 range. At present the sensitivity
-     * parameter is not used by the sensor code; it exists for future
-     * expansion or for callers that wish to track a desired threshold.
-     *
-     * @param sensitivity 0 (low) to 100 (high).
-     */
-    void SetSensitivity(int sensitivity);
+    bool GetState();
 
   private:
-  /** GPIO pin number used for the sensor. */
-    int vs; 
+    /** GPIO pin number used for the sensor. */
+    uint8_t sensPin;
 };

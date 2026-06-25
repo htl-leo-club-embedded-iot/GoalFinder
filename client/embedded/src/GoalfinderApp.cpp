@@ -20,75 +20,80 @@
 #include "util/Logger.h"
 
 // Hardware pins and constants
-const int GoalfinderApp::pinTofSda = 22;
-const int GoalfinderApp::pinTofScl = 21;
-const int GoalfinderApp::pinI2sBclk = 23;
-const int GoalfinderApp::pinI2sWclk = 5;
-const int GoalfinderApp::pinI2sDataOut = 19;
-const int GoalfinderApp::pinLedPwm = 17;
-const int GoalfinderApp::pinRandomSeed = 36;
+const int GoalFinderApp::pSda = 22;
+const int GoalFinderApp::pScl = 21;
+const int GoalFinderApp::pI2SBitClock = 23;
+const int GoalFinderApp::pI2SWordClock = 5;
+const int GoalFinderApp::pI2SDataOut = 19;
+const int GoalFinderApp::pLedPwm = 17;
+const int GoalFinderApp::pRadom = 36;
 
-const int GoalfinderApp::ledPwmChannel = 0;
+const int GoalFinderApp::ledPwmChannel = 0;
 
-const int GoalfinderApp::shotVibrationThreshold = 2000;
-const int GoalfinderApp::maxShotDurationMs = 5000;
+const int GoalFinderApp::shotVibrationThreshold = 2000;
+const int GoalFinderApp::maxShotDurationMs = 5000;
+const int GoalFinderApp::shotReadTimeout = 20;
+const int GoalFinderApp::shotReadISRDuration = 20;
+const int GoalFinderApp::hitReadTimeout = 20;
 
-const char* GoalfinderApp::hitClips[] = { "/hit-1.mp3", "/hit-2.mp3", "/hit-3.mp3" };
-const char* GoalfinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3", "/tick-4.mp3" };
-const char* GoalfinderApp::missClips[] = { "/miss-1.mp3", "/miss-2.mp3", "/miss-3.mp3" };
-const char* GoalfinderApp::waitingClips[] = { "/waiting-1.mp3", "/waiting-2.mp3", "/waiting-3.mp3" };
+const char* GoalFinderApp::hitClips[] = { "/hit-1.mp3", "/hit-2.mp3", "/hit-3.mp3" };
+const char* GoalFinderApp::tickClips[] = { "/tick-1.mp3", "/tick-2.mp3", "/tick-3.mp3", "/tick-4.mp3" };
+const char* GoalFinderApp::missClips[] = { "/miss-1.mp3", "/miss-2.mp3", "/miss-3.mp3" };
+const char* GoalFinderApp::waitingClips[] = { "/waiting-1.mp3", "/waiting-2.mp3", "/waiting-3.mp3" };
 
 // FreeRTOS Handles
-TaskHandle_t GoalfinderApp::TaskAudioHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskDetectionHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskLedHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskWiFiHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskLoggerHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskDNSHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskWebSocketHandle = nullptr;
-TaskHandle_t GoalfinderApp::TaskHttpHandle = nullptr;
-SemaphoreHandle_t GoalfinderApp::xMutex = nullptr;
+TaskHandle_t GoalFinderApp::TaskAudioHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskDetectionHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskLedHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskWiFiHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskLoggerHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskDNSHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskWebSocketHandle = nullptr;
+TaskHandle_t GoalFinderApp::TaskHttpHandle = nullptr;
+SemaphoreHandle_t GoalFinderApp::xMutex = nullptr;
 volatile bool g_audioPlaybackActive = false;
 
 // Constructor
-GoalfinderApp::GoalfinderApp() :
-    Singleton<GoalfinderApp>(),
+GoalFinderApp::GoalFinderApp() :
+    Singleton<GoalFinderApp>(),
     fileSystem(true),
     httpServer(&fileSystem),
     webSocket(),
     sntp(),
-    audioPlayer(&fileSystem, pinI2sBclk, pinI2sWclk, pinI2sDataOut),
+    audioPlayer(&fileSystem, pI2SBitClock, pI2SWordClock, pI2SDataOut),
     tofSensor(),
     sw420Sensor(),
-    ledController(pinLedPwm, ledPwmChannel),
+    ledController(pLedPwm, ledPwmChannel),
     announcing(false),
     announcingUntilMs(0),
     lastMetronomeTickTime(0),
     announcement(Announcement::None),
-    lastShockTime(0),
+    state(IDLE),
+    lastShookTime(0),
     lastHitTime(0),
     afterHitTimeoutMs(5000),
     isSoundEnabled(true),
-    distanceOnlyHitDetection(false)
+    distanceOnlyHitDetection(false),
+    waitingSoundPlayCount(0)
 {}
 
-GoalfinderApp::~GoalfinderApp() {}
+GoalFinderApp::~GoalFinderApp() {}
 
-void GoalfinderApp::SetIsSoundEnabled(bool value) {
+void GoalFinderApp::SetIsSoundEnabled(bool value) {
     isSoundEnabled = value;
 }
 
-bool GoalfinderApp::IsSoundEnabled() {
+bool GoalFinderApp::IsSoundEnabled() {
     return isSoundEnabled;
 }
 
 // Initializing
-void GoalfinderApp::Init() {
+void GoalFinderApp::Init() {
     delay(100);
     Serial.begin(115200);
     Logger::Begin(115200);
 
-    randomSeed(analogRead(pinRandomSeed));
+    randomSeed(analogRead(pRadom));
 
     if (fileSystem.Begin()) {
         wifiManager.Init();
@@ -98,7 +103,7 @@ void GoalfinderApp::Init() {
         webSocket.Begin();
         sntp.Init();
         sw420Sensor.Init();
-        tofSensor.Init(pinTofScl, pinTofSda);
+        tofSensor.Init(pScl, pSda);
         ledController.SetMode(LedMode::Flash);
 
         UpdateSettings(true);
@@ -142,20 +147,20 @@ void GoalfinderApp::Init() {
     }
 }
 
-void GoalfinderApp::UpdateSettings(bool force) {
+void GoalFinderApp::UpdateSettings(bool force) {
     Settings* settings = Settings::GetInstance();
     if (force || settings->IsModified()) {
         audioPlayer.SetVolume(settings->GetVolume());
         ledController.SetMode(settings->GetLedMode());
-        sw420Sensor.SetSensitivity(settings->GetVibrationSensorSensitivity());
         distanceOnlyHitDetection = settings->GetDistanceOnlyHitDetection();
         afterHitTimeoutMs = settings->GetAfterHitTimeout() * 1000UL;
+        settings->ClearModifiedState();
     }
 }
 
 // Tasks
-void GoalfinderApp::TaskAudio(void *pvParameters) {
-    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+void GoalFinderApp::TaskAudio(void *pvParameters) {
+    GoalFinderApp* app = (GoalFinderApp*)pvParameters;
     while (app->loop) {
         bool isPlaying = g_audioPlaybackActive;
 
@@ -182,41 +187,43 @@ void GoalfinderApp::TaskAudio(void *pvParameters) {
     }
 }
 
-void GoalfinderApp::TaskDetection(void *pvParameters) {
-    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+void GoalFinderApp::TaskDetection(void *pvParameters) {
+    GoalFinderApp* app = (GoalFinderApp*)pvParameters;
     while (app->loop) {
         app->UpdateSettings();
-        app->DetectShot();
+        app->DetectHit();
         app->ProcessAnnouncement();
-        vTaskDelay(pdMS_TO_TICKS(5));
+        if (app->state != SHOT_DETECTED) {
+            vTaskDelay(pdMS_TO_TICKS(5));
+        }
     }
 }
 
-void GoalfinderApp::TaskLed(void *pvParameters) {
-    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+void GoalFinderApp::TaskLed(void *pvParameters) {
+    GoalFinderApp* app = (GoalFinderApp*)pvParameters;
     while (app->loop) {
         app->ledController.Loop();
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
-void GoalfinderApp::TaskWiFi(void *pvParameters) {
-    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+void GoalFinderApp::TaskWiFi(void *pvParameters) {
+    GoalFinderApp* app = (GoalFinderApp*)pvParameters;
     while (app->loop) {
         app->wifiManager.Loop();
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
-void GoalfinderApp::TaskLogger(void *pvParameters) {
-    GoalfinderApp* app = (GoalfinderApp*)pvParameters;
+void GoalFinderApp::TaskLogger(void *pvParameters) {
+    GoalFinderApp* app = (GoalFinderApp*)pvParameters;
     while (app->loop) {
         Logger::Loop();
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
 
-void GoalfinderApp::TaskWebSocket(void *pvParameters) {
+void GoalFinderApp::TaskWebSocket(void *pvParameters) {
     GFWebSocket* ws = (GFWebSocket*)pvParameters;
     while (true) {
         ws->Loop();
@@ -224,7 +231,7 @@ void GoalfinderApp::TaskWebSocket(void *pvParameters) {
     }
 }
 
-void GoalfinderApp::TaskHttp(void *pvParameters) {
+void GoalFinderApp::TaskHttp(void *pvParameters) {
     HttpServer* http = (HttpServer*)pvParameters;
     while (true) {  
         http->Loop();
@@ -232,74 +239,114 @@ void GoalfinderApp::TaskHttp(void *pvParameters) {
     }
 }
 
-// Play metronome sound
-void GoalfinderApp::TickMetronome() {
+void GoalFinderApp::TickMetronome() {
     unsigned long currentTime = millis();
     if ((currentTime - lastMetronomeTickTime) > Settings::GetInstance()->GetMetronomeTiming()) {
         lastMetronomeTickTime = currentTime;
+        const char* clipName = 0;
 
-        int waitingSoundIndex = Settings::GetInstance()->GetWaitingSound();
-        int metronomeSoundIndex = Settings::GetInstance()->GetMetronomeSound();
-        int waitingClipCount = sizeof(waitingClips) / sizeof(waitingClips[0]);
-        int tickClipCount = sizeof(tickClips) / sizeof(tickClips[0]);
-
-        waitingSoundIndex = max(min(waitingSoundIndex, waitingClipCount - 1), 0);
-        metronomeSoundIndex = max(min(metronomeSoundIndex, tickClipCount - 1), 0);
-
-        bool useWaitingSound = (lastShockTime > 0);
-        const char* clipName = useWaitingSound ? waitingClips[waitingSoundIndex] : tickClips[metronomeSoundIndex];
+        bool useWaitingSound = (lastShookTime > 0);
+        if (useWaitingSound) {
+            if (waitingSoundPlayCount < 3) {
+                clipName = waitingClips[Settings::GetInstance()->GetWaitingSound()];
+                waitingSoundPlayCount++;
+            }
+        } else {
+            clipName = tickClips[Settings::GetInstance()->GetMetronomeSound()];
+        }
         PlaySound(clipName);
     }
 }
 
-void GoalfinderApp::DetectShot() {
-    if (announcing && (millis() > announcingUntilMs || !audioPlayer.IsPlaying())) {
-        announcing = false;
-    }
+void GoalFinderApp::DetectHit() {
+    bool inCooldown = lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs;
 
-    if (!(lastHitTime > 0 && (millis() - lastHitTime) < afterHitTimeoutMs)) {
-        int distance = tofSensor.ReadSingleMillimeters();
-        if (distanceOnlyHitDetection) {
-            if (!(announcing && audioPlayer.IsPlaying())) {
-                announcing = false;
-                if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
-                    AnnounceHit();
-                    lastHitTime = millis();
-                }
-            }
-        } else {
-            if (lastShockTime == 0) {
-                if (!(announcing && audioPlayer.IsPlaying())) {
-                    announcing = false;
-                    long vibration = sw420Sensor.Vibration(10000);
-                    if (vibration > shotVibrationThreshold) {
-                        lastShockTime = millis();
-                        Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
+    if (!inCooldown) {
+        if (ReadHit()) {
+            lastHitTime = millis();
+            lastShookTime = 0;
+            state = IDLE;
+            AnnounceHit();
+        } else if (!distanceOnlyHitDetection) {
+            if (state == SHOT_DETECTED && millis() - lastShookTime > maxShotDurationMs) {
+                lastHitTime = millis();
+                lastShookTime = 0;
+                state = IDLE;
+                AnnounceMiss();
+            } else if (state == IDLE && ReadShot()) {
+                lastShookTime = millis();
+                state = SHOT_DETECTED;
+                OnShotDetected();
+                for (int i = 0; i < 3; i++) {
+                    if (ReadHit()) {
+                        lastHitTime = millis();
+                        lastShookTime = 0;
+                        state = IDLE;
+                        AnnounceHit();
+                        break;
                     }
                 }
-            }
-
-            unsigned long currentTime = millis();
-
-            if (lastShockTime > 0 && (currentTime - lastShockTime) < maxShotDurationMs) {
-                int distance = tofSensor.ReadSingleMillimeters();
-                if (distance > 20 && distance < Settings::GetInstance()->GetBallHitDetectionDistance()) {
-                    AnnounceHit();
-                    lastShockTime = 0;
-                    lastHitTime = millis();
-                }
-            }
-
-            if (lastShockTime > 0 && (currentTime - lastShockTime) > maxShotDurationMs) {
-                AnnounceMiss();
-                lastShockTime = 0;
-                lastHitTime = millis();
             }
         }
     }
 }
 
-void GoalfinderApp::ProcessAnnouncement() {
+void GoalFinderApp::OnShotDetected() {
+    announcement = Announcement::Shot;
+    waitingSoundPlayCount = 0;
+    ledController.OnShotDetected();
+    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Shot detected");
+}
+
+bool GoalFinderApp::ReadShot() {
+    bool result = false;
+    static unsigned long lastReadTime = 0;
+
+    if (millis() - lastReadTime > shotReadTimeout) {
+        result = ReadShotISR() > Settings::GetInstance()->GetVibrationSensorSensitivity() / 25;
+        lastReadTime = millis();
+    }
+
+    return result;
+}
+
+unsigned int GoalFinderApp::ReadShotISR() {
+    unsigned long isrBegin = millis();
+    unsigned int edges = 0;
+    bool lastState = sw420Sensor.GetState();
+
+    vTaskSuspendAll();
+    while (millis() - isrBegin < shotReadISRDuration) {
+        bool currentState = sw420Sensor.GetState();
+        if(currentState != lastState) {
+            lastState = currentState;
+            edges++;
+        }
+    }
+    
+    xTaskResumeAll();
+    return edges;
+}
+
+bool GoalFinderApp::ReadHit() {
+    bool result = false;
+    static unsigned long lastReadTime = 0;
+    int distance = tofSensor.ReadSingleMillimeters();
+    unsigned int distanceRequired = Settings::GetInstance()->GetBallHitDetectionDistance();
+    unsigned int minDist = 100;
+    lastRawDistance = distance;
+
+    if (millis() - lastReadTime > hitReadTimeout && distance != -1 && distance > minDist && distance < distanceRequired) {
+        result = true;        
+        lastReadTime = millis();
+    } /* else if (state == SHOT_DETECTED) {
+        Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "SHOT_DETECTED ReadHit: dist=%d req=%d min=%d", distance, distanceRequired, minDist);
+    } */
+
+    return result;
+}
+
+void GoalFinderApp::ProcessAnnouncement() {
     switch (announcement) {
         case Announcement::Shot:
             // no sound for Shot; keep announcing off
@@ -328,20 +375,22 @@ void GoalfinderApp::ProcessAnnouncement() {
     announcement = Announcement::None;
 }
 
-void GoalfinderApp::AnnounceHit() {
+void GoalFinderApp::AnnounceHit() {
     announcement = Announcement::Hit;
+    ledController.OnHit();
     webSocket.SendHitEvent();
-    Logger::Log("GoalfinderApp", Logger::LogLevel::OK, "Hit detected");
+    // Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Hit detected");
 }
 
-void GoalfinderApp::AnnounceMiss() {
+void GoalFinderApp::AnnounceMiss() {
     announcement = Announcement::Miss;
+    ledController.OnMiss();
     webSocket.SendMissEvent();
-    Logger::Log("GoalfinderApp", Logger::LogLevel::WARN, "Miss detected");
+    // Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Miss detected");
 }
 
-void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {
-    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Announcing event '%s'", traceMsg);
+void GoalFinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {
+    Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Event: '%s'", traceMsg);
     if (sound) {
         announcing = true;
         if (timeoutMs > 0) {
@@ -353,7 +402,7 @@ void GoalfinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsig
     }
 }
 
-void GoalfinderApp::PlaySound(const char* soundFileName) {
+void GoalFinderApp::PlaySound(const char* soundFileName) {
     if (soundFileName) {
         Logger::LogExtra("GoalfinderApp", Logger::LogLevel::INFO, "Starting playback '%s'", soundFileName);
 
@@ -364,6 +413,7 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
         }
 
         if (xSemaphoreTake(xMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+            audioPlayer.Stop();
             audioPlayer.PlayMP3(soundFileName);
 
             if (!audioPlayer.IsPlaying()) {
@@ -379,10 +429,10 @@ void GoalfinderApp::PlaySound(const char* soundFileName) {
     }
 }
 
-void GoalfinderApp::Process() {
+void GoalFinderApp::Process() {
     delay(1);
 }
 
-void GoalfinderApp::SetDNSEnabled(bool enable) {
+void GoalFinderApp::SetDNSEnabled(bool enable) {
     dnsServer.IsRunning = enable;
 }

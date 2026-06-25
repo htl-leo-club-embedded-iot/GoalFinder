@@ -1,2 +1,7 @@
 Modelfile.qwen25coder14b
 Modelfile.qwen36_27b
+
+# Generated device keys and derived files
+/client/embedded/keys/
+/client/embedded/src/DevicePrivateKey.h
+/client/web/src/config/devicePublicKey.ts
