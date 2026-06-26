@@ -55,6 +55,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
     const isConnected = ref(false);
     const isAuthRequired = ref<boolean | null>(null);
+    const currentSourceType = ref<string>("wa-no-auth");
 
     const eventListeners = new Map<string, Set<EventCallback>>();
 
@@ -436,6 +437,10 @@ export const useWebSocketStore = defineStore("websocket", () => {
         const type = msg.type as string;
         if (!type) return;
 
+        if (msg.sourceType) {
+            currentSourceType.value = msg.sourceType;
+        }
+
         if (type === "event" && msg.event) {
             emit(msg.event);
         }
@@ -481,13 +486,14 @@ export const useWebSocketStore = defineStore("websocket", () => {
     }
 
 
-    function send(data: object): void {
+    function send(data: Record<string, unknown>): void {
         if (ws?.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(data));
+            const withSource = { ...data, sourceType: currentSourceType.value };
+            ws.send(JSON.stringify(withSource));
         }
     }
 
-    async function sendAndWait(data: object, responseType: string, timeoutMs = 5000, matcher?: MessageMatcher): Promise<any> {
+    async function sendAndWait(data: Record<string, unknown>, responseType: string, timeoutMs = 5000, matcher?: MessageMatcher): Promise<any> {
         await waitForConnection(timeoutMs);
 
         return new Promise((resolve, reject) => {
@@ -546,10 +552,10 @@ export const useWebSocketStore = defineStore("websocket", () => {
     function sendSetSetting(key: string, value: any): void {
         if (isSensitiveKeyForSend(key) && typeof value === "string") {
             encryptIfAvailable(value)
-                .then((enc) => send({ type: "set", key, value: enc }))
-                .catch(() => send({ type: "set", key, value }));
+                .then((enc) => send({ type: "set_settings", key, value: enc }))
+                .catch(() => send({ type: "set_settings", key, value }));
         } else {
-            send({ type: "set", key, value });
+            send({ type: "set_settings", key, value });
         }
     }
 
@@ -565,11 +571,28 @@ export const useWebSocketStore = defineStore("websocket", () => {
         }
 
         return sendAndWait(
-            { type: "set", key, value: sendValue },
+            { type: "set_settings", key, value: sendValue },
             "setting_ack",
             timeoutMs,
             (msg: any) => msg?.key === key,
         );
+    }
+
+    function sendGetGame(): void {
+        send({ type: "get_game" });
+    }
+
+    async function getGame(timeoutMs = 5000): Promise<any> {
+        return sendAndWait({ type: "get_game" }, "game_state", timeoutMs)
+            .then((msg: any) => msg?.data ?? {});
+    }
+
+    function sendSetGame(data: Record<string, unknown>): void {
+        send({ type: "set_game", data });
+    }
+
+    async function setGame(data: Record<string, unknown>, timeoutMs = 5000): Promise<any> {
+        return sendAndWait({ type: "set_game", data }, "game_ack", timeoutMs);
     }
 
     function sendRestart(): void {
@@ -586,6 +609,10 @@ export const useWebSocketStore = defineStore("websocket", () => {
 
     function sendPing(): void {
         send({ type: "ping" });
+    }
+
+    function sendIdentify(role: string): void {
+        send({ type: "identify", role });
     }
 
     function waitForAuthStatus(): Promise<boolean> {
@@ -619,6 +646,7 @@ export const useWebSocketStore = defineStore("websocket", () => {
     return {
         isConnected,
         isAuthRequired,
+        currentSourceType,
         connect,
         disconnect,
         on,
@@ -631,10 +659,15 @@ export const useWebSocketStore = defineStore("websocket", () => {
         sendGetSettings,
         sendSetSetting,
         setSettingAndWait,
+        sendGetGame,
+        getGame,
+        sendSetGame,
+        setGame,
         sendRestart,
         sendFactoryReset,
         sendAuth,
         sendPing,
+        sendIdentify,
         waitForAuthStatus,
     };
 });

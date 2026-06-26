@@ -130,6 +130,12 @@ GFWebSocket::GFWebSocket()
       webLogFlag(0)
 {
     memset(authAttempts, 0, sizeof(authAttempts));
+    for (int i = 0; i < MAX_WS_CLIENTS; i++) {
+        _clients[i].active = false;
+        _clients[i].isAuthenticated = false;
+        _clients[i].isHub = false;
+        _clients[i].sourceType = SourceType::WA_NO_AUTH;
+    }
 }
 
 GFWebSocket::~GFWebSocket() {}
@@ -162,6 +168,7 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
             {
                 IPAddress remoteIp = wsServer.remoteIP(clientId);
                 Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u connected from %s", clientId, remoteIp.toString().c_str());
+                InitClientInfo(clientId);
             }
             {
                 JsonDocument doc;
@@ -172,6 +179,7 @@ void GFWebSocket::OnEvent(uint8_t clientId, WStype_t type, uint8_t* payload, siz
 
         case WStype_DISCONNECTED:
             Logger::Log("WebSocket", Logger::LogLevel::INFO, "Client %u disconnected", clientId);
+            ClearClientInfo(clientId);
             break;
 
         case WStype_ERROR:
@@ -197,11 +205,18 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
         Logger::Log("WebSocket", Logger::LogLevel::WARN, "JSON parse error: %s", err.c_str());
     } else {
         const char* type = doc["type"];
-        if (type) {   
-            if (strcmp(type, "get_settings") == 0) {
+        if (type) {
+            SourceType source = GetSourceType(clientId);
+            if (!CheckPermission(source, type)) {
+                SendPermissionDenied(clientId, type);
+            } else if (strcmp(type, "get_settings") == 0) {
                 HandleGetSettings(clientId);
-            } else if (strcmp(type, "set") == 0) {
+            } else if (strcmp(type, "set_settings") == 0) {
                 HandleSetSetting(clientId, doc);
+            } else if (strcmp(type, "get_game") == 0) {
+                HandleGetGame(clientId);
+            } else if (strcmp(type, "set_game") == 0) {
+                HandleSetGame(clientId, doc);
             } else if (strcmp(type, "start") == 0) {
                 HandleStart(clientId);
             } else if (strcmp(type, "stop") == 0) {
@@ -218,6 +233,8 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
                 HandlePing(clientId);
             } else if (strcmp(type, "set_web_logging") == 0) {
                 HandleSetWebLoggingFlag(clientId, doc);
+            } else if (strcmp(type, "identify") == 0) {
+                HandleIdentify(clientId, doc);
             } else {
                 Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
             }
@@ -227,28 +244,38 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
 
 void GFWebSocket::SendJson(uint8_t clientId, JsonDocument& doc) {
     String json;
+    doc["sourceType"] = SourceTypeToString(GetSourceType(clientId));
     serializeJson(doc, json);
     wsServer.sendTXT(clientId, json);
 }
 
-void GFWebSocket::BroadcastJson(JsonDocument& doc) {
-    String json;
-    serializeJson(doc, json);
-    wsServer.broadcastTXT(json);
+void GFWebSocket::SendJsonToAll(JsonDocument& doc) {
+    String baseJson;
+    serializeJson(doc, baseJson);
+
+    for (int i = 0; i < MAX_WS_CLIENTS; i++) {
+        if (_clients[i].active) {
+            String clientJson = baseJson.substring(0, baseJson.length() - 1);
+            clientJson += ",\"sourceType\":\"";
+            clientJson += SourceTypeToString(_clients[i].sourceType);
+            clientJson += "\"}";
+            wsServer.sendTXT(i, clientJson);
+        }
+    }
 }
 
 void GFWebSocket::SendHitEvent() {
     JsonDocument doc;
     doc["type"] = "event";
     doc["event"] = "hit";
-    BroadcastJson(doc);
+    SendJsonToAll(doc);
 }
 
 void GFWebSocket::SendMissEvent() {
     JsonDocument doc;
     doc["type"] = "event";
     doc["event"] = "miss";
-    BroadcastJson(doc);
+    SendJsonToAll(doc);
 }
 
 void GFWebSocket::HandleGetSettings(uint8_t clientId) {
@@ -296,6 +323,29 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     data["extNWEnterpriseClientPrivateKey"] = settings->GetExternalNW_EnterpriseClientPrivateKey();
 
     SendJson(clientId, doc);
+}
+
+void GFWebSocket::HandleGetGame(uint8_t clientId) {
+    JsonDocument doc;
+    doc["type"] = "game_state";
+    JsonObject data = doc["data"].to<JsonObject>();
+    data["isSoundEnabled"] = GoalFinderApp::GetInstance()->IsSoundEnabled();
+    data["isDetecting"] = false;
+
+    SendJson(clientId, doc);
+}
+
+void GFWebSocket::HandleSetGame(uint8_t clientId, JsonDocument& doc) {
+    JsonDocument response;
+    response["type"] = "game_ack";
+    if (!doc["data"].isNull()) {
+        JsonObject data = doc["data"];
+        if (data["isSoundEnabled"].is<bool>()) {
+            GoalFinderApp::GetInstance()->SetIsSoundEnabled(data["isSoundEnabled"].as<bool>());
+        }
+    }
+
+    SendJson(clientId, response);
 }
 
 void GFWebSocket::HandleSetSetting(uint8_t clientId, JsonDocument& doc) {
@@ -465,7 +515,7 @@ void GFWebSocket::SendWebLog(String message) {
         JsonDocument doc;
         doc["type"] = "log";
         doc["message"] = message;
-        BroadcastJson(doc);
+        SendJsonToAll(doc);
     }
 }
 
@@ -555,6 +605,8 @@ void GFWebSocket::HandleAuth(uint8_t clientId, JsonDocument& doc) {
                 } else {
                     if (String(passwordHash).equalsIgnoreCase(expectedHash)) {
                         response["success"] = true;
+                        _clients[clientId].isAuthenticated = true;
+                        _clients[clientId].sourceType = SourceType::WA_AUTH;
                     } else {
                         response["success"] = false;
                         response["error"] = "Invalid password";
@@ -595,5 +647,110 @@ void GFWebSocket::HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc) {
     JsonDocument response;
     response["type"] = "set_web_logging_ack";
     response["value"] = value;
+    SendJson(clientId, response);
+}
+
+void GFWebSocket::InitClientInfo(uint8_t clientId) {
+    if (clientId < MAX_WS_CLIENTS) {
+        _clients[clientId].active = true;
+        _clients[clientId].isAuthenticated = false;
+        _clients[clientId].isHub = false;
+        _clients[clientId].sourceType = SourceType::WA_NO_AUTH;
+    }
+}
+
+void GFWebSocket::ClearClientInfo(uint8_t clientId) {
+    if (clientId < MAX_WS_CLIENTS) {
+        _clients[clientId].active = false;
+        _clients[clientId].isAuthenticated = false;
+        _clients[clientId].isHub = false;
+        _clients[clientId].sourceType = SourceType::WA_NO_AUTH;
+    }
+}
+
+SourceType GFWebSocket::GetSourceType(uint8_t clientId) const {
+    SourceType result = SourceType::WA_NO_AUTH;
+    if (clientId < MAX_WS_CLIENTS && _clients[clientId].active) {
+        result = _clients[clientId].sourceType;
+    }
+    return result;
+}
+
+const char* GFWebSocket::SourceTypeToString(SourceType st) const {
+    const char* result = "wa-no-auth";
+    if (st == SourceType::WA_AUTH) {
+        result = "wa-auth";
+    } else if (st == SourceType::HUB) {
+        result = "hub";
+    }
+    return result;
+}
+
+SourceType GFWebSocket::StringToSourceType(const char* str) const {
+    SourceType result = SourceType::WA_NO_AUTH;
+    if (str) {
+        if (strcmp(str, "wa-auth") == 0) {
+            result = SourceType::WA_AUTH;
+        } else if (strcmp(str, "hub") == 0) {
+            result = SourceType::HUB;
+        }
+    }
+    return result;
+}
+
+bool GFWebSocket::CheckPermission(SourceType source, const char* messageType) const {
+    bool allowed = false;
+
+    if (strcmp(messageType, "get_settings") == 0 ||
+        strcmp(messageType, "get_game") == 0 ||
+        strcmp(messageType, "is_auth") == 0 ||
+        strcmp(messageType, "auth") == 0 ||
+        strcmp(messageType, "ping") == 0) {
+        allowed = true;
+    } else if (strcmp(messageType, "set_settings") == 0 ||
+               strcmp(messageType, "set_game") == 0 ||
+               strcmp(messageType, "set_web_logging") == 0 ||
+               strcmp(messageType, "identify") == 0 ||
+               strcmp(messageType, "start") == 0 ||
+               strcmp(messageType, "stop") == 0 ||
+               strcmp(messageType, "restart") == 0 ||
+               strcmp(messageType, "factory_reset") == 0) {
+        allowed = (source >= SourceType::WA_AUTH);
+    }
+
+    return allowed;
+}
+
+void GFWebSocket::SendPermissionDenied(uint8_t clientId, const char* messageType) {
+    JsonDocument doc;
+    doc["type"] = "error";
+    doc["error"] = "permission_denied";
+    doc["messageType"] = messageType;
+    doc["sourceType"] = SourceTypeToString(GetSourceType(clientId));
+    SendJson(clientId, doc);
+}
+
+void GFWebSocket::HandleIdentify(uint8_t clientId, JsonDocument& doc) {
+    JsonDocument response;
+    response["type"] = "identify_ack";
+
+    if (_clients[clientId].isAuthenticated) {
+        const char* role = doc["role"];
+        if (role) {
+            if (strcmp(role, "hub") == 0) {
+                _clients[clientId].isHub = true;
+                _clients[clientId].sourceType = SourceType::HUB;
+                response["role"] = "hub";
+            } else {
+                response["role"] = "unknown";
+                response["error"] = "Unrecognized role";
+            }
+        } else {
+            response["error"] = "Role required";
+        }
+    } else {
+        response["error"] = "Not authenticated";
+    }
+
     SendJson(clientId, response);
 }
