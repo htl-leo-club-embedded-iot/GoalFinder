@@ -233,6 +233,13 @@ class Settings : public Singleton<Settings>
         /** Enables or disables DNS. */
         void SetDNSEnabled(bool enable);
 
+        /** Store a binary blob under the given key. */
+        void PutBlob(const char* key, const void* data, size_t len);
+        /** Retrieve a binary blob. Returns the number of bytes copied. */
+        size_t GetBlob(const char* key, void* buf, size_t maxLen);
+        /** Returns the size of a stored blob, or 0 if not found. */
+        size_t GetBlobLength(const char* key);
+
     private:
 		friend class Singleton<Settings>;
         /** Singleton constructor */

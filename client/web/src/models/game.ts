@@ -19,6 +19,18 @@
 import type {Player} from "@/models/player";
 import type {WebSocketStore, EventCallback} from "@/stores/websocket";
 
+export interface GamePreset {
+    name: string;
+    rounds: number;
+    timePerTurn: number;
+}
+
+export interface GamePresets {
+    free_play: GamePreset[];
+    timed_shots: GamePreset[];
+    board_hits: GamePreset[];
+}
+
 abstract class Game {
     protected readonly _players: Player[];
     private _isRunning: boolean = false;

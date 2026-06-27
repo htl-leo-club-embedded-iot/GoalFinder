@@ -730,3 +730,16 @@ void Settings::SetDNSEnabled(bool enable) {
 	GoalFinderApp::GetInstance()->SetDNSEnabled(enable);
 	SetModified();
 }
+
+void Settings::PutBlob(const char* key, const void* data, size_t len) {
+	store.PutBytes(key, data, len);
+	SetModified();
+}
+
+size_t Settings::GetBlob(const char* key, void* buf, size_t maxLen) {
+	return store.GetBytes(key, buf, maxLen);
+}
+
+size_t Settings::GetBlobLength(const char* key) {
+	return store.GetBytesLength(key);
+}

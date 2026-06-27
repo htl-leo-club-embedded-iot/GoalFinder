@@ -325,6 +325,30 @@ void GFWebSocket::HandleGetSettings(uint8_t clientId) {
     SendJson(clientId, doc);
 }
 
+namespace {
+const char* ModeToKey(GameMode mode) {
+    const char* result = "";
+    if (mode == GameMode::FREE_PLAY) {
+        result = "free_play";
+    } else if (mode == GameMode::TIMED_SHOTS) {
+        result = "timed_shots";
+    } else if (mode == GameMode::BOARD_HITS) {
+        result = "board_hits";
+    }
+    return result;
+}
+
+GameMode KeyToMode(const char* key) {
+    GameMode result = GameMode::FREE_PLAY;
+    if (strcmp(key, "timed_shots") == 0) {
+        result = GameMode::TIMED_SHOTS;
+    } else if (strcmp(key, "board_hits") == 0) {
+        result = GameMode::BOARD_HITS;
+    }
+    return result;
+}
+}
+
 void GFWebSocket::HandleGetGame(uint8_t clientId) {
     JsonDocument doc;
     doc["type"] = "game_state";
@@ -332,16 +356,74 @@ void GFWebSocket::HandleGetGame(uint8_t clientId) {
     data["isSoundEnabled"] = GoalFinderApp::GetInstance()->IsSoundEnabled();
     data["isDetecting"] = false;
 
+    GoalFinderApp* app = GoalFinderApp::GetInstance();
+    GamePreset (*presets)[GoalFinderApp::PRESETS_PER_MODE] = app->GetGamePresets();
+    JsonObject presetsObj = data["presets"].to<JsonObject>();
+
+    for (int m = 0; m < GoalFinderApp::GAME_MODE_COUNT; m++) {
+        GameMode mode = static_cast<GameMode>(m);
+        JsonArray arr = presetsObj[ModeToKey(mode)].to<JsonArray>();
+        for (int p = 0; p < GoalFinderApp::PRESETS_PER_MODE; p++) {
+            JsonObject presetObj = arr.add<JsonObject>();
+            presetObj["name"] = presets[m][p].name;
+            presetObj["rounds"] = presets[m][p].rounds;
+            presetObj["timePerTurn"] = presets[m][p].timePerTurn;
+        }
+    }
+
     SendJson(clientId, doc);
 }
 
 void GFWebSocket::HandleSetGame(uint8_t clientId, JsonDocument& doc) {
     JsonDocument response;
     response["type"] = "game_ack";
+
     if (!doc["data"].isNull()) {
         JsonObject data = doc["data"];
+
         if (data["isSoundEnabled"].is<bool>()) {
             GoalFinderApp::GetInstance()->SetIsSoundEnabled(data["isSoundEnabled"].as<bool>());
+        }
+
+        if (data["presets"].is<JsonObject>()) {
+            JsonObject presetsObj = data["presets"];
+            GoalFinderApp* app = GoalFinderApp::GetInstance();
+
+            for (int m = 0; m < GoalFinderApp::GAME_MODE_COUNT; m++) {
+                GameMode mode = static_cast<GameMode>(m);
+                const char* key = ModeToKey(mode);
+
+                if (presetsObj[key].is<JsonArray>()) {
+                    JsonArray arr = presetsObj[key].as<JsonArray>();
+                    int count = arr.size();
+                    if (count > GoalFinderApp::PRESETS_PER_MODE) {
+                        count = GoalFinderApp::PRESETS_PER_MODE;
+                    }
+
+                    GamePreset modePresets[GoalFinderApp::PRESETS_PER_MODE];
+
+                    for (int p = 0; p < count; p++) {
+                        JsonObject presetObj = arr[p];
+                        const char* name = presetObj["name"] | "";
+                        size_t nameLen = strlen(name);
+                        if (nameLen > 16) {
+                            nameLen = 16;
+                        }
+                        memcpy(modePresets[p].name, name, nameLen);
+                        modePresets[p].name[nameLen] = '\0';
+                        modePresets[p].rounds = presetObj["rounds"] | 0;
+                        modePresets[p].timePerTurn = presetObj["timePerTurn"] | 0;
+                    }
+
+                    for (int p = count; p < GoalFinderApp::PRESETS_PER_MODE; p++) {
+                        modePresets[p].name[0] = '\0';
+                        modePresets[p].rounds = 0;
+                        modePresets[p].timePerTurn = 0;
+                    }
+
+                    app->SetAllGamePresets(mode, modePresets);
+                }
+            }
         }
     }
 

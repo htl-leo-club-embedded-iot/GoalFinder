@@ -54,6 +54,29 @@ SemaphoreHandle_t GoalFinderApp::xMutex = nullptr;
 volatile bool g_audioPlaybackActive = false;
 
 // Constructor
+namespace {
+const GamePreset DefaultPresets[GoalFinderApp::GAME_MODE_COUNT][GoalFinderApp::PRESETS_PER_MODE] = {
+    {   // FREE_PLAY
+        GamePreset("Free Play 1", 0, 0),
+        GamePreset("Free Play 2", 0, 0),
+        GamePreset("Free Play 3", 0, 0),
+        GamePreset("Free Play 4", 0, 0)
+    },
+    {   // TIMED_SHOTS
+        GamePreset("Timed 1", 0, 60),
+        GamePreset("Timed 2", 0, 60),
+        GamePreset("Timed 3", 0, 60),
+        GamePreset("Timed 4", 0, 60)
+    },
+    {   // BOARD_HITS
+        GamePreset("Board 1", 3, 60),
+        GamePreset("Board 2", 3, 60),
+        GamePreset("Board 3", 3, 60),
+        GamePreset("Board 4", 3, 60)
+    }
+};
+}
+
 GoalFinderApp::GoalFinderApp() :
     Singleton<GoalFinderApp>(),
     fileSystem(true),
@@ -75,7 +98,15 @@ GoalFinderApp::GoalFinderApp() :
     isSoundEnabled(true),
     distanceOnlyHitDetection(false),
     waitingSoundPlayCount(0)
-{}
+{
+    memcpy(_gamePresets, DefaultPresets, sizeof(_gamePresets));
+
+    Settings* settings = Settings::GetInstance();
+    size_t storedLen = settings->GetBlobLength("gamePresets");
+    if (storedLen == sizeof(_gamePresets)) {
+        settings->GetBlob("gamePresets", _gamePresets, sizeof(_gamePresets));
+    }
+}
 
 GoalFinderApp::~GoalFinderApp() {}
 
@@ -85,6 +116,15 @@ void GoalFinderApp::SetIsSoundEnabled(bool value) {
 
 bool GoalFinderApp::IsSoundEnabled() {
     return isSoundEnabled;
+}
+
+GamePreset (*GoalFinderApp::GetGamePresets())[PRESETS_PER_MODE] {
+    return _gamePresets;
+}
+
+void GoalFinderApp::SetAllGamePresets(GameMode mode, const GamePreset* presets) {
+    memcpy(_gamePresets[static_cast<int>(mode)], presets, sizeof(GamePreset) * PRESETS_PER_MODE);
+    Settings::GetInstance()->PutBlob("gamePresets", _gamePresets, sizeof(_gamePresets));
 }
 
 // Initializing
