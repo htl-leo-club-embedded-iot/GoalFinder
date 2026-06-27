@@ -19,6 +19,8 @@
 #include <Singleton.h>
 #include <system/Settings.h>
 #include "LedMode.h"
+#include "GamePreset.h"
+#include "PlayerSet.h"
 
 class Settings : public Singleton<Settings>
 {
@@ -233,6 +235,23 @@ class Settings : public Singleton<Settings>
         /** Enables or disables DNS. */
         void SetDNSEnabled(bool enable);
 
+        static const int GAME_MODE_COUNT = 3;
+        static const int PRESETS_PER_MODE = 4;
+        static const int PLAYER_SET_COUNT = 4;
+        static const int PLAYERS_PER_SET = 16;
+
+        /** Returns the 2D array of game presets (mode x preset). */
+        GamePreset (*GetGamePresets())[PRESETS_PER_MODE];
+
+        /** Replace all presets for a given game mode. */
+        void SetAllGamePresets(GameMode mode, const GamePreset* presets);
+
+        /** Returns the array of player sets. */
+        PlayerSet* GetPlayerSets();
+
+        /** Replace all player sets. */
+        void SetAllPlayerSets(const PlayerSet* playerSets);
+
         /** Store a binary blob under the given key. */
         void PutBlob(const char* key, const void* data, size_t len);
         /** Retrieve a binary blob. Returns the number of bytes copied. */
@@ -365,4 +384,7 @@ class Settings : public Singleton<Settings>
 
         System::Settings store;
         bool modified;
+
+        GamePreset _gamePresets[GAME_MODE_COUNT][PRESETS_PER_MODE];
+        PlayerSet _playerSets[PLAYER_SET_COUNT];
 };

@@ -184,6 +184,34 @@ String NormalizeExternalNetworkPhase2Method(String phase2Method) {
 
 	return phase2Method;
 }
+
+const GamePreset DefaultPresets[Settings::GAME_MODE_COUNT][Settings::PRESETS_PER_MODE] = {
+    {
+        GamePreset("Free Play 1", 0, 0),
+        GamePreset("Free Play 2", 0, 0),
+        GamePreset("Free Play 3", 0, 0),
+        GamePreset("Free Play 4", 0, 0)
+    },
+    {
+        GamePreset("Timed 1", 0, 60),
+        GamePreset("Timed 2", 0, 60),
+        GamePreset("Timed 3", 0, 60),
+        GamePreset("Timed 4", 0, 60)
+    },
+    {
+        GamePreset("Board 1", 3, 60),
+        GamePreset("Board 2", 3, 60),
+        GamePreset("Board 3", 3, 60),
+        GamePreset("Board 4", 3, 60)
+    }
+};
+
+const PlayerSet DefaultPlayerSets[Settings::PLAYER_SET_COUNT] = {
+    PlayerSet(),
+    PlayerSet(),
+    PlayerSet(),
+    PlayerSet()
+};
 }
 	
 Settings::Settings() :
@@ -200,9 +228,21 @@ Settings::Settings() :
 		Logger::Log("Settings", Logger::LogLevel::WARN, "Missing key '%s'. Using default '%s'", keyDeviceIP, defaultDeviceIP.c_str());
 	}
 
-	if (!store.IsKey(keySubnetMask)) {
+ 	if (!store.IsKey(keySubnetMask)) {
 		store.PutString(keySubnetMask, defaultSubnetMask);
 		Logger::Log("Settings", Logger::LogLevel::WARN, "Missing key '%s'. Using default '%s'", keySubnetMask, defaultSubnetMask.c_str());
+	}
+
+	memcpy(_gamePresets, DefaultPresets, sizeof(_gamePresets));
+	size_t storedLen = store.GetBytesLength("gamePresets");
+	if (storedLen == sizeof(_gamePresets)) {
+		store.GetBytes("gamePresets", _gamePresets, sizeof(_gamePresets));
+	}
+
+	memcpy(_playerSets, DefaultPlayerSets, sizeof(_playerSets));
+	storedLen = store.GetBytesLength("playerSets");
+	if (storedLen == sizeof(_playerSets)) {
+		store.GetBytes("playerSets", _playerSets, sizeof(_playerSets));
 	}
 	}
 
@@ -729,6 +769,26 @@ void Settings::SetDNSEnabled(bool enable) {
 	store.PutInt(keyEnableDNS, (int)enable);
 	GoalFinderApp::GetInstance()->SetDNSEnabled(enable);
 	SetModified();
+}
+
+GamePreset (*Settings::GetGamePresets())[PRESETS_PER_MODE] {
+    return _gamePresets;
+}
+
+void Settings::SetAllGamePresets(GameMode mode, const GamePreset* presets) {
+    memcpy(_gamePresets[static_cast<int>(mode)], presets, sizeof(GamePreset) * PRESETS_PER_MODE);
+    store.PutBytes("gamePresets", _gamePresets, sizeof(_gamePresets));
+    SetModified();
+}
+
+PlayerSet* Settings::GetPlayerSets() {
+    return _playerSets;
+}
+
+void Settings::SetAllPlayerSets(const PlayerSet* playerSets) {
+    memcpy(_playerSets, playerSets, sizeof(PlayerSet) * PLAYER_SET_COUNT);
+    store.PutBytes("playerSets", _playerSets, sizeof(_playerSets));
+    SetModified();
 }
 
 void Settings::PutBlob(const char* key, const void* data, size_t len) {

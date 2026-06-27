@@ -1,5 +1,6 @@
 Modelfile.qwen25coder14b
 Modelfile.qwen36_27b
+client/embedded/compile_commands.json
 
 # Generated device keys and derived files
 /client/embedded/keys/

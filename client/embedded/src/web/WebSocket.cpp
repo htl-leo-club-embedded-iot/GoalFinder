@@ -356,18 +356,31 @@ void GFWebSocket::HandleGetGame(uint8_t clientId) {
     data["isSoundEnabled"] = GoalFinderApp::GetInstance()->IsSoundEnabled();
     data["isDetecting"] = false;
 
-    GoalFinderApp* app = GoalFinderApp::GetInstance();
-    GamePreset (*presets)[GoalFinderApp::PRESETS_PER_MODE] = app->GetGamePresets();
+    Settings* settings = Settings::GetInstance();
+    GamePreset (*presets)[Settings::PRESETS_PER_MODE] = settings->GetGamePresets();
     JsonObject presetsObj = data["presets"].to<JsonObject>();
 
-    for (int m = 0; m < GoalFinderApp::GAME_MODE_COUNT; m++) {
+    for (int m = 0; m < Settings::GAME_MODE_COUNT; m++) {
         GameMode mode = static_cast<GameMode>(m);
         JsonArray arr = presetsObj[ModeToKey(mode)].to<JsonArray>();
-        for (int p = 0; p < GoalFinderApp::PRESETS_PER_MODE; p++) {
+        for (int p = 0; p < Settings::PRESETS_PER_MODE; p++) {
             JsonObject presetObj = arr.add<JsonObject>();
             presetObj["name"] = presets[m][p].name;
             presetObj["rounds"] = presets[m][p].rounds;
             presetObj["timePerTurn"] = presets[m][p].timePerTurn;
+        }
+    }
+
+    PlayerSet* playerSets = settings->GetPlayerSets();
+    JsonArray playerSetsArr = data["playerSets"].to<JsonArray>();
+    for (int i = 0; i < Settings::PLAYER_SET_COUNT; i++) {
+        JsonObject setObj = playerSetsArr.add<JsonObject>();
+        setObj["name"] = playerSets[i].name;
+        JsonArray playersArr = setObj["players"].to<JsonArray>();
+        for (int j = 0; j < Settings::PLAYERS_PER_SET; j++) {
+            if (playerSets[i].players[j][0] != '\0') {
+                playersArr.add(playerSets[i].players[j]);
+            }
         }
     }
 
@@ -387,20 +400,20 @@ void GFWebSocket::HandleSetGame(uint8_t clientId, JsonDocument& doc) {
 
         if (data["presets"].is<JsonObject>()) {
             JsonObject presetsObj = data["presets"];
-            GoalFinderApp* app = GoalFinderApp::GetInstance();
+            Settings* settings = Settings::GetInstance();
 
-            for (int m = 0; m < GoalFinderApp::GAME_MODE_COUNT; m++) {
+            for (int m = 0; m < Settings::GAME_MODE_COUNT; m++) {
                 GameMode mode = static_cast<GameMode>(m);
                 const char* key = ModeToKey(mode);
 
                 if (presetsObj[key].is<JsonArray>()) {
                     JsonArray arr = presetsObj[key].as<JsonArray>();
                     int count = arr.size();
-                    if (count > GoalFinderApp::PRESETS_PER_MODE) {
-                        count = GoalFinderApp::PRESETS_PER_MODE;
+                    if (count > Settings::PRESETS_PER_MODE) {
+                        count = Settings::PRESETS_PER_MODE;
                     }
 
-                    GamePreset modePresets[GoalFinderApp::PRESETS_PER_MODE];
+                    GamePreset modePresets[Settings::PRESETS_PER_MODE];
 
                     for (int p = 0; p < count; p++) {
                         JsonObject presetObj = arr[p];
@@ -415,15 +428,67 @@ void GFWebSocket::HandleSetGame(uint8_t clientId, JsonDocument& doc) {
                         modePresets[p].timePerTurn = presetObj["timePerTurn"] | 0;
                     }
 
-                    for (int p = count; p < GoalFinderApp::PRESETS_PER_MODE; p++) {
+                    for (int p = count; p < Settings::PRESETS_PER_MODE; p++) {
                         modePresets[p].name[0] = '\0';
                         modePresets[p].rounds = 0;
                         modePresets[p].timePerTurn = 0;
                     }
 
-                    app->SetAllGamePresets(mode, modePresets);
+                    settings->SetAllGamePresets(mode, modePresets);
                 }
             }
+        }
+
+        if (data["playerSets"].is<JsonArray>()) {
+            JsonArray playerSetsArr = data["playerSets"];
+            Settings* settings = Settings::GetInstance();
+            int setCount = playerSetsArr.size();
+            if (setCount > Settings::PLAYER_SET_COUNT) {
+                setCount = Settings::PLAYER_SET_COUNT;
+            }
+
+            PlayerSet playerSets[Settings::PLAYER_SET_COUNT];
+
+            for (int i = 0; i < setCount; i++) {
+                JsonObject setObj = playerSetsArr[i];
+                const char* setName = setObj["name"] | "";
+                size_t setNameLen = strlen(setName);
+                if (setNameLen > 16) {
+                    setNameLen = 16;
+                }
+                memcpy(playerSets[i].name, setName, setNameLen);
+                playerSets[i].name[setNameLen] = '\0';
+
+                for (int j = 0; j < Settings::PLAYERS_PER_SET; j++) {
+                    playerSets[i].players[j][0] = '\0';
+                }
+
+                if (setObj["players"].is<JsonArray>()) {
+                    JsonArray playersArr = setObj["players"];
+                    int playerCount = playersArr.size();
+                    if (playerCount > Settings::PLAYERS_PER_SET) {
+                        playerCount = Settings::PLAYERS_PER_SET;
+                    }
+                    for (int j = 0; j < playerCount; j++) {
+                        const char* playerName = playersArr[j] | "";
+                        size_t playerNameLen = strlen(playerName);
+                        if (playerNameLen > 16) {
+                            playerNameLen = 16;
+                        }
+                        memcpy(playerSets[i].players[j], playerName, playerNameLen);
+                        playerSets[i].players[j][playerNameLen] = '\0';
+                    }
+                }
+            }
+
+            for (int i = setCount; i < Settings::PLAYER_SET_COUNT; i++) {
+                playerSets[i].name[0] = '\0';
+                for (int j = 0; j < Settings::PLAYERS_PER_SET; j++) {
+                    playerSets[i].players[j][0] = '\0';
+                }
+            }
+
+            settings->SetAllPlayerSets(playerSets);
         }
     }
 

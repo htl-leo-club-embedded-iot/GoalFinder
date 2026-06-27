@@ -154,15 +154,6 @@ public:
     /** @return Reference to the WebSocket server instance. */
     GFWebSocket& GetWebSocket() { return webSocket; }
 
-    static const int GAME_MODE_COUNT = 3;
-    static const int PRESETS_PER_MODE = 4;
-
-    /** Returns the 2D array of game presets (mode x preset). */
-    GamePreset (*GetGamePresets())[PRESETS_PER_MODE];
-
-    /** Replace all presets for a given game mode. */
-    void SetAllGamePresets(GameMode mode, const GamePreset* presets);
-
 private:
     friend class Singleton<GoalFinderApp>;
     /** Singleton – use GoalFinderApp::GetInstance() instead. */
@@ -319,7 +310,6 @@ private:
     Announcement::Enum announcement;
 
     volatile int lastRawDistance;
-    GamePreset _gamePresets[GAME_MODE_COUNT][PRESETS_PER_MODE];
 
     static const int shotVibrationThreshold;    /**< Minimum vibration edges to register a shot. */
     static const int maxShotDurationMs;         /**< Max time after a shot to wait for a hit before declaring miss. */
