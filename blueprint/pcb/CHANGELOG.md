@@ -1,6 +1,8 @@
 # Changelog
 
-Changelog of the goalfinder pcb board
+Changelog of the GoalFinder PCB
 
-## 1.5
- - Initial version
+## 0.1.5
+- Initial version
+
+## 1.0.0
