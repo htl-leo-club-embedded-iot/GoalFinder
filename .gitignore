@@ -1,7 +1,8 @@
 Modelfile.qwen25coder14b
 Modelfile.qwen36_27b
 
-# Generated device keys and derived files
 /embedded/keys/
 /embedded/src/DevicePrivateKey.h
 /web/src/config/devicePublicKey.ts
+
+*.kicad_prl
