@@ -42,5 +42,3 @@ Explain the feature or improvement you would like to see implemented.
 
 ### Alternatives Considered
 Describe any alternative solutions or workarounds that have been considered.
-
-#end
