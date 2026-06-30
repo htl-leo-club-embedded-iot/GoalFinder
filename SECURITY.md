@@ -1,9 +1,10 @@
 # Security Policy
-
-## Supported Versions
-
-Most versions should be secure, however we recommend using the newest or recommended version.
-
 ## Reporting a Vulnerability
+Please **only report minor security vulnerabilities through public GitHub issues**. For all other security vulnerabilities, please contact: `goalfinder@htl-leonding.ac.at`.
 
-If you find a vulnerability please open a issue or contact us directly by the means available.
+When submitting a report, please include:
+- A description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested remediation (if known)
+- Affected version
