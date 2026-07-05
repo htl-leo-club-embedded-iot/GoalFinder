@@ -2,7 +2,8 @@ Modelfile.qwen25coder14b
 Modelfile.qwen36_27b
 client/embedded/compile_commands.json
 
-# Generated device keys and derived files
-/client/embedded/keys/
-/client/embedded/src/DevicePrivateKey.h
-/client/web/src/config/devicePublicKey.ts
+/embedded/keys/
+/embedded/src/DevicePrivateKey.h
+/web/src/config/devicePublicKey.ts
+
+*.kicad_prl

@@ -24,7 +24,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: client/embedded
+        working-directory: embedded
 
     steps:
       - uses: actions/checkout@v4
@@ -46,12 +46,12 @@ jobs:
           echo "Git hash: $HASH"
       
       - name: Update version files
-        working-directory: client/embedded
+        working-directory: embedded
         run: |
           python ./update-version.py ${{ steps.version.outputs.version }} ${{ steps.git_hash.outputs.hash }}
 
       - name: Generate Device Keys
-        working-directory: client/embedded
+        working-directory: embedded
         run: |
           bash ./scripts/generate_device_keys.sh
 
@@ -61,11 +61,11 @@ jobs:
 
       - name: Install Web Dependencies
         run: npm ci
-        working-directory: client/web
+        working-directory: web
 
       - name: Build Web App
         run: npm run build
-        working-directory: client/web
+        working-directory: web
           
       - uses: actions/cache@v4
         with:
@@ -92,4 +92,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            client/embedded/.pio/build/wemos_d1_mini32/system.gfpkg
+            embedded/.pio/build/wemos_d1_mini32/system.gfpkg

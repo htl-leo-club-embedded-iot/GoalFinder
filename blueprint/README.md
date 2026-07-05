@@ -2,16 +2,9 @@
 
 ## Structure
     .
-    ├── 3d-print            Latest 3D printing files
-    │   ├── projects            Creality print projects
-    │   └── gcode               .gcode printing files
-    ├── housing             FreeCAD housing directory
-    │   ├── x.x.x               Version directory
-    │   ├── latest-export       Latest production ready files
-    │   └── CHANGELOG.md        Changelog of versioned files
-    ├── 3d-print            Latest 3D printing files
-    ├── obj                 Housing and other 3D files
-    └── pcb                 KiCAD pcb projects directory
-        ├── x.x.x               Version directory
-        ├── latest-export       Latest production ready files
-        └── CHANGELOG.md        Changelog of versioned files
+    ├── design          The development section for the GoalFinder device
+    │   ├── housing/        The design for the housing
+    │   └── pcb/            The design for the PCB
+    └── export          To be exported files for production
+        ├── 3d-files/       .3mf projects or .gcode (mostly for Creality K1C and K1 Max printers using Hyper-PLA) files for producing the housing
+        └── pcb/            Generated production files for producing the PCB

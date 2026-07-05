@@ -1,9 +1,6 @@
 {
   "board": {
-<<<<<<< HEAD
     "3dviewports": [],
-=======
->>>>>>> main
     "design_settings": {
       "defaults": {},
       "diff_pair_dimensions": [],
@@ -11,7 +8,6 @@
       "rules": {},
       "track_widths": [],
       "via_dimensions": []
-<<<<<<< HEAD
     },
     "ipc2581": {
       "dist": "",
@@ -28,18 +24,12 @@
   "cvpcb": {
     "equivalence_files": []
   },
-=======
-    }
-  },
-  "boards": [],
->>>>>>> main
   "libraries": {
     "pinned_footprint_libs": [],
     "pinned_symbol_libs": []
   },
   "meta": {
-<<<<<<< HEAD
-    "filename": "goalfinder-tof-module.kicad_pro",
+    "filename": "goalfinder.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -88,20 +78,6 @@
     "legacy_lib_dir": "",
     "legacy_lib_list": []
   },
-=======
-    "filename": "kicad.kicad_pro",
-    "version": 1
-  },
-  "net_settings": {
-    "classes": [],
-    "meta": {
-      "version": 0
-    }
-  },
-  "pcbnew": {
-    "page_layout_descr_file": ""
-  },
->>>>>>> main
   "sheets": [],
   "text_variables": {}
 }
