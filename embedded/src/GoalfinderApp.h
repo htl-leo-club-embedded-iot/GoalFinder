@@ -57,6 +57,12 @@ public:
     /** @return true if sound output is currently enabled. */
     bool IsSoundEnabled();
 
+    /** Enable or disable hit detection (controlled by GameManager). */
+    void SetIsDetecting(bool value);
+
+    /** @return true if hit detection is currently active. */
+    bool IsDetecting();
+
     /** Destructor */
     virtual ~GoalFinderApp();
 
@@ -281,6 +287,7 @@ private:
 
     // Internal state
 
+    bool isDetecting;                  /**< Detection enabled flag (set by GameManager). */
     bool isSoundEnabled;               /**< Master sound enable flag. */
     bool announcing;                   /**< True while an announcement sound is playing or its timeout is active. */
     unsigned long announcingUntilMs;   /**< millis() deadline after which the announcement cooldown expires. */

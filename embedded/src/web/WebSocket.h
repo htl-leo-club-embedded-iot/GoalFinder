@@ -25,6 +25,7 @@
 
 // Forward declare
 class GoalFinderApp;
+class GameManager;
 
 enum class SourceType {
     WA_NO_AUTH,
@@ -119,6 +120,9 @@ private:
     void HandlePing(uint8_t clientId);
     void HandleSetWebLoggingFlag(uint8_t clientId, JsonDocument& doc);
     void HandleIdentify(uint8_t clientId, JsonDocument& doc);
+    void HandleSetGameSession(uint8_t clientId, JsonDocument& doc);
+    void HandleGetGameSession(uint8_t clientId);
+    void BroadcastGameState();
 };
 
 #endif

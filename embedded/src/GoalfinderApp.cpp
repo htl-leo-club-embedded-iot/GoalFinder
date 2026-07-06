@@ -17,6 +17,7 @@
 #include <GoalfinderApp.h>
 #include <HardwareSerial.h>
 #include <Settings.h>
+#include "GameManager.h"
 #include "util/Logger.h"
 
 // Hardware pins and constants
@@ -72,6 +73,7 @@ GoalFinderApp::GoalFinderApp() :
     lastHitTime(0),
     afterHitTimeoutMs(5000),
     isSoundEnabled(true),
+    isDetecting(false),
     distanceOnlyHitDetection(false),
     waitingSoundPlayCount(0)
 {
@@ -85,6 +87,14 @@ void GoalFinderApp::SetIsSoundEnabled(bool value) {
 
 bool GoalFinderApp::IsSoundEnabled() {
     return isSoundEnabled;
+}
+
+void GoalFinderApp::SetIsDetecting(bool value) {
+    isDetecting = value;
+}
+
+bool GoalFinderApp::IsDetecting() {
+    return isDetecting;
 }
 
 // Initializing
@@ -189,13 +199,20 @@ void GoalFinderApp::TaskAudio(void *pvParameters) {
 
 void GoalFinderApp::TaskDetection(void *pvParameters) {
     GoalFinderApp* app = (GoalFinderApp*)pvParameters;
+    unsigned long lastTimerTick = 0;
     while (app->loop) {
-        app->UpdateSettings();
-        app->DetectHit();
-        app->ProcessAnnouncement();
-        if (app->state != SHOT_DETECTED) {
-            vTaskDelay(pdMS_TO_TICKS(5));
+        if (app->IsDetecting()) {
+            app->UpdateSettings();
+            app->DetectHit();
+            app->ProcessAnnouncement();
+
+            unsigned long now = millis();
+            if (now - lastTimerTick >= 1000) {
+                lastTimerTick = now;
+                GameManager::GetInstance()->TickTimer();
+            }
         }
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
@@ -378,15 +395,27 @@ void GoalFinderApp::ProcessAnnouncement() {
 void GoalFinderApp::AnnounceHit() {
     announcement = Announcement::Hit;
     ledController.OnHit();
+
+    GameManager* gm = GameManager::GetInstance();
+    if (gm->GetSession()->isRunning) {
+        gm->RecordHit(gm->GetSession()->currentPlayerIndex);
+    }
+
     webSocket.SendHitEvent();
-    // Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Hit detected");
+    webSocket.BroadcastGameState();
 }
 
 void GoalFinderApp::AnnounceMiss() {
     announcement = Announcement::Miss;
     ledController.OnMiss();
+
+    GameManager* gm = GameManager::GetInstance();
+    if (gm->GetSession()->isRunning) {
+        gm->RecordMiss(gm->GetSession()->currentPlayerIndex);
+    }
+
     webSocket.SendMissEvent();
-    // Logger::Log("GoalfinderApp", Logger::LogLevel::INFO, "Miss detected");
+    webSocket.BroadcastGameState();
 }
 
 void GoalFinderApp::AnnounceEvent(const char* traceMsg, const char* sound, unsigned long timeoutMs) {

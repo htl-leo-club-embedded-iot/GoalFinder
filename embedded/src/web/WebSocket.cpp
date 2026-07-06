@@ -18,6 +18,7 @@
 #include <GoalfinderApp.h>
 #include <mbedtls/sha256.h>
 #include "Settings.h"
+#include "GameManager.h"
 #include "Version.h"
 #include "DevicePrivateKey.h"
 #include <mbedtls/pk.h>
@@ -235,6 +236,10 @@ void GFWebSocket::HandleMessage(uint8_t clientId, uint8_t* payload, size_t lengt
                 HandleSetWebLoggingFlag(clientId, doc);
             } else if (strcmp(type, "identify") == 0) {
                 HandleIdentify(clientId, doc);
+            } else if (strcmp(type, "game_set") == 0) {
+                HandleSetGameSession(clientId, doc);
+            } else if (strcmp(type, "game_get") == 0) {
+                HandleGetGameSession(clientId);
             } else {
                 Logger::Log("WebSocket", Logger::LogLevel::WARN, "Unknown message type: %s", type);
             }
@@ -350,41 +355,8 @@ GameMode KeyToMode(const char* key) {
 }
 
 void GFWebSocket::HandleGetGame(uint8_t clientId) {
-    JsonDocument doc;
-    doc["type"] = "game_state";
-    JsonObject data = doc["data"].to<JsonObject>();
-    data["isSoundEnabled"] = GoalFinderApp::GetInstance()->IsSoundEnabled();
-    data["isDetecting"] = false;
-
-    Settings* settings = Settings::GetInstance();
-    GamePreset (*presets)[Settings::PRESETS_PER_MODE] = settings->GetGamePresets();
-    JsonObject presetsObj = data["presets"].to<JsonObject>();
-
-    for (int m = 0; m < Settings::GAME_MODE_COUNT; m++) {
-        GameMode mode = static_cast<GameMode>(m);
-        JsonArray arr = presetsObj[ModeToKey(mode)].to<JsonArray>();
-        for (int p = 0; p < Settings::PRESETS_PER_MODE; p++) {
-            JsonObject presetObj = arr.add<JsonObject>();
-            presetObj["name"] = presets[m][p].name;
-            presetObj["rounds"] = presets[m][p].rounds;
-            presetObj["timePerTurn"] = presets[m][p].timePerTurn;
-        }
-    }
-
-    PlayerSet* playerSets = settings->GetPlayerSets();
-    JsonArray playerSetsArr = data["playerSets"].to<JsonArray>();
-    for (int i = 0; i < Settings::PLAYER_SET_COUNT; i++) {
-        JsonObject setObj = playerSetsArr.add<JsonObject>();
-        setObj["name"] = playerSets[i].name;
-        JsonArray playersArr = setObj["players"].to<JsonArray>();
-        for (int j = 0; j < Settings::PLAYERS_PER_SET; j++) {
-            if (playerSets[i].players[j][0] != '\0') {
-                playersArr.add(playerSets[i].players[j]);
-            }
-        }
-    }
-
-    SendJson(clientId, doc);
+    Logger::Log("WebSocket", Logger::LogLevel::WARN, "get_game deprecated: use game_get");
+    HandleGetGameSession(clientId);
 }
 
 void GFWebSocket::HandleSetGame(uint8_t clientId, JsonDocument& doc) {
@@ -668,18 +640,164 @@ void GFWebSocket::SendWebLog(String message) {
 
 void GFWebSocket::HandleStart(uint8_t clientId) {
     GoalFinderApp::GetInstance()->SetIsSoundEnabled(true);
+    GoalFinderApp::GetInstance()->SetIsDetecting(true);
     JsonDocument doc;
     doc["type"] = "started";
     SendJson(clientId, doc);
-    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Detection started");
+    Logger::Log("WebSocket", Logger::LogLevel::WARN, "Detection started (deprecated: use game_set)");
 }
 
 void GFWebSocket::HandleStop(uint8_t clientId) {
     GoalFinderApp::GetInstance()->SetIsSoundEnabled(false);
+    GoalFinderApp::GetInstance()->SetIsDetecting(false);
     JsonDocument doc;
     doc["type"] = "stopped";
     SendJson(clientId, doc);
-    Logger::Log("WebSocket", Logger::LogLevel::INFO, "Detection stopped");
+    Logger::Log("WebSocket", Logger::LogLevel::WARN, "Detection stopped (deprecated: use game_set)");
+}
+
+void GFWebSocket::HandleSetGameSession(uint8_t clientId, JsonDocument& doc) {
+    JsonDocument response;
+    response["type"] = "game_ack";
+    response["success"] = false;
+
+    if (doc["data"].isNull()) {
+        response["error"] = "missing_data";
+        SendJson(clientId, response);
+        return;
+    }
+
+    JsonObject data = doc["data"];
+    const char* action = data["action"];
+
+    if (!action) {
+        response["error"] = "missing_action";
+        SendJson(clientId, response);
+        return;
+    }
+
+    if (strcmp(action, "start") == 0) {
+        if (!data["mode"].is<const char*>() ||
+            !data["presetIndex"].is<uint8_t>() ||
+            !data["playerSetIndex"].is<uint8_t>()) {
+            response["error"] = "invalid_parameters";
+            SendJson(clientId, response);
+            return;
+        }
+
+        GameMode mode = KeyToMode(data["mode"]);
+        uint8_t presetIndex = data["presetIndex"];
+        uint8_t playerSetIndex = data["playerSetIndex"];
+
+        if (presetIndex >= Settings::PRESETS_PER_MODE ||
+            playerSetIndex >= Settings::PLAYER_SET_COUNT) {
+            response["error"] = "out_of_range";
+            SendJson(clientId, response);
+            return;
+        }
+
+        GameManager::GetInstance()->StartGame(mode, presetIndex, playerSetIndex);
+        response["success"] = true;
+    } else if (strcmp(action, "stop") == 0) {
+        GameManager::GetInstance()->StopGame();
+        response["success"] = true;
+    } else {
+        response["error"] = "invalid_action";
+    }
+
+    SendJson(clientId, response);
+
+    if (response["success"].as<bool>()) {
+        BroadcastGameState();
+    }
+}
+
+void GFWebSocket::HandleGetGameSession(uint8_t clientId) {
+    JsonDocument doc;
+    doc["type"] = "game_state";
+    JsonObject data = doc["data"].to<JsonObject>();
+
+    GameSession* session = GameManager::GetInstance()->GetSession();
+    Settings* settings = Settings::GetInstance();
+
+    data["isRunning"] = session->isRunning;
+    data["mode"] = ModeToKey(session->mode);
+    data["presetIndex"] = session->activePresetIndex;
+    data["playerSetIndex"] = session->activePlayerSetIndex;
+    data["currentPlayer"] = session->currentPlayerIndex;
+    data["playerCount"] = session->playerCount;
+    data["timer"] = session->timer;
+    data["timePerTurn"] = session->timePerTurn;
+    data["currentRound"] = session->currentRound;
+    data["maxRounds"] = session->maxRounds;
+
+    JsonArray playersArr = data["players"].to<JsonArray>();
+    PlayerSet* playerSets = settings->GetPlayerSets();
+    for (int i = 0; i < session->playerCount; i++) {
+        JsonObject playerObj = playersArr.add<JsonObject>();
+        playerObj["name"] = playerSets[session->activePlayerSetIndex].players[i];
+        playerObj["hits"] = session->entries[i].hit;
+        playerObj["misses"] = session->entries[i].miss;
+    }
+
+    GamePreset (*presets)[Settings::PRESETS_PER_MODE] = settings->GetGamePresets();
+    JsonObject presetsObj = data["presets"].to<JsonObject>();
+    for (int m = 0; m < Settings::GAME_MODE_COUNT; m++) {
+        GameMode mode = static_cast<GameMode>(m);
+        JsonArray arr = presetsObj[ModeToKey(mode)].to<JsonArray>();
+        for (int p = 0; p < Settings::PRESETS_PER_MODE; p++) {
+            JsonObject presetObj = arr.add<JsonObject>();
+            presetObj["name"] = presets[m][p].name;
+            presetObj["rounds"] = presets[m][p].rounds;
+            presetObj["timePerTurn"] = presets[m][p].timePerTurn;
+        }
+    }
+
+    PlayerSet* allPlayerSets = settings->GetPlayerSets();
+    JsonArray playerSetsArr = data["playerSets"].to<JsonArray>();
+    for (int i = 0; i < Settings::PLAYER_SET_COUNT; i++) {
+        JsonObject setObj = playerSetsArr.add<JsonObject>();
+        setObj["name"] = allPlayerSets[i].name;
+        JsonArray psArr = setObj["players"].to<JsonArray>();
+        for (int j = 0; j < Settings::PLAYERS_PER_SET; j++) {
+            if (allPlayerSets[i].players[j][0] != '\0') {
+                psArr.add(allPlayerSets[i].players[j]);
+            }
+        }
+    }
+
+    SendJson(clientId, doc);
+}
+
+void GFWebSocket::BroadcastGameState() {
+    JsonDocument doc;
+    doc["type"] = "game_state";
+    JsonObject data = doc["data"].to<JsonObject>();
+
+    GameSession* session = GameManager::GetInstance()->GetSession();
+    Settings* settings = Settings::GetInstance();
+
+    data["isRunning"] = session->isRunning;
+    data["mode"] = ModeToKey(session->mode);
+    data["presetIndex"] = session->activePresetIndex;
+    data["playerSetIndex"] = session->activePlayerSetIndex;
+    data["currentPlayer"] = session->currentPlayerIndex;
+    data["playerCount"] = session->playerCount;
+    data["timer"] = session->timer;
+    data["timePerTurn"] = session->timePerTurn;
+    data["currentRound"] = session->currentRound;
+    data["maxRounds"] = session->maxRounds;
+
+    JsonArray playersArr = data["players"].to<JsonArray>();
+    PlayerSet* playerSets = settings->GetPlayerSets();
+    for (int i = 0; i < session->playerCount; i++) {
+        JsonObject playerObj = playersArr.add<JsonObject>();
+        playerObj["name"] = playerSets[session->activePlayerSetIndex].players[i];
+        playerObj["hits"] = session->entries[i].hit;
+        playerObj["misses"] = session->entries[i].miss;
+    }
+
+    SendJsonToAll(doc);
 }
 
 void GFWebSocket::HandleRestart(uint8_t clientId) {
@@ -850,12 +968,14 @@ bool GFWebSocket::CheckPermission(SourceType source, const char* messageType) co
 
     if (strcmp(messageType, "get_settings") == 0 ||
         strcmp(messageType, "get_game") == 0 ||
+        strcmp(messageType, "game_get") == 0 ||
         strcmp(messageType, "is_auth") == 0 ||
         strcmp(messageType, "auth") == 0 ||
         strcmp(messageType, "ping") == 0) {
         allowed = true;
     } else if (strcmp(messageType, "set_settings") == 0 ||
                strcmp(messageType, "set_game") == 0 ||
+               strcmp(messageType, "game_set") == 0 ||
                strcmp(messageType, "set_web_logging") == 0 ||
                strcmp(messageType, "identify") == 0 ||
                strcmp(messageType, "start") == 0 ||
