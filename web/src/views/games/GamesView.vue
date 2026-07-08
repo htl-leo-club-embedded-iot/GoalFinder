@@ -18,10 +18,11 @@
 import Button from "@/components/Button.vue";
 import Page from "@/components/Page.vue";
 import Card from "@/components/Card.vue";
+import Container from "@/components/Container.vue";
 </script>
 
 <template>
-  <Page :title="$t('header.games')">
+  <Container :title="$t('header.games')">
     <p>{{ $t("description.gameModes_description") }}</p>
 
     <div id="card-container" class="game-card">
@@ -59,7 +60,7 @@ import Card from "@/components/Card.vue";
         </div>
       </Card>
     </div>
-  </Page>
+  </Container>
 </template>
 
 <style>
