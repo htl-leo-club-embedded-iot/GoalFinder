@@ -1,70 +1,43 @@
-/*
- * ===============================================================================
- * (c) HTBLA Leonding 2024 - 2026
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * Licensed under MIT License.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the license.
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * All trademarks used in this document are property of their respective owners.
- * ===============================================================================
- */
-
 <script setup lang="ts">
-import Button from "@/components/Button.vue";
-import Page from "@/components/Page.vue";
-import Card from "@/components/Card.vue";
 import Container from "@/components/Container.vue";
+import GameCard from "@/views/games/components/GameCard.vue";
 </script>
 
 <template>
   <Container :title="$t('header.games')">
     <p>{{ $t("description.gameModes_description") }}</p>
 
-    <div id="card-container" class="game-card">
-      <Card class="quick-link">
-        <div>
-          <h2>{{ $t("games.shot_challenge") }}</h2>
-          <p class="game-description">{{ $t("games.shot_challenge_desc") }}</p>
-          <RouterLink to="/games/shot-challenge">
-            <Button primary>{{ $t("word.open") }}</Button>
-          </RouterLink>
-        </div>
-      </Card>
+    <div id="card-container" class="card-list">
+      <GameCard
+        title="games.shot_challenge"
+        description="games.shot_challenge_desc"
+        to="/games/shot-challenge"
+        game-name="shot-challenge"
+      />
     </div>
 
-    <div id="timed-shots-challenge" class="game-card">
-      <Card class="quick-link">
-        <div>
-          <h2>{{ $t("games.timed_shots_challenge") }}</h2>
-          <p class="game-description">{{ $t("games.timed_shots_challenge_desc") }}</p>
-          <RouterLink to="/games/timed-shots-challenge">
-            <Button primary>{{ $t("word.open") }}</Button>
-          </RouterLink>
-        </div>
-      </Card>
+    <div class="card-list">
+      <GameCard
+        title="games.timed_shots_challenge"
+        description="games.timed_shots_challenge_desc"
+        to="/games/timed-shots-challenge"
+        game-name="timed-shots-challenge"
+      />
     </div>
 
-    <div id="free-play" class="game-card">
-      <Card class="quick-link">
-        <div>
-          <h2>{{ $t("games.free_play") }}</h2>
-          <p class="game-description">{{ $t("games.free_play_desc") }}</p>
-          <RouterLink to="/games/free-play">
-            <Button primary>{{ $t("word.open") }}</Button>
-          </RouterLink>
-        </div>
-      </Card>
+    <div class="card-list">
+      <GameCard
+        title="games.free_play"
+        description="games.free_play_desc"
+        to="/games/free-play"
+        game-name="free-play"
+      />
     </div>
   </Container>
 </template>
 
 <style>
-.game-card {
+.card-list {
   margin-top: 0.5rem;
   padding: 0 1rem;
   display: flex;
@@ -72,29 +45,8 @@ import Container from "@/components/Container.vue";
   align-items: center;
 }
 
-.quick-link {
-  width: 100%;
-  max-width: 400px;
-}
-
-.quick-link h2 {
-  text-align: center;
-  margin: 0;
-}
-
-.quick-link > div {
-  margin: 0.5rem;
-  text-align: center;
-}
-
 p {
   text-align: center;
   margin-bottom: 1rem;
-}
-
-.game-description {
-  margin: 0.5rem 0 1rem 0;
-  font-size: 0.95rem;
-  line-height: 1.4;
 }
 </style>
