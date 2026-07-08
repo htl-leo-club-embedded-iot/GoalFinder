@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { RouterLink } from "vue-router"
 import StarIcon from "@/components/icons/StarIcon.vue"
 import { useFavouritesStore } from "@/stores/favourites"
@@ -9,13 +9,61 @@ const props = defineProps<{
   description: string
   to: string
   gameName: string
+  dragMode: boolean
 }>()
 
 const favouritesStore = useFavouritesStore()
 const isFavourite = computed(() => favouritesStore.isFavourite(props.gameName))
 
+let dragEnterCount = 0
+const isDragOver = ref(false)
+const isDragging = ref(false)
+
 function toggleFavourite(): void {
   favouritesStore.toggleFavourite(props.gameName)
+}
+
+function onDragStart(event: DragEvent): void {
+  isDragging.value = true
+  if (event.dataTransfer) {
+    event.dataTransfer.setData("text/plain", props.gameName)
+    event.dataTransfer.effectAllowed = "move"
+  }
+}
+
+function onDragOver(event: DragEvent): void {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move"
+  }
+}
+
+function onDragEnter(_event: DragEvent): void {
+  dragEnterCount++
+  isDragOver.value = true
+}
+
+function onDragLeave(_event: DragEvent): void {
+  dragEnterCount--
+  if (dragEnterCount === 0) {
+    isDragOver.value = false
+  }
+}
+
+function onDrop(event: DragEvent): void {
+  event.preventDefault()
+  isDragOver.value = false
+  dragEnterCount = 0
+  const draggedName = event.dataTransfer?.getData("text/plain")
+  if (draggedName && draggedName !== props.gameName) {
+    favouritesStore.moveBefore(draggedName, props.gameName)
+  }
+}
+
+function onDragEnd(): void {
+  isDragging.value = false
+  isDragOver.value = false
+  dragEnterCount = 0
 }
 </script>
 
@@ -23,11 +71,22 @@ function toggleFavourite(): void {
   <RouterLink v-slot="{ navigate }" :to="to" custom>
     <div
       class="game-card"
-      :class="{ favourited: isFavourite }"
+      :class="{
+        favourited: isFavourite,
+        dragging: isDragging,
+        'drag-over': isDragOver
+      }"
+      :draggable="dragMode"
       role="button"
       tabindex="0"
-      @click="() => navigate()"
-      @keydown.enter="() => navigate()"
+      @click="() => { if (!dragMode) navigate() }"
+      @keydown.enter="() => { if (!dragMode) navigate() }"
+      @dragstart="onDragStart"
+      @dragover="onDragOver"
+      @dragenter="onDragEnter"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
+      @dragend="onDragEnd"
     >
       <div class="star-wrapper" @click.stop="toggleFavourite">
         <div class="favourite-btn" :class="{ favourited: isFavourite }">
@@ -53,7 +112,23 @@ function toggleFavourite(): void {
   background: var(--card-background-color);
   cursor: pointer;
   margin-top: 0.5rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, opacity 0.15s;
+}
+
+.game-card[draggable="true"] {
+  cursor: grab;
+}
+
+.game-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.game-card.dragging {
+  opacity: 0.5;
+}
+
+.game-card.drag-over {
+  opacity: 0.4;
 }
 
 .star-wrapper {
