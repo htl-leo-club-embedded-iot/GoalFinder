@@ -1,0 +1,6 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "VL53L8CXV0GC")(type "KiCad")(uri "${KIPRJMOD}/VL53L8CXV0GC.pretty")(options "")(descr ""))
+  (lib (name "Library")(type "KiCad")(uri "${KIPRJMOD}/VL53L8CXV0GC.pretty/Library.pretty")(options "")(descr ""))
+  (lib (name "SN74AVC8T245RHLR")(type "KiCad")(uri "${KIPRJMOD}/VL53L8CXV0GC.pretty/SN74AVC8T245RHLR.pretty")(options "")(descr ""))
+)
