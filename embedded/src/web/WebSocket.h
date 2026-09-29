@@ -50,6 +50,9 @@ public:
     /** Send a miss event to all connected clients */
     void SendMissEvent();
 
+    /** Broadcast the current game state to all connected clients */
+    void BroadcastGameState();
+
     /** Send a websocket relaid log message */
     void SendWebLog(String message);
 
@@ -109,10 +112,6 @@ private:
     // Message handlers
     void HandleGetSettings(uint8_t clientId);
     void HandleSetSetting(uint8_t clientId, JsonDocument& doc);
-    void HandleGetGame(uint8_t clientId);
-    void HandleSetGame(uint8_t clientId, JsonDocument& doc);
-    void HandleStart(uint8_t clientId);
-    void HandleStop(uint8_t clientId);
     void HandleRestart(uint8_t clientId);
     void HandleFactoryReset(uint8_t clientId);
     void HandleAuth(uint8_t clientId, JsonDocument& doc);
@@ -122,7 +121,8 @@ private:
     void HandleIdentify(uint8_t clientId, JsonDocument& doc);
     void HandleSetGameSession(uint8_t clientId, JsonDocument& doc);
     void HandleGetGameSession(uint8_t clientId);
-    void BroadcastGameState();
+    bool SaveGamePresets(JsonObject data);
+    bool SavePlayerSets(JsonObject data);
 };
 
 #endif
